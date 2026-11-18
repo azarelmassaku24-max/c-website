@@ -1,0 +1,217 @@
+#! lesson
+id: L08-05
+titel: Dot-notatie, namespaces en using
+samenvatting: Wat de punt in Console.WriteLine betekent en hoe using je code korter maakt — met een kassaticket als eindopdracht.
+skills: documentatie, afronden
+bron: Deel 12 – 4. Dot notatie, using en namespaces · D12kortingplusbtw
+duur: 30
+
+#! begrijpen
+## Dot-notatie (Deel 12 §4.1)
+
+De punt (*dot*) betekent telkens "het onderdeel van":
+
+| Expressie | Lees als |
+|---|---|
+| `System.Console.WriteLine` | de method `WriteLine` van de klasse `Console` in de namespace `System` |
+| `tekst.Length` | de property `Length` van de string in `tekst` |
+| `datum.AddDays(1)` | de method `AddDays` van de DateTime in `datum` |
+| `ConsoleColor.Red` | de waarde `Red` van de enum `ConsoleColor` |
+
+Links van de punt staat dus een **namespace**, een **klasse/type** of een **waarde** (object); rechts het onderdeel.
+
+## Namespaces en using (§4.2)
+
+Elke klasse van .NET zit in een namespace: `Console` en `Math` in `System`, `StreamReader` in `System.IO`, `List<T>` in `System.Collections.Generic`. De **fully qualified name** is `System.IO.StreamReader`.
+
+Met een **using-directive** bovenaan je bestand hoef je de namespace niet telkens te herhalen:
+
+```csharp norun
+using System.IO;
+...
+StreamReader reader = new StreamReader("data.txt");   // i.p.v. System.IO.StreamReader
+```
+
+- `using` importeert enkel de namespace zelf, **niet** de subnamespaces: `using System;` maakt `System.IO` niet automatisch beschikbaar.
+- Moderne projecten (en C# Quest) hebben **impliciete usings** voor de meest gebruikte namespaces (`System`, `System.IO`, `System.Collections.Generic`, `System.Linq`, `System.Threading`). Daarom compileert je code soms ook zonder using-regel.
+
+Zie je fout CS0246 (*het type of de namespace is onbekend*), dan ontbreekt meestal een using of staat er een tikfout in de naam.
+
+#! voorbeeld
+## Met en zonder using
+
+```csharp
+class Program {
+    static void Main() {
+        System.Console.WriteLine(System.Math.Round(2.567, 2));
+        System.DateTime datum = new System.DateTime(2026, 11, 16);
+        System.Console.WriteLine(datum.DayOfWeek);
+    }
+}
+```
+
+Met `using System;` bovenaan wordt dit `Console.WriteLine(Math.Round(2.567, 2));` — korter en leesbaarder.
+
+#! voorspel id=v1 type=choice
+In `datum.AddDays(3).Year` — wat staat er links van `.Year`?
+- de klasse DateTime
+- de namespace System
++ een nieuwe DateTime-waarde (het resultaat van AddDays)
+- een TimeSpan
+? `AddDays(3)` geeft een nieuwe DateTime terug; daarvan vraag je de property Year op. Je kan zo methods en properties "ketenen".
+
+#! voorspel id=v2 type=choice
+Je schrijft `using System;` maar gebruikt `File.ReadAllText(...)` zonder andere using, in een project zonder impliciete usings. Wat gebeurt er?
+- Het werkt, want System.IO zit in System
++ Compileerfout: File is onbekend (System.IO is een aparte namespace)
+- Runtimefout
+- File wordt automatisch gevonden
+? using importeert geen subnamespaces. File zit in System.IO.
+
+#! oefening id=L08-05-a rol=oefenen moeilijkheid=1 xp=50 titel="Fully qualified names"
+Dit programma gebruikt `using System;`. Herschrijf het **zonder enige using-regel**, door overal de fully qualified names te gebruiken. De output blijft:
+
+```text
+Vandaag is het Monday.
+Afgerond: 3,14
+```
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            DateTime datum = new DateTime(2026, 11, 16);
+            Console.WriteLine($"Vandaag is het {datum.DayOfWeek}.");
+            Console.WriteLine($"Afgerond: {Math.Round(Math.PI, 2)}");
+        }
+    }
+}
+
+#! hint
+Welke klassen uit `System` worden gebruikt? Er zijn er drie.
+
+#! hint
+`DateTime`, `Console` en `Math` worden `System.DateTime`, `System.Console` en `System.Math`.
+
+#! hint
+Verwijder de regel `using System;` en zet `System.` voor elk van die drie klassennamen (ook bij `new DateTime`).
+
+#! oplossing
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            System.DateTime datum = new System.DateTime(2026, 11, 16);
+            System.Console.WriteLine($"Vandaag is het {datum.DayOfWeek}.");
+            System.Console.WriteLine($"Afgerond: {System.Math.Round(System.Math.PI, 2)}");
+        }
+    }
+}
+
+#! uitleg
+- Zonder using moet je de namespace telkens vermelden. Dat werkt, maar is langer: daarom bestaan using-directives.
+- `datum.DayOfWeek` hoeft niet aangepast te worden: links van de punt staat een variabele, geen klasse.
+
+#! regel type=no-regex doel="using\s+System" bericht="Gebruik geen using-regels"
+#! regel type=regex doel="System\.Console\.WriteLine" bericht="Gebruik System.Console.WriteLine"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+Vandaag is het Monday.
+Afgerond: 3,14
+
+#! oefening id=L08-05-m rol=meesterschap moeilijkheid=4 xp=130 titel="Kassaticket met korting en btw" bron="D12kortingplusbtw"
+Schrijf een programma dat vraagt om een prijs excl. btw, een kortingspercentage en een btw-percentage. Het toont de bedragen excl. btw, korting, btw en incl. btw. De **btw wordt berekend nadat de korting al is afgetrokken**. Rond elk bedrag af op 2 cijfers met `MidpointRounding.AwayFromZero` en toon de bedragen **rechts uitgelijnd** op 9 posities (zoals op een kassaticket). Gebruik decimal.
+
+```text
+Geef een bedrag excl. BTW : 123,45
+Geef de korting (in %) : 10,25
+Geef het BTW-tarief (in %) : 21
+excl. BTW :    123,45
+korting   :     12,65
+BTW       :     23,27
+incl. BTW :    134,07
+```
+
+> [!LET OP]
+> Kom je voor incl. btw op 134,06 uit, dan klopt er iets niet! Denk na over **wanneer** je afrondt.
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De korting is 10,25% van 123,45 = 12,653625 → afgerond 12,65. De btw wordt berekend op het bedrag ná korting.
+
+#! hint
+Rond de korting af vóór je verder rekent: `korting = Math.Round(prijs * kortingPct / 100, 2, MidpointRounding.AwayFromZero);`. Bereken dan de btw op `prijs - korting` en rond die ook af.
+
+#! hint
+Incl. btw = (prijs − korting) + btw. Uitlijnen: `{bedrag,9:f2}`.
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een bedrag excl. BTW : ");
+            decimal prijs = decimal.Parse(Console.ReadLine());
+            Console.Write("Geef de korting (in %) : ");
+            decimal kortingPercentage = decimal.Parse(Console.ReadLine());
+            Console.Write("Geef het BTW-tarief (in %) : ");
+            decimal btwPercentage = decimal.Parse(Console.ReadLine());
+
+            decimal korting = Afronden(prijs * kortingPercentage / 100);
+            decimal naKorting = prijs - korting;
+            decimal btw = Afronden(naKorting * btwPercentage / 100);
+            decimal inclusief = naKorting + btw;
+
+            Console.WriteLine($"excl. BTW : {prijs,9:f2}");
+            Console.WriteLine($"korting   : {korting,9:f2}");
+            Console.WriteLine($"BTW       : {btw,9:f2}");
+            Console.WriteLine($"incl. BTW : {inclusief,9:f2}");
+        }
+
+        static decimal Afronden(decimal bedrag) {
+            return Math.Round(bedrag, 2, MidpointRounding.AwayFromZero);
+        }
+    }
+}
+
+#! uitleg
+- De tussenresultaten (korting, btw) worden afgerond **voor** ze verder gebruikt worden: zo kloppen de bedragen op het ticket met elkaar (123,45 − 12,65 + 23,27 = 134,07).
+- Rond je pas helemaal op het einde af, dan kom je op 134,06 en tellen de getoonde bedragen niet op tot het totaal.
+- `{bedrag,9:f2}`: 9 posities breed, 2 cijfers na de komma (Deel 07).
+- Een kleine method `Afronden` vermijdt dat je de lange Math.Round-aanroep herhaalt.
+
+#! regel type=regex doel="MidpointRounding\.AwayFromZero" bericht="Rond af met MidpointRounding.AwayFromZero"
+#! regel type=regex doel=",\s*9\s*:\s*[fF]2" bericht="Lijn de bedragen rechts uit op 9 posities met :f2"
+
+#! test naam="Voorbeeld uit de cursus" mode=exact
+#! invoer
+123,45
+10,25
+21
+#! verwacht
+Geef een bedrag excl. BTW : 123,45
+Geef de korting (in %) : 10,25
+Geef het BTW-tarief (in %) : 21
+excl. BTW :    123,45
+korting   :     12,65
+BTW       :     23,27
+incl. BTW :    134,07
+
+#! test naam="Zonder korting" referentie=ja mode=exact
+#! invoer
+99,99
+0
+6

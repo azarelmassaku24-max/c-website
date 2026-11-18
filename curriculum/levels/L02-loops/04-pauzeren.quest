@@ -1,0 +1,284 @@
+#! lesson
+id: L02-04
+titel: Pauzeren, scherm wissen en Visual Studio-tips
+samenvatting: Thread.Sleep, Console.Clear en code in commentaar zetten — met de Twister-opdrachtgenerator.
+skills: pauzeren, for
+bron: Deel 06 – 1. Visual Studio tips & tricks, 2. De uitvoering pauzeren, 3. Het console scherm wissen
+duur: 25
+
+#! begrijpen
+## De uitvoering pauzeren
+
+Met deze opdracht wacht je programma een aantal **milliseconden**:
+
+```csharp norun
+System.Threading.Thread.Sleep(3000);   // 3 seconden wachten
+```
+
+Met `using System.Threading;` bovenaan mag je ook kort `Thread.Sleep(3000);` schrijven.
+
+## Het console scherm wissen
+
+```csharp norun
+Console.Clear();
+```
+
+Alle tekst op het scherm verdwijnt en de cursor staat weer linksboven. Samen met `Sleep` kan je zo "animaties" en spelletjes maken: toon iets, wacht, wis, toon iets anders.
+
+> [!NOTE]
+> Tijdens de **automatische tests** van C# Quest wordt `Thread.Sleep` overgeslagen (anders duren de tests te lang) en wordt `Console.Clear()` getoond als `[scherm gewist]`. Wanneer je zelf op **Uitvoeren** klikt, wacht en wist je programma echt.
+
+## Een oneindige loop
+
+Sommige programma's stoppen nooit vanzelf, bv. een generator die blijft draaien tot de gebruiker hem afsluit:
+
+```csharp norun
+while (true) {
+    ...
+}
+```
+
+In Visual Studio stop je zo'n programma via **Debug > Stop Debugging** (het rode vierkantje). In C# Quest gebruik je de knop **Stop**.
+
+## Visual Studio tip: code in/uit commentaar (Deel 06 §1)
+
+Wil je tijdelijk enkele regels uitschakelen, bv. om invoer niet steeds opnieuw te moeten typen:
+
+- in commentaar: **Ctrl+K, Ctrl+C** (Edit > Advanced > Comment Selection);
+- uit commentaar: **Ctrl+K, Ctrl+U**.
+
+Een handige truc uit de cursus: zet de invoercode in commentaar en geef de variabelen tijdelijk vaste waarden (`int score1 = 7;`). Zo test je snel je if/else-logica.
+
+#! voorbeeld
+## Aftellen
+
+Klik op **Uitvoeren** (niet in de tests!) om het echte effect te zien: het scherm wordt telkens gewist en het programma wacht een seconde.
+
+```csharp
+for (int i = 3; i >= 1; i--) {
+    Console.Clear();
+    Console.WriteLine($"Start over {i}...");
+    System.Threading.Thread.Sleep(1000);
+}
+Console.Clear();
+Console.WriteLine("GO!");
+```
+
+#! voorspel id=v1 type=choice
+Wat doet `System.Threading.Thread.Sleep(500);`?
+- Het programma wacht 500 seconden
++ Het programma wacht een halve seconde
+- Het scherm wordt na 500 ms gewist
+- Het programma stopt
+? Sleep verwacht milliseconden: 500 ms = 0,5 seconde.
+
+#! voorspel id=v2 type=choice
+Wat ziet de gebruiker na deze code?
+```csharp norun
+Console.WriteLine("Hallo");
+Console.Clear();
+Console.WriteLine("Wereld");
+```
+- Hallo en Wereld
++ Enkel Wereld
+- Enkel Hallo
+- Niets
+? Console.Clear wist alles wat er al stond. Daarna wordt "Wereld" geschreven op het lege scherm.
+
+#! oefening id=L02-04-a rol=oefenen moeilijkheid=2 xp=60 titel="Aftellen tot de lancering"
+Schrijf een programma dat vraagt vanaf welk getal afgeteld moet worden en dan aftelt tot 1. Elke seconde wordt het scherm gewist en het volgende getal getoond. Op het einde verschijnt `Lancering!`.
+
+```text
+Aftellen vanaf? 3
+[scherm gewist]
+3
+[scherm gewist]
+2
+[scherm gewist]
+1
+[scherm gewist]
+Lancering!
+```
+
+(`[scherm gewist]` is hoe de tests een `Console.Clear()` weergeven.)
+
+Gebruik een **for loop** met een dalende teller, `Console.Clear()` en `Thread.Sleep(1000)`.
+
+#! starter
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De teller daalt: welke beginwaarde, welke voorwaarde en welke aanpassing heeft je for loop?
+
+#! hint
+`for (int i = start; i >= 1; i--)`. In de loop body: wis, toon `i`, wacht.
+
+#! hint
+Na de loop: nog één keer `Console.Clear();` en dan `Console.WriteLine("Lancering!");`.
+
+#! oplossing
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Aftellen vanaf? ");
+            int start = int.Parse(Console.ReadLine());
+            for (int i = start; i >= 1; i--) {
+                Console.Clear();
+                Console.WriteLine(i);
+                Thread.Sleep(1000);
+            }
+            Console.Clear();
+            Console.WriteLine("Lancering!");
+        }
+    }
+}
+
+#! uitleg
+- Een dalende for loop: beginwaarde = start, voorwaarde `>= 1`, stapgrootte `-1`.
+- `Console.Clear()` vóór elk getal zorgt dat er telkens maar één getal op het scherm staat.
+- Dankzij `using System.Threading;` kan je kort `Thread.Sleep` schrijven.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop"
+#! regel type=uses doel=Clear bericht="Wis het scherm met Console.Clear()"
+#! regel type=uses doel=Sleep bericht="Wacht met Thread.Sleep(1000)"
+
+#! test naam="Aftellen vanaf 3"
+#! invoer
+3
+#! verwacht
+Aftellen vanaf? 3
+[scherm gewist]
+3
+[scherm gewist]
+2
+[scherm gewist]
+1
+[scherm gewist]
+Lancering!
+
+#! test naam="Aftellen vanaf 5" referentie=ja
+#! invoer
+5
+
+#! oefening id=L02-04-m rol=meesterschap moeilijkheid=3 xp=100 titel="Twister-opdrachtgenerator" bron="D06twister" interactief=ja
+Je krijgt het spel **Twister** cadeau, maar met z'n tweetjes spelen is niet handig: er moet iemand aan de pijl draaien. Je schrijft een programma dat de opdrachten genereert!
+
+Elke opdracht combineert een **lichaamsdeel** en een **kleur**:
+
+- lichaamsdeel: `linkerhand`, `rechterhand`, `linkervoet`, `rechtervoet`
+- kleur: `rood`, `groen`, `blauw`, `geel`
+
+In de cursus blijft het programma oneindig lang opdrachten geven. Om te kunnen testen vraagt onze versie eerst **hoeveel** opdrachten er moeten komen:
+
+```text
+Hoeveel opdrachten? 3
+Het spel start over 3 seconden...
+rechtervoet op blauw
+linkerhand op blauw
+linkerhand op rood
+```
+
+- Na de mededeling wacht het programma 3 seconden, tussen de opdrachten telkens 7 seconden.
+- Kies **eerst** het lichaamsdeel met `rnd.Next(0, 4)` (0 = linkerhand, 1 = rechterhand, 2 = linkervoet, 3 = rechtervoet), **daarna** de kleur met `rnd.Next(0, 4)` (0 = rood, 1 = groen, 2 = blauw, 3 = geel).
+
+Klik daarna eens op **Uitvoeren** om echt te spelen!
+
+#! starter
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+
+        }
+    }
+}
+
+#! hint
+Je kent het aantal opdrachten vooraf → welke loop? In elke iteratie kies je twee random getallen en zet je ze om naar woorden.
+
+#! hint
+Zet een getal om naar een woord met een `if … else if … else`: `if (lichaamsdeelNummer == 0) { lichaamsdeel = "linkerhand"; } else if …`. Doe hetzelfde voor de kleur.
+
+#! hint
+Volgorde in de loop body: lichaamsdeelnummer kiezen → woord bepalen → kleurnummer kiezen → woord bepalen → `$"{lichaamsdeel} op {kleur}"` tonen → `Thread.Sleep(7000)`.
+
+#! oplossing
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            Console.Write("Hoeveel opdrachten? ");
+            int aantal = int.Parse(Console.ReadLine());
+            Console.WriteLine("Het spel start over 3 seconden...");
+            Thread.Sleep(3000);
+
+            for (int i = 0; i < aantal; i++) {
+                int lichaamsdeelNummer = rnd.Next(0, 4);
+                string lichaamsdeel;
+                if (lichaamsdeelNummer == 0) {
+                    lichaamsdeel = "linkerhand";
+                } else if (lichaamsdeelNummer == 1) {
+                    lichaamsdeel = "rechterhand";
+                } else if (lichaamsdeelNummer == 2) {
+                    lichaamsdeel = "linkervoet";
+                } else {
+                    lichaamsdeel = "rechtervoet";
+                }
+
+                int kleurNummer = rnd.Next(0, 4);
+                string kleur;
+                if (kleurNummer == 0) {
+                    kleur = "rood";
+                } else if (kleurNummer == 1) {
+                    kleur = "groen";
+                } else if (kleurNummer == 2) {
+                    kleur = "blauw";
+                } else {
+                    kleur = "geel";
+                }
+
+                Console.WriteLine($"{lichaamsdeel} op {kleur}");
+                Thread.Sleep(7000);
+            }
+        }
+    }
+}
+
+#! uitleg
+- Dit is de oplossing van de cursus (D06twister), met een for loop in plaats van `while (true)` zodat het programma testbaar eindigt.
+- Een getal omzetten naar tekst met if/else if is wat omslachtig. In **Level 4** leer je arrays: dan wordt dit één regel, `string[] kleuren = { "rood", "groen", "blauw", "geel" };`.
+- De twee `if`-blokken lijken sterk op elkaar: dat ruikt naar herhaalde code. In **Level 6** (methods) los je dat elegant op.
+
+#! regel type=loop bericht="Gebruik een loop voor de opdrachten"
+#! regel type=uses doel=Sleep bericht="Pauzeer met Thread.Sleep"
+
+#! test naam="3 opdrachten (seed 2)" referentie=ja seed=2
+#! invoer
+3
+
+#! test naam="6 opdrachten (seed 8)" referentie=ja seed=8
+
+#! invoer
+6
+
+#! test naam="Geen opdrachten" referentie=ja seed=1 verborgen=ja
+#! invoer
+0

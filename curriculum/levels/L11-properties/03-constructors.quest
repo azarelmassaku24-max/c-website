@@ -1,0 +1,390 @@
+#! lesson
+id: L11-03
+titel: Constructors en immutable objecten
+samenvatting: Objecten vanaf de creatie in een geldige toestand brengen, constructors die elkaar oproepen en objecten die niet meer wijzigen.
+skills: constructors, properties
+bron: Deel 15 – Constructoren (default constructor, verplichte initialisatie, constructor chaining), Immutable objecten (D15artikel, D15artikelmetprijs, D15immutablecirkel, D15afstandtussenpunten)
+aanvulling: Opgebouwd vanuit de oefeningen en oplossingen van Deel 15; aanvullend geschreven waar nodig.
+duur: 35
+
+#! begrijpen
+## Wat is een constructor?
+
+Een **constructor** is een speciale method die uitgevoerd wordt bij `new`. Ze heeft **dezelfde naam als de klasse** en **geen return type**. Haar taak: het object in een **geldige beginsituatie** brengen.
+
+```csharp norun
+class Artikel {
+    public decimal PrijsExclusiefBtw { get; set; }
+    public decimal BtwPercentage { get; set; }
+
+    public Artikel() {            // default constructor: public en parameterloos
+        BtwPercentage = 21;
+    }
+}
+```
+
+Schrijf je zelf geen constructor, dan krijgt de klasse automatisch een lege default constructor.
+
+## Verplichte initialisatie
+
+Heeft de klasse **enkel** een constructor mét parameters, dan **moet** de klant die waarden meegeven: `new Artikel()` wordt een compileerfout.
+
+```csharp norun
+public Artikel(decimal prijsExclusiefBtw) {
+    PrijsExclusiefBtw = prijsExclusiefBtw;
+    BtwPercentage = 21;
+}
+```
+
+## Meerdere constructors en constructor chaining
+
+Een klasse mag meerdere constructors hebben (met verschillende parameters). Om herhaling te vermijden laat je ze elkaar oproepen met `: this(...)`:
+
+```csharp norun
+public Artikel(decimal prijsExclusiefBtw) : this(prijsExclusiefBtw, 21) { }
+
+public Artikel(decimal prijsExclusiefBtw, decimal btwPercentage) {
+    PrijsExclusiefBtw = prijsExclusiefBtw;
+    BtwPercentage = btwPercentage;
+}
+```
+
+`new Artikel(100m)` roept eerst de tweede constructor op met 21, en voert daarna de (lege) body van de eerste uit.
+
+## Immutable objecten
+
+Een object is **immutable** als zijn toestand na creatie niet meer verandert. Je bereikt dat door:
+
+1. een constructor die alle waarden instelt;
+2. properties **zonder set** (of met `private set`).
+
+```csharp norun
+class Punt {
+    public double X { get; }
+    public double Y { get; }
+
+    public Punt(double x, double y) {
+        X = x;
+        Y = y;
+    }
+}
+```
+
+`punt.X = 5;` is een compileerfout. Voordelen: een immutable object kan je veilig doorgeven (niemand verandert het onder je voeten) en het is nooit "half ingevuld".
+
+> [!NOTE]
+> Een property met enkel `{ get; }` kan je enkel in de constructor instellen. Strings en DateTime zijn zelf ook immutable.
+
+#! voorbeeld
+## Twee constructors die elkaar oproepen
+
+Gebruik de debugger met **Step Into**: je ziet de eerste constructor de tweede oproepen.
+
+```csharp
+using System;
+
+class Artikel {
+    public decimal PrijsExclusiefBtw { get; set; }
+    public decimal BtwPercentage { get; set; }
+
+    public Artikel(decimal prijs) : this(prijs, 21) { }
+
+    public Artikel(decimal prijs, decimal btw) {
+        PrijsExclusiefBtw = prijs;
+        BtwPercentage = btw;
+    }
+
+    public decimal PrijsInclusiefBtw() {
+        return PrijsExclusiefBtw * (1 + BtwPercentage / 100);
+    }
+}
+
+class Program {
+    static void Main() {
+        Artikel a = new Artikel(100M);
+        Artikel b = new Artikel(200M, 6M);
+        Console.WriteLine($"{a.PrijsInclusiefBtw()} {b.PrijsInclusiefBtw()}");
+    }
+}
+```
+
+#! voorspel id=v1 type=choice
+`class P { public P(int x) { } }` — wat gebeurt er bij `new P();`?
+- Een object met x = 0
+- Een runtimefout
++ Compileerfout: er bestaat geen constructor zonder parameters
+- Het object is null
+? Zodra je zelf een constructor schrijft, verdwijnt de automatische default constructor.
+
+#! voorspel id=v2 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Auto {
+    public string Merk { get; }
+    public int Zitplaatsen { get; }
+    public Auto(string merk) : this(merk, 5) { }
+    public Auto(string merk, int zitplaatsen) {
+        Merk = merk;
+        Zitplaatsen = zitplaatsen;
+    }
+}
+class Program {
+    static void Main() {
+        Auto a = new Auto("Fiat");
+        Auto b = new Auto("Bus", 30);
+        Console.WriteLine($"{a.Merk} {a.Zitplaatsen} {b.Merk} {b.Zitplaatsen}");
+    }
+}
+```
+? Fiat gebruikt de standaard 5 zitplaatsen via de chaining; de bus krijgt expliciet 30.
+
+#! oefening id=L11-03-a rol=oefenen moeilijkheid=3 xp=100 titel="Artikel met constructors" bron="D15artikel + D15artikelmetprijs"
+Pas de klasse `Artikel` aan (properties `PrijsExclusiefBtw` en `BtwPercentage`, get én set):
+
+- het is **verplicht** om bij creatie minstens de prijs exclusief btw op te geven;
+- `new Artikel(100m)` → btw 21%;
+- `new Artikel(200m, 6m)` → btw 6%;
+- de tweede constructor wordt door de eerste **opgeroepen** (chaining);
+- `PrijsInclusiefBtw()` geeft de prijs inclusief btw terug (decimal).
+
+De testcode toont:
+
+```text
+True
+True
+True
+True
+True
+True
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Artikel artikel1 = new Artikel(100m);
+            Console.WriteLine(artikel1.PrijsExclusiefBtw == 100m);
+            Console.WriteLine(artikel1.BtwPercentage == 21m);
+            Console.WriteLine(artikel1.PrijsInclusiefBtw() == 121m);
+            Artikel artikel2 = new Artikel(200m, 6m);
+            Console.WriteLine(artikel2.PrijsExclusiefBtw == 200m);
+            Console.WriteLine(artikel2.BtwPercentage == 6m);
+            Console.WriteLine(artikel2.PrijsInclusiefBtw() == 212m);
+        }
+    }
+}
+
+#! starter bestand=Artikel.cs
+namespace D15 {
+    class Artikel {
+
+    }
+}
+
+#! hint
+Twee constructors: één met een parameter, één met twee. Geen parameterloze constructor, dan is de prijs verplicht.
+
+#! hint
+`public Artikel(decimal prijsExclusiefBtw) : this(prijsExclusiefBtw, 21) { }` roept de tweede constructor op.
+
+#! hint
+`PrijsInclusiefBtw()`: `return PrijsExclusiefBtw * (1 + BtwPercentage / 100);`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Artikel artikel1 = new Artikel(100m);
+            Console.WriteLine(artikel1.PrijsExclusiefBtw == 100m);
+            Console.WriteLine(artikel1.BtwPercentage == 21m);
+            Console.WriteLine(artikel1.PrijsInclusiefBtw() == 121m);
+            Artikel artikel2 = new Artikel(200m, 6m);
+            Console.WriteLine(artikel2.PrijsExclusiefBtw == 200m);
+            Console.WriteLine(artikel2.BtwPercentage == 6m);
+            Console.WriteLine(artikel2.PrijsInclusiefBtw() == 212m);
+        }
+    }
+}
+
+#! oplossing bestand=Artikel.cs
+namespace D15 {
+    class Artikel {
+        public decimal PrijsExclusiefBtw { get; set; }
+        public decimal BtwPercentage { get; set; }
+
+        public Artikel(decimal prijsExclusiefBtw) : this(prijsExclusiefBtw, 21) {
+        }
+
+        public Artikel(decimal prijsExclusiefBtw, decimal btwPercentage) {
+            PrijsExclusiefBtw = prijsExclusiefBtw;
+            BtwPercentage = btwPercentage;
+        }
+
+        public decimal PrijsInclusiefBtw() {
+            return PrijsExclusiefBtw * (1 + BtwPercentage / 100);
+        }
+    }
+}
+
+#! uitleg
+- De logica staat in één constructor; de andere roept ze op: geen herhaalde code (DRY).
+- Zonder parameterloze constructor is `new Artikel()` een compileerfout: de prijs is verplicht.
+
+#! regel type=constructor doel=Artikel parameters=1 bericht="Maak een constructor met 1 parameter"
+#! regel type=constructor doel=Artikel parameters=2 bericht="Maak een constructor met 2 parameters"
+#! regel type=constructor-chain doel=Artikel bericht="Laat de ene constructor de andere oproepen met : this(...)"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+True
+True
+True
+True
+True
+True
+
+#! test naam="Waarden" soort=code
+Artikel a = new Artikel(50M);
+Check.Equal(21M, a.BtwPercentage, "standaard btw");
+a.BtwPercentage = 12M;
+Check.Equal(56M, a.PrijsInclusiefBtw(), "50 + 12%");
+
+#! oefening id=L11-03-m rol=meesterschap moeilijkheid=3 xp=120 titel="Immutable Punt en Cirkel" bron="D15afstandtussenpunten + D15immutablecirkel"
+Maak twee **immutable** klassen:
+
+- `Punt` met properties `X` en `Y` (enkel get), een constructor `Punt(double x, double y)` en een static method `GetAfstandTussen(Punt p1, Punt p2)`.
+- `Cirkel` met property `Straal` (enkel get), een constructor `Cirkel(double straal)` en methods `Omtrek()` en `Oppervlakte()`. Een negatieve straal in de constructor wordt **0**.
+
+Main toont:
+
+```text
+5
+31,42
+```
+
+(de afstand tussen (4,6) en (7,2), en de omtrek van een cirkel met straal 5).
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Punt p1 = new Punt(4, 6);
+            Punt p2 = new Punt(7, 2);
+            Console.WriteLine(Punt.GetAfstandTussen(p1, p2));
+            Cirkel c = new Cirkel(5);
+            Console.WriteLine($"{c.Omtrek():f2}");
+        }
+    }
+}
+
+#! starter bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+
+    }
+}
+
+#! starter bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+
+    }
+}
+
+#! hint
+Immutable betekent: properties met enkel `{ get; }` en alle waarden via de constructor.
+
+#! hint
+`public double X { get; }` kan je enkel in de constructor instellen: `X = x;`.
+
+#! hint
+Cirkel: `Straal = straal >= 0 ? straal : 0;` — of een gewone if.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Punt p1 = new Punt(4, 6);
+            Punt p2 = new Punt(7, 2);
+            Console.WriteLine(Punt.GetAfstandTussen(p1, p2));
+            Cirkel c = new Cirkel(5);
+            Console.WriteLine($"{c.Omtrek():f2}");
+        }
+    }
+}
+
+#! oplossing bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+        public double X { get; }
+        public double Y { get; }
+
+        public Punt(double x, double y) {
+            X = x;
+            Y = y;
+        }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! oplossing bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+        public double Straal { get; }
+
+        public Cirkel(double straal) {
+            if (straal >= 0) {
+                Straal = straal;
+            }
+        }
+
+        public double Omtrek() {
+            return 2 * Math.PI * Straal;
+        }
+
+        public double Oppervlakte() {
+            return Math.PI * Straal * Straal;
+        }
+    }
+}
+
+#! uitleg
+- Zonder set kan niemand de waarden nog wijzigen; de constructor is de enige plek waar ze ingesteld worden.
+- De controle van de straal gebeurt in de constructor: een Cirkel is dus vanaf zijn geboorte geldig en blijft dat.
+
+#! regel type=readonly-property doel=Punt.X bericht="X is enkel uitleesbaar (geen set)"
+#! regel type=readonly-property doel=Cirkel.Straal bericht="Straal is enkel uitleesbaar (geen set)"
+#! regel type=constructor doel=Punt parameters=2 bericht="Maak een constructor Punt(double x, double y)"
+
+#! test naam="Uitvoer"
+#! verwacht
+5
+31,42
+
+#! test naam="Negatieve straal wordt 0" soort=code
+Cirkel c = new Cirkel(-3);
+Check.Equal(0.0, c.Straal, "negatieve straal");
+Check.Equal(0.0, c.Oppervlakte(), "oppervlakte 0");
+Check.Equal(2.0, new Punt(1, 2).Y, "Y van (1, 2)");

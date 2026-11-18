@@ -1,0 +1,281 @@
+#! lesson
+id: L06-01
+titel: Methods definiëren en oproepen
+samenvatting: Code bundelen in een method met een naam, en die method oproepen — plus kleuren in de console.
+skills: methods
+bron: Deel 10 – 1. Kleuren in de console, 2.1–2.5 (methods, definitie, call, methodactivatie)
+duur: 30
+
+#! begrijpen
+## Kleuren in de console (Deel 10 §1)
+
+```csharp norun
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.BackgroundColor = ConsoleColor.DarkBlue;
+Console.WriteLine("Opgelet!");
+Console.ResetColor();   // terug naar de standaardkleuren
+```
+
+## Waarom methods? (§2.1–2.2)
+
+Dezelfde logica meermaals uitschrijven vermijd je met een loop — maar wat als dezelfde code op **verschillende plaatsen** in je programma nodig is? Dan maak je er een **method** van: een stuk code met een **naam** dat je kan oproepen wanneer je het nodig hebt.
+
+Methods helpen ook om je code te **structureren**: `Main` vertelt in grote lijnen wat het programma doet; de details zitten in methods met een duidelijke naam.
+
+## Een method definiëren (§2.3)
+
+```csharp norun
+static void PrintLijn() {
+    Console.WriteLine("====================");
+}
+```
+
+| Onderdeel | Betekenis |
+|---|---|
+| `static` | voorlopig altijd (zoals bij Main) |
+| `void` | de method geeft niets terug |
+| `PrintLijn` | de naam: begint met een **hoofdletter** (PascalCasing) en is een werkwoord |
+| `()` | (lege) parameterlijst |
+| `{ ... }` | de **method body** |
+
+**Waar plaats je extra methods?** In de `class Program`, naast `Main` — niet erin!
+
+```csharp norun
+class Program {
+    static void Main(string[] args) {
+        PrintLijn();        // method call
+    }
+
+    static void PrintLijn() {
+        Console.WriteLine("====================");
+    }
+}
+```
+
+## Een method oproepen (§2.4)
+
+Een **method call** is de naam gevolgd door haakjes: `PrintLijn();`. Het programma springt naar de method, voert de body uit en keert daarna terug naar de plaats van de oproep.
+
+## Methodactivatie (§2.5)
+
+Een method kan zelf andere methods oproepen. In het voorbeeld van de cursus roept `Main` de method `PrintMenu` op, die op haar beurt twee keer `PrintLijn` oproept. Elke oproep is een **methodactivatie**. In de debugger zie je ze als blokken op de **call stack**.
+
+#! voorbeeld
+## Een menu met methods
+
+Klik op **Stap voor stap** en open het tabblad **Call Stack**: je ziet `PrintMenu` en `PrintLijn` erbij komen en weer verdwijnen. Gebruik **Step Into** om in een method te stappen en **Step Over** om ze in één keer uit te voeren.
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        PrintMenu();
+        Console.WriteLine("Kies een optie...");
+    }
+
+    static void PrintMenu() {
+        PrintLijn();
+        Console.WriteLine("Voorbeeld App");
+        PrintLijn();
+    }
+
+    static void PrintLijn() {
+        Console.WriteLine("====================");
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit programma af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        Console.WriteLine("A");
+        Groet();
+        Console.WriteLine("C");
+        Groet();
+    }
+    static void Groet() {
+        Console.WriteLine("B");
+    }
+}
+```
+? Bij elke oproep springt het programma naar `Groet`, toont B en keert terug: A, B, C, B.
+
+#! voorspel id=v2 type=choice
+Waar plaats je de definitie van een extra method `PrintLijn`?
+- In de Main method
++ In de class Program, naast de Main method
+- Buiten de class Program
+- In een apart bestand, verplicht
+? Methods staan in een klasse, naast elkaar. Een method binnen Main schrijven wordt een *lokale functie* — niet wat de cursus bedoelt.
+
+#! voorspel id=v3 type=text antwoord=3
+Hoeveel keer wordt `PrintLijn` uitgevoerd als `Main` eerst `PrintMenu()` oproept (die PrintLijn 2 keer oproept) en daarna nog één keer `PrintLijn()`?
+? 2 keer via PrintMenu + 1 keer rechtstreeks = 3 methodactivaties van PrintLijn.
+
+#! oefening id=L06-01-a rol=oefenen moeilijkheid=1 xp=50 titel="Toon een vierkant" bron="D10toonvierkant"
+Schrijf een `Main` method die een `ToonVierkant` method aanroept. Deze laatste print op het console scherm een vierkant van 5 op 5 sterretjes.
+
+```text
+*****
+*****
+*****
+*****
+*****
+```
+
+Alle methods staan samen met `Main` in de `class Program`.
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+
+        // Schrijf hier de method ToonVierkant
+    }
+}
+
+#! hint
+Definieer een method `static void ToonVierkant()` in de class Program (onder Main). Wat moet er in de body komen?
+
+#! hint
+In de body: twee geneste for loops (zoals in Level 2), of 5 keer `Console.WriteLine("*****")`. In `Main` roep je de method op met `ToonVierkant();`.
+
+#! hint
+`static void ToonVierkant() { for (int rij = 0; rij < 5; rij++) { Console.WriteLine("*****"); } }`
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            ToonVierkant();
+        }
+
+        static void ToonVierkant() {
+            for (int rij = 0; rij < 5; rij++) {
+                for (int kolom = 0; kolom < 5; kolom++) {
+                    Console.Write("*");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+
+#! uitleg
+- De method heeft een naam die zegt wat ze doet (`ToonVierkant`) en begint met een hoofdletter.
+- `Main` is nu heel kort: één regel die vertelt *wat* er gebeurt. *Hoe* dat gebeurt, staat in de method.
+
+#! regel type=method doel=ToonVierkant geeft=void parameters=0 bericht="Maak een method static void ToonVierkant()"
+#! regel type=calls doel=ToonVierkant bericht="Roep ToonVierkant op in Main"
+
+#! test naam="Uitvoer van het programma" mode=exact
+#! verwacht
+*****
+*****
+*****
+*****
+*****
+
+#! test naam="ToonVierkant() rechtstreeks opgeroepen" soort=code
+Check.OutputEqual("*****\n*****\n*****\n*****\n*****\n", () => Program.ToonVierkant(), "ToonVierkant() toont een vierkant van 5 op 5");
+
+#! oefening id=L06-01-m rol=meesterschap moeilijkheid=2 xp=80 titel="Kleurrijk menu"
+Bouw het voorbeeldmenu na met **drie** methods:
+
+- `PrintLijn()` toont `====================` (20 isgelijktekens);
+- `PrintTitel()` toont `Mijn App` in het **geel** (`ConsoleColor.Yellow`) en zet daarna de kleuren terug (`Console.ResetColor()`);
+- `PrintMenu()` roept `PrintLijn`, `PrintTitel` en opnieuw `PrintLijn` op, en toont daarna de opties `1. Starten`, `2. Instellingen` en `3. Stoppen`.
+
+`Main` roept enkel `PrintMenu()` op.
+
+```text
+====================
+Mijn App
+====================
+1. Starten
+2. Instellingen
+3. Stoppen
+```
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Begin met de kleinste bouwsteen: `PrintLijn`. Schrijf daarna `PrintTitel` en tot slot `PrintMenu`, dat de andere twee oproept.
+
+#! hint
+Kleur instellen: `Console.ForegroundColor = ConsoleColor.Yellow;` vóór de WriteLine en `Console.ResetColor();` erna.
+
+#! hint
+`static void PrintMenu() { PrintLijn(); PrintTitel(); PrintLijn(); Console.WriteLine("1. Starten"); ... }` en in Main: `PrintMenu();`.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            PrintMenu();
+        }
+
+        static void PrintMenu() {
+            PrintLijn();
+            PrintTitel();
+            PrintLijn();
+            Console.WriteLine("1. Starten");
+            Console.WriteLine("2. Instellingen");
+            Console.WriteLine("3. Stoppen");
+        }
+
+        static void PrintTitel() {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Mijn App");
+            Console.ResetColor();
+        }
+
+        static void PrintLijn() {
+            Console.WriteLine("====================");
+        }
+    }
+}
+
+#! uitleg
+- Methods roepen andere methods op: `Main → PrintMenu → PrintLijn / PrintTitel`. Volg het in de debugger met **Step Into**.
+- Wil je de lijn ooit langer, dan pas je één method aan — niet elke plaats waar een lijn getoond wordt.
+- De kleur wordt netjes teruggezet, zodat de rest van het programma niet geel blijft.
+
+#! regel type=method doel=PrintLijn geeft=void bericht="Maak een method PrintLijn"
+#! regel type=method doel=PrintTitel geeft=void bericht="Maak een method PrintTitel"
+#! regel type=method doel=PrintMenu geeft=void bericht="Maak een method PrintMenu"
+#! regel type=uses doel=ForegroundColor bericht="Kleur de titel met Console.ForegroundColor"
+#! regel type=max-main-statements aantal=1 bericht="Main roept enkel PrintMenu() op"
+
+#! test naam="Menu"
+#! verwacht
+====================
+Mijn App
+====================
+1. Starten
+2. Instellingen
+3. Stoppen
+
+#! test naam="PrintLijn() apart" soort=code
+Check.OutputEqual("====================\n", () => Program.PrintLijn(), "PrintLijn() toont 20 isgelijktekens");

@@ -1,0 +1,388 @@
+#! boss
+id: L04-BOSS
+titel: De Rijenanalysator
+samenvatting: Lees een rij getallen in een array en ontdek of het een rekenkundige of meetkundige rij is.
+skills: arrays, array-loops, array-zoeken, robuust
+bron: Deel 08 – D08rijen
+verhaal: Het wiskundelab heeft een machine nodig die rijen getallen herkent. Rekenkundig, meetkundig of gewoon? Bouw de Rijenanalysator — en laat je niet verrassen door kommagetallen.
+duur: 50
+
+#! begrijpen
+## Briefing: rijen herkennen (D08rijen)
+
+Een **rekenkundige rij** is een rij getallen waarbij het verschil tussen 2 opeenvolgende getallen steeds gelijk is:
+
+- 2, 5, 8, 11, 14 is rekenkundig (verschil +3)
+- 84,5, 74,5, 64,5, 54,5 is rekenkundig (verschil -10)
+- 5, 7, 10, 14 is geen rekenkundige rij
+
+Een **meetkundige rij** is een rij waarbij elk getal gelijk is aan het vorige getal maal eenzelfde **factor**:
+
+- 3, 6, 12, 24 is meetkundig met factor 2
+- 100, 50, 25, 12,5, 6,25, 3,125 is meetkundig met factor 0,5
+
+Het programma vraagt de gebruiker om **maximaal 6 getallen** en bewaart ze in een array. Wil de gebruiker minder getallen invoeren, dan geeft hij een **lege regel** in (gewoon op Enter drukken). Je mag ervan uitgaan dat de gebruiker correcte getallen ingeeft en minstens 3 getallen invoert. Een rij van identieke getallen zien we (enkel) als een rekenkundige rij met delta 0.
+
+Je bouwt de analysator in 3 fases.
+
+#! oefening id=L04-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=3 xp=120 titel="Getallen inlezen tot een lege regel"
+Lees maximaal 6 kommagetallen in een `double[]` van grootte 6. Stop vroeger als de gebruiker een lege regel ingeeft. Toon daarna hoeveel getallen er werden ingegeven en de getallen zelf.
+
+```text
+Geef een getal : 2
+Geef een getal : 5
+Geef een getal : 8
+Geef een getal :
+Je gaf 3 getallen in: 2 5 8
+```
+
+Na 6 getallen stopt het programma vanzelf met vragen.
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            double[] getallen = new double[maximum];
+
+        }
+    }
+}
+
+#! hint
+Je weet niet hoeveel getallen er komen, maar wel het maximum. Hou in een variabele `aantal` bij hoeveel elementen er echt gebruikt worden.
+
+#! hint
+Herhaal zolang `aantal < maximum` en de invoer niet leeg is. Een lege regel herken je met `invoer == ""`.
+
+#! hint
+Een aanpak: `bool stoppen = false; while (aantal < maximum && !stoppen) { Console.Write(...); string invoer = Console.ReadLine(); if (invoer == "") stoppen = true; else { getallen[aantal] = double.Parse(invoer); aantal++; } }`. Toon daarna enkel de eerste `aantal` elementen.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            double[] getallen = new double[maximum];
+            int aantal = 0;
+            bool stoppen = false;
+            while (aantal < maximum && !stoppen) {
+                Console.Write("Geef een getal : ");
+                string invoer = Console.ReadLine();
+                if (invoer == "") {
+                    stoppen = true;
+                } else {
+                    getallen[aantal] = double.Parse(invoer);
+                    aantal++;
+                }
+            }
+            string tekst = "";
+            for (int i = 0; i < aantal; i++) {
+                tekst += " " + getallen[i];
+            }
+            Console.WriteLine($"Je gaf {aantal} getallen in:{tekst}");
+        }
+    }
+}
+
+#! uitleg
+- De array heeft de **maximale** grootte; `aantal` houdt bij hoeveel elementen echt gebruikt worden. Dit is de techniek uit Deel 08 §8.
+- Bij het tonen loopt de for loop tot `aantal`, niet tot `getallen.Length` — anders zie je ook de ongebruikte nullen.
+- De loopvoorwaarde combineert twee redenen om te stoppen: vol of lege regel.
+
+#! regel type=statement doel=array bericht="Bewaar de getallen in een array"
+
+#! test naam="Drie getallen en een lege regel"
+#! invoer
+2
+5
+8
+<leeg>
+#! verwacht
+Geef een getal : 2
+Geef een getal : 5
+Geef een getal : 8
+Geef een getal :
+Je gaf 3 getallen in: 2 5 8
+
+#! test naam="Zes getallen (stopt vanzelf)" referentie=ja
+#! invoer
+100
+50
+25
+12,5
+6,25
+3,125
+
+#! oefening id=L04-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=4 xp=150 titel="Rekenkundige rij"
+Breid fase 1 uit: na het inlezen controleert het programma of het een **rekenkundige rij** is.
+
+```text
+Geef een getal : 2
+Geef een getal : 5
+Geef een getal : 8
+Geef een getal : 11
+Geef een getal : 14
+Geef een getal :
+Dit is een rekenkundige rij met delta 3
+```
+
+Is het geen rekenkundige rij, toon dan `Dit is geen rekenkundige rij`.
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            double[] getallen = new double[maximum];
+
+        }
+    }
+}
+
+#! hint
+Het verschil tussen de eerste twee getallen is de kandidaat-delta. Wat moet er gelden voor alle volgende paren?
+
+#! hint
+`double delta = getallen[1] - getallen[0];` en controleer voor i van 2 tot `aantal`: is `getallen[i] - getallen[i - 1]` gelijk aan delta?
+
+#! hint
+Begin met `bool rekenkundig = true;` en zet hem op false zodra een verschil afwijkt. Kommagetallen kunnen afrondingsfouten geven: vergelijk met een kleine marge, bv. `Math.Abs(verschil - delta) > 0.000001`.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            const double marge = 0.000001;
+            double[] getallen = new double[maximum];
+            int aantal = 0;
+            bool stoppen = false;
+            while (aantal < maximum && !stoppen) {
+                Console.Write("Geef een getal : ");
+                string invoer = Console.ReadLine();
+                if (invoer == "") {
+                    stoppen = true;
+                } else {
+                    getallen[aantal] = double.Parse(invoer);
+                    aantal++;
+                }
+            }
+
+            double delta = getallen[1] - getallen[0];
+            bool rekenkundig = true;
+            for (int i = 2; i < aantal; i++) {
+                double verschil = getallen[i] - getallen[i - 1];
+                if (Math.Abs(verschil - delta) > marge) {
+                    rekenkundig = false;
+                }
+            }
+
+            if (rekenkundig) {
+                Console.WriteLine($"Dit is een rekenkundige rij met delta {delta}");
+            } else {
+                Console.WriteLine("Dit is geen rekenkundige rij");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De eerste twee getallen bepalen de delta; alle volgende verschillen moeten gelijk zijn.
+- Kommagetallen worden binair voorgesteld en zijn niet altijd exact (0,1 + 0,2 is niet precies 0,3!). Daarom vergelijken we met een kleine **marge**. Meer hierover in Level 8.
+
+#! test naam="Rekenkundig"
+#! invoer
+2
+5
+8
+11
+14
+<leeg>
+#! verwacht
+Geef een getal : 2
+Geef een getal : 5
+Geef een getal : 8
+Geef een getal : 11
+Geef een getal : 14
+Geef een getal :
+Dit is een rekenkundige rij met delta 3
+
+#! test naam="Dalend met kommagetallen" referentie=ja
+#! invoer
+84,5
+74,5
+64,5
+54,5
+<leeg>
+
+#! test naam="Geen rekenkundige rij" referentie=ja
+#! invoer
+5
+7
+10
+14
+<leeg>
+
+#! oefening id=L04-BOSS-3 rol=boss fase="Fase 3" moeilijkheid=5 xp=200 titel="Rekenkundig, meetkundig of gewoon"
+De volledige analysator (D08rijen): het programma bepaalt of de rij **rekenkundig**, **meetkundig** of **gewoon** is.
+
+```text
+Geef een getal : 100
+Geef een getal : 50
+Geef een getal : 25
+Geef een getal : 12,5
+Geef een getal : 6,25
+Geef een getal : 3,125
+Dit is een meetkundige rij met factor 0,5
+```
+
+```text
+Geef een getal : 5
+Geef een getal : 10
+Geef een getal : 35
+Geef een getal : 120
+Geef een getal :
+Dit is een gewone rij
+```
+
+Een rij van identieke getallen is (enkel) een rekenkundige rij met delta 0 — controleer dus eerst rekenkundig, en pas daarna meetkundig.
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            double[] getallen = new double[maximum];
+
+        }
+    }
+}
+
+#! hint
+De meetkundige controle lijkt op de rekenkundige, maar met delen in plaats van aftrekken: de factor is `getallen[1] / getallen[0]`.
+
+#! hint
+Controleer voor elk paar of `getallen[i] / getallen[i - 1]` (bijna) gelijk is aan de factor. Opgelet: deel niet door 0 — als een getal 0 is, kan het geen meetkundige rij zijn.
+
+#! hint
+Volgorde van de beslissing: `if (rekenkundig) … else if (meetkundig) … else …`. Zo wordt 7, 7, 7 als rekenkundig herkend (ook al is het technisch ook meetkundig met factor 1).
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 6;
+            const double marge = 0.000001;
+            double[] getallen = new double[maximum];
+            int aantal = 0;
+            bool stoppen = false;
+            while (aantal < maximum && !stoppen) {
+                Console.Write("Geef een getal : ");
+                string invoer = Console.ReadLine();
+                if (invoer == "") {
+                    stoppen = true;
+                } else {
+                    getallen[aantal] = double.Parse(invoer);
+                    aantal++;
+                }
+            }
+
+            double delta = getallen[1] - getallen[0];
+            bool rekenkundig = true;
+            for (int i = 2; i < aantal; i++) {
+                if (Math.Abs(getallen[i] - getallen[i - 1] - delta) > marge) {
+                    rekenkundig = false;
+                }
+            }
+
+            bool meetkundig = true;
+            double factor = 0;
+            if (getallen[0] == 0) {
+                meetkundig = false;
+            } else {
+                factor = getallen[1] / getallen[0];
+                for (int i = 2; i < aantal; i++) {
+                    if (getallen[i - 1] == 0 || Math.Abs(getallen[i] / getallen[i - 1] - factor) > marge) {
+                        meetkundig = false;
+                    }
+                }
+            }
+
+            if (rekenkundig) {
+                Console.WriteLine($"Dit is een rekenkundige rij met delta {delta}");
+            } else if (meetkundig) {
+                Console.WriteLine($"Dit is een meetkundige rij met factor {factor}");
+            } else {
+                Console.WriteLine("Dit is een gewone rij");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Twee bijna identieke controles (aftrekken versus delen) op dezelfde array.
+- Delen door 0 wordt vermeden: een rij met een 0 erin (behalve als alles 0 is, wat rekenkundig is) kan niet meetkundig zijn.
+- De volgorde van de if-structuur bepaalt dat identieke getallen als rekenkundig gezien worden.
+- Proficiat! Level 5 brengt **break**, **parallelle arrays** en **Split/Join**.
+
+#! test naam="Meetkundig met factor 0,5"
+#! invoer
+100
+50
+25
+12,5
+6,25
+3,125
+#! verwacht
+Geef een getal : 100
+Geef een getal : 50
+Geef een getal : 25
+Geef een getal : 12,5
+Geef een getal : 6,25
+Geef een getal : 3,125
+Dit is een meetkundige rij met factor 0,5
+
+#! test naam="Gewone rij" referentie=ja
+#! invoer
+5
+10
+35
+120
+<leeg>
+
+#! test naam="Rekenkundig" referentie=ja
+#! invoer
+2
+5
+8
+11
+14
+<leeg>
+
+#! test naam="Identieke getallen" referentie=ja verborgen=ja
+#! invoer
+7
+7
+7
+<leeg>
+
+#! test naam="Meetkundig met factor 2" referentie=ja verborgen=ja
+#! invoer
+3
+6
+12
+24
+<leeg>

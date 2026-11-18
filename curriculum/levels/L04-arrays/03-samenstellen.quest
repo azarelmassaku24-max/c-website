@@ -1,0 +1,296 @@
+#! lesson
+id: L04-03
+titel: Arrays opvullen, omkeren en wisselen
+samenvatting: Waarden samenstellen in een array, de volgorde omkeren en inhoud van elementen wisselen.
+skills: array-loops
+bron: Deel 08 – 7. Elementwaardes samenstellen · D08omgekeerdevolgorde, D08volgordeomwisselen, D08inhoudwisselen
+duur: 30
+
+#! begrijpen
+## Een array opvullen met een loop
+
+```csharp norun
+int[] getallen = new int[9];
+for (int index = 0; index < getallen.Length; index++) {
+    getallen[index] = 101 + index;   // 101, 102, ..., 109
+}
+```
+
+Elementwaardes kunnen ook **afhangen van vorige elementen** — zoals bij de rij van Fibonacci, waar elk getal de som is van de twee vorige:
+
+```csharp norun
+fibonacci[i] = fibonacci[i - 1] + fibonacci[i - 2];
+```
+
+## Twee waarden wisselen
+
+Om de waarden van `a` en `b` te wisselen heb je een **hulpvariabele** nodig. Zonder hulpvariabele ben je een van beide waarden kwijt!
+
+```csharp norun
+int hulp = a;
+a = b;
+b = hulp;
+```
+
+Vergelijk met twee glazen: om de inhoud te wisselen heb je een derde, leeg glas nodig.
+
+## Een array spiegelen
+
+Wissel het eerste element met het laatste, het tweede met het voorlaatste, … Je hoeft maar tot **de helft** te gaan — anders wissel je alles terug!
+
+```csharp norun
+for (int i = 0; i < namen.Length / 2; i++) {
+    int tegenover = namen.Length - 1 - i;
+    string hulp = namen[i];
+    namen[i] = namen[tegenover];
+    namen[tegenover] = hulp;
+}
+```
+
+## Achterstevoren uitlezen versus spiegelen
+
+- **Uitlezen** in omgekeerde volgorde (dalende for loop) laat de array ongewijzigd.
+- **Spiegelen** wijzigt de array zelf. Daarna lees je hem gewoon van voor naar achter.
+
+#! voorbeeld
+## Wisselen met een hulpvariabele
+
+Kijk in de debugger naar de variabelen: zonder `hulp` zou de 12 verloren gaan.
+
+```csharp
+int a = 12;
+int b = 31;
+int hulp = a;
+a = b;
+b = hulp;
+Console.WriteLine($"a = {a}, b = {b}");
+
+int[] rij = { 1, 2, 3, 4, 5 };
+for (int i = 0; i < rij.Length / 2; i++) {
+    int tegenover = rij.Length - 1 - i;
+    int temp = rij[i];
+    rij[i] = rij[tegenover];
+    rij[tegenover] = temp;
+}
+foreach (int getal in rij) {
+    Console.Write(getal + " ");
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af? (een veelgemaakte fout)
+```csharp
+int a = 3;
+int b = 7;
+a = b;
+b = a;
+Console.WriteLine($"{a} {b}");
+```
+? Na `a = b;` is a al 7 — de oorspronkelijke 3 is verloren. Daarna `b = a;` maakt b ook 7. Zonder hulpvariabele lukt wisselen niet.
+
+#! voorspel id=v2 type=text antwoord=2
+Hoeveel keer moet je wisselen om een array van **5** elementen te spiegelen?
+? Je wisselt tot de helft: 5 / 2 = 2 (gehele deling). Het middelste element blijft staan.
+
+#! voorspel id=v3 type=output
+Wat drukt deze code af? (D08fibonacci, 6 elementen)
+```csharp
+int[] fib = new int[6];
+fib[0] = 1;
+fib[1] = 1;
+for (int i = 2; i < fib.Length; i++) {
+    fib[i] = fib[i - 1] + fib[i - 2];
+}
+Console.WriteLine(fib[5]);
+```
+? 1, 1, 2, 3, 5, 8 → het element op index 5 is 8.
+
+#! oefening id=L04-03-a rol=oefenen moeilijkheid=2 xp=60 titel="Omgekeerde volgorde" bron="D08omgekeerdevolgorde"
+Schrijf een programma dat de gebruiker om **4 namen** vraagt en deze vervolgens in de omgekeerde volgorde toont.
+
+```text
+Geef naam 1 : Jan
+Geef naam 2 : Piet
+Geef naam 3 : Joris
+Geef naam 4 : Corneel
+Corneel
+Joris
+Piet
+Jan
+```
+
+**Let op:** het moet heel eenvoudig zijn om het programma aan te passen naar bijvoorbeeld 6 namen, door slechts op **1 plaats** een 4 naar een 6 aan te passen!
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Op "1 plaats aanpassen" betekent: gebruik een const voor het aantal en baseer alle loops op die const of op `.Length`.
+
+#! hint
+Lees de namen in met een stijgende for loop. Het nummer in de vraag is `i + 1`. Toon ze daarna met een dalende for loop.
+
+#! hint
+`for (int i = namen.Length - 1; i >= 0; i--) Console.WriteLine(namen[i]);`
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalNamen = 4;
+            string[] namen = new string[aantalNamen];
+            for (int i = 0; i < namen.Length; i++) {
+                Console.Write($"Geef naam {i + 1} : ");
+                namen[i] = Console.ReadLine();
+            }
+            for (int i = namen.Length - 1; i >= 0; i--) {
+                Console.WriteLine(namen[i]);
+            }
+        }
+    }
+}
+
+#! uitleg
+- Het aantal staat op één plaats: `const int aantalNamen = 4;`. Alle loops gebruiken `namen.Length`.
+- De gebruiker telt vanaf 1, de array vanaf 0: daarom `Geef naam {i + 1}`.
+- De dalende for loop leest achterstevoren uit, zonder de array te wijzigen.
+
+#! regel type=statement doel=const bericht="Gebruik een const voor het aantal namen"
+#! regel type=statement doel=array bericht="Bewaar de namen in een array"
+
+#! test naam="Vier namen"
+#! invoer
+Jan
+Piet
+Joris
+Corneel
+#! verwacht
+Geef naam 1 : Jan
+Geef naam 2 : Piet
+Geef naam 3 : Joris
+Geef naam 4 : Corneel
+Corneel
+Joris
+Piet
+Jan
+
+#! test naam="Andere namen" referentie=ja
+#! invoer
+Bassie
+Adriaan
+Paulus
+Mega Mindy
+
+#! oefening id=L04-03-m rol=meesterschap moeilijkheid=3 xp=100 titel="Volgorde omwisselen" bron="D08volgordeomwisselen"
+Pas het programma aan:
+
+1. Vraag eerst **hoeveel** namen de gebruiker wil ingeven (D08omgekeerdevolgordehoeveel).
+2. Lees de namen in een array.
+3. **Spiegel** de inhoud van de array zelf: wissel de laatste met de eerste, de voorlaatste met de tweede, enzovoort.
+4. Druk daarna de gespiegelde array **van voor naar achter** af.
+
+```text
+Hoeveel namen wil je ingeven : 3
+Geef naam 1 : Bassie
+Geef naam 2 : Adriaan
+Geef naam 3 : Paulus
+Paulus
+Adriaan
+Bassie
+```
+
+Je mag **geen** `Array.Reverse()` gebruiken: schrijf zelf de code om te wisselen.
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De grootte van de array hangt nu af van de invoer: `new string[aantal]`. Hoe ver moet je lopen om te spiegelen?
+
+#! hint
+Loop met `i` van 0 tot `namen.Length / 2`. Het element tegenover `i` heeft index `namen.Length - 1 - i`. Wissel met een hulpvariabele.
+
+#! hint
+Na het spiegelen toon je met een gewone (stijgende) for of foreach loop. Controleer met een even én een oneven aantal namen.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel namen wil je ingeven : ");
+            int aantal = int.Parse(Console.ReadLine());
+            string[] namen = new string[aantal];
+            for (int i = 0; i < namen.Length; i++) {
+                Console.Write($"Geef naam {i + 1} : ");
+                namen[i] = Console.ReadLine();
+            }
+
+            for (int i = 0; i < namen.Length / 2; i++) {
+                int tegenover = namen.Length - 1 - i;
+                string hulp = namen[i];
+                namen[i] = namen[tegenover];
+                namen[tegenover] = hulp;
+            }
+
+            foreach (string naam in namen) {
+                Console.WriteLine(naam);
+            }
+        }
+    }
+}
+
+#! uitleg
+- **Dynamische grootte**: de lengte van de array wordt bepaald tijdens de uitvoering.
+- We wisselen enkel tot de helft. Bij een oneven aantal blijft het middelste element op zijn plaats.
+- De hulpvariabele voorkomt dat een waarde verloren gaat bij het wisselen.
+
+#! regel type=forbids doel=Reverse bericht="Gebruik geen Array.Reverse(): wissel zelf"
+#! regel type=regex doel="Length\s*/\s*2" bericht="Wissel tot de helft van de array (Length / 2)"
+
+#! test naam="Drie namen"
+#! invoer
+3
+Bassie
+Adriaan
+Paulus
+#! verwacht
+Hoeveel namen wil je ingeven : 3
+Geef naam 1 : Bassie
+Geef naam 2 : Adriaan
+Geef naam 3 : Paulus
+Paulus
+Adriaan
+Bassie
+
+#! test naam="Even aantal" referentie=ja
+#! invoer
+4
+a
+b
+c
+d
+
+#! test naam="Eén naam" referentie=ja verborgen=ja
+#! invoer
+1
+Solo

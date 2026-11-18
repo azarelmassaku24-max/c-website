@@ -1,0 +1,326 @@
+#! lesson
+id: L10-03
+titel: Reference types, null en NullReferenceException
+samenvatting: Variabelen die naar objecten verwijzen, wat null betekent en hoe je een NullReferenceException vermijdt.
+skills: null, klassen
+bron: Deel 14 – 3.1. Reference type en null, 5. NullReferenceException, 6. Volwaardig datatype
+duur: 30
+
+#! begrijpen
+## Een klasse is een reference type (Deel 14 §3.1)
+
+Een variabele van een klassetype bevat **geen object**, maar een **verwijzing** naar een object:
+
+```csharp norun
+Persoon p1 = new Persoon();   // p1 verwijst naar een nieuw object
+Persoon p2 = p1;              // p2 verwijst naar HETZELFDE object
+p2.SetNaam("Mieke");
+Console.WriteLine(p1.GetNaam());   // Mieke!
+```
+
+Er is maar **één** object; p1 en p2 zijn twee pijlen naar hetzelfde object (teken het objectdiagram!).
+
+## null
+
+Een referentievariabele kan ook naar **niets** verwijzen: de waarde `null`.
+
+```csharp norun
+Persoon p = null;
+Persoon[] vrienden = new Persoon[5];   // 5 elementen, allemaal null!
+```
+
+Een nieuwe array van een klassetype bevat **geen objecten**, enkel `null`-verwijzingen. De objecten moet je zelf aanmaken met `new`.
+
+## NullReferenceException (§5)
+
+Gebruik je een member (met de punt) via een variabele die `null` is, dan crasht het programma met een **NullReferenceException**: "je wil iets vragen aan een object dat er niet is".
+
+```csharp norun
+Persoon[] vrienden = new Persoon[5];
+vrienden[0].SetNaam("Jan");   // NullReferenceException: vrienden[0] is null
+```
+
+Oplossing: eerst een object aanmaken, of vooraf controleren:
+
+```csharp norun
+vrienden[0] = new Persoon();
+if (vrienden[1] != null) { ... }
+```
+
+## Een klasse is een volwaardig datatype (§6)
+
+Je kan je eigen klasse gebruiken zoals elk ander datatype: als type van een variabele, een parameter, een return value, een array-element, en zelfs als dataveld van een andere klasse (Level 11).
+
+#! voorbeeld
+## Twee verwijzingen, één object
+
+Kijk in de debugger naar de nummers: `p1` en `p2` tonen allebei `#1`.
+
+```csharp
+using System;
+
+class Persoon {
+    private string _naam;
+    public string GetNaam() { return _naam; }
+    public void SetNaam(string naam) { _naam = naam; }
+}
+
+class Program {
+    static void Main() {
+        Persoon p1 = new Persoon();
+        p1.SetNaam("Jan");
+        Persoon p2 = p1;
+        p2.SetNaam("Mieke");
+        Console.WriteLine(p1.GetNaam());
+
+        Persoon[] vrienden = new Persoon[3];
+        Console.WriteLine(vrienden[0] == null);
+        vrienden[0] = new Persoon();
+        vrienden[0].SetNaam("Ali");
+        Console.WriteLine(vrienden[0].GetNaam());
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Doos {
+    private int _inhoud;
+    public void SetInhoud(int i) { _inhoud = i; }
+    public int GetInhoud() { return _inhoud; }
+}
+class Program {
+    static void Main() {
+        Doos a = new Doos();
+        Doos b = a;
+        Doos c = new Doos();
+        a.SetInhoud(5);
+        c.SetInhoud(9);
+        Console.WriteLine($"{b.GetInhoud()} {c.GetInhoud()}");
+    }
+}
+```
+? `b` verwijst naar hetzelfde object als `a`: 5. `c` is een apart object: 9.
+
+#! voorspel id=v2 type=choice
+Wat gebeurt er bij `Persoon[] lijst = new Persoon[2]; Console.WriteLine(lijst[0].GetNaam());`?
+- Er wordt een lege regel getoond
+- Er wordt "null" getoond
++ NullReferenceException
+- Compileerfout
+? `new Persoon[2]` maakt een array met twee null-verwijzingen. `lijst[0].GetNaam()` vraagt iets aan een object dat niet bestaat.
+
+#! oefening id=L10-03-a rol=oefenen moeilijkheid=2 xp=80 titel="Repareer de NullReferenceException"
+Dit programma crasht met een **NullReferenceException**. Gebruik de debugger om te ontdekken op welke regel en waarom. Repareer het zodat het programma dit toont:
+
+```text
+Team: Ali, Bo, Cem
+```
+
+De klasse `Speler` staat in `Speler.cs` en is correct.
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            string[] namen = { "Ali", "Bo", "Cem" };
+            Speler[] team = new Speler[namen.Length];
+            for (int i = 0; i < namen.Length; i++) {
+                team[i].SetNaam(namen[i]);
+            }
+            Console.Write("Team: ");
+            for (int i = 0; i < team.Length; i++) {
+                Console.Write(team[i].GetNaam());
+                if (i < team.Length - 1) {
+                    Console.Write(", ");
+                }
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! starter bestand=Speler.cs
+namespace D14 {
+    class Speler {
+        private string _naam;
+
+        public string GetNaam() {
+            return _naam;
+        }
+
+        public void SetNaam(string naam) {
+            _naam = naam;
+        }
+    }
+}
+
+#! hint
+Voer het programma uit: op welke regel crasht het? Wat bevat `team[i]` op dat moment (kijk in de debugger)?
+
+#! hint
+`new Speler[namen.Length]` maakt een array met null-verwijzingen, geen spelers.
+
+#! hint
+Maak in de eerste loop eerst een object aan: `team[i] = new Speler();` en roep daarna pas `SetNaam` op.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            string[] namen = { "Ali", "Bo", "Cem" };
+            Speler[] team = new Speler[namen.Length];
+            for (int i = 0; i < namen.Length; i++) {
+                team[i] = new Speler();
+                team[i].SetNaam(namen[i]);
+            }
+            Console.Write("Team: ");
+            for (int i = 0; i < team.Length; i++) {
+                Console.Write(team[i].GetNaam());
+                if (i < team.Length - 1) {
+                    Console.Write(", ");
+                }
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! oplossing bestand=Speler.cs
+namespace D14 {
+    class Speler {
+        private string _naam;
+
+        public string GetNaam() {
+            return _naam;
+        }
+
+        public void SetNaam(string naam) {
+            _naam = naam;
+        }
+    }
+}
+
+#! uitleg
+- Een array van een klassetype bevat in het begin enkel `null`. Elk object moet je zelf aanmaken met `new`.
+- De foutmelding van C# Quest wees de regel `team[i].SetNaam(...)` aan: daar werd een member opgeroepen via een null-verwijzing.
+
+#! regel type=new doel=Speler bericht="Maak de Speler-objecten aan met new Speler()"
+
+#! test naam="Team"
+#! verwacht
+Team: Ali, Bo, Cem
+
+#! oefening id=L10-03-m rol=meesterschap moeilijkheid=3 xp=120 titel="Selecteer een winnaar" bron="D14selecteerwinnaar"
+Gebruik de klasse `Persoon` (in `Persoon.cs`, met naam en woonplaats). Schrijf een `Main` die objecten aanmaakt voor **vijf vrienden** (namen en woonplaatsen zie hieronder) en ze in een array bijhoudt.
+
+Schrijf in de klasse Program de method:
+
+```csharp norun
+static Persoon SelecteerWinnaar(Persoon[] personen)
+```
+
+die een **willekeurige** persoon uit de array teruggeeft (gebruik `new Random()` en `rnd.Next(0, personen.Length)`).
+
+Main kroont één vriend tot winnaar:
+
+```text
+De winnaar is Bo uit Gent!
+```
+
+Vrienden: Ali (Antwerpen), Bo (Gent), Cem (Brugge), Dina (Hasselt), Emma (Leuven).
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+
+        }
+    }
+}
+
+#! starter bestand=Persoon.cs
+namespace D14 {
+    class Persoon {
+        private string _naam;
+        private string _woonplaats;
+
+        public string GetNaam() { return _naam; }
+        public void SetNaam(string naam) { _naam = naam; }
+        public string GetWoonplaats() { return _woonplaats; }
+        public void SetWoonplaats(string woonplaats) { _woonplaats = woonplaats; }
+    }
+}
+
+#! hint
+Maak een `Persoon[] vrienden = new Persoon[5];` en vul elk element met een nieuw object (naam en woonplaats instellen). Twee parallelle string-arrays met namen en woonplaatsen kunnen helpen.
+
+#! hint
+`SelecteerWinnaar` heeft return type `Persoon`: `Random rnd = new Random(); return personen[rnd.Next(0, personen.Length)];`.
+
+#! hint
+In Main: `Persoon winnaar = SelecteerWinnaar(vrienden); Console.WriteLine($"De winnaar is {winnaar.GetNaam()} uit {winnaar.GetWoonplaats()}!");`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            string[] namen = { "Ali", "Bo", "Cem", "Dina", "Emma" };
+            string[] woonplaatsen = { "Antwerpen", "Gent", "Brugge", "Hasselt", "Leuven" };
+            Persoon[] vrienden = new Persoon[namen.Length];
+            for (int i = 0; i < vrienden.Length; i++) {
+                vrienden[i] = new Persoon();
+                vrienden[i].SetNaam(namen[i]);
+                vrienden[i].SetWoonplaats(woonplaatsen[i]);
+            }
+            Persoon winnaar = SelecteerWinnaar(vrienden);
+            Console.WriteLine($"De winnaar is {winnaar.GetNaam()} uit {winnaar.GetWoonplaats()}!");
+        }
+
+        static Persoon SelecteerWinnaar(Persoon[] personen) {
+            Random rnd = new Random();
+            return personen[rnd.Next(0, personen.Length)];
+        }
+    }
+}
+
+#! oplossing bestand=Persoon.cs
+namespace D14 {
+    class Persoon {
+        private string _naam;
+        private string _woonplaats;
+
+        public string GetNaam() { return _naam; }
+        public void SetNaam(string naam) { _naam = naam; }
+        public string GetWoonplaats() { return _woonplaats; }
+        public void SetWoonplaats(string woonplaats) { _woonplaats = woonplaats; }
+    }
+}
+
+#! uitleg
+- Een klasse is een **volwaardig datatype**: als array-element (`Persoon[]`), parameter en return type.
+- SelecteerWinnaar geeft een **verwijzing** terug naar een bestaand object uit de array — er wordt geen kopie gemaakt.
+- Vergelijk met Level 5: één array van objecten vervangt de parallelle arrays namen[] en woonplaatsen[].
+
+#! regel type=method doel=SelecteerWinnaar geeft=Persoon parameters=1 bericht="Maak een method static Persoon SelecteerWinnaar(Persoon[] personen)"
+#! regel type=type doel=Persoon[] bericht="Bewaar de vrienden in een Persoon[]"
+
+#! test naam="Winnaar (seed 1)" referentie=ja seed=1
+#! test naam="Winnaar (seed 4)" referentie=ja seed=4
+
+#! test naam="SelecteerWinnaar kiest uit de array" soort=code
+Persoon[] lijst = new Persoon[2];
+lijst[0] = new Persoon(); lijst[0].SetNaam("X");
+lijst[1] = new Persoon(); lijst[1].SetNaam("Y");
+Persoon w = Program.SelecteerWinnaar(lijst);
+Check.True(w == lijst[0] || w == lijst[1], "de winnaar is een object uit de array");

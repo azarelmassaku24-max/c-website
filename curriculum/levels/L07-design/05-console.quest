@@ -1,0 +1,249 @@
+#! lesson
+id: L07-05
+titel: De cursor positioneren en één toets inlezen
+samenvatting: Console.SetCursorPosition, Console.ReadKey en ConsoleKey voor interactieve console-programma's.
+skills: console-ui, enums
+bron: Deel 11 – 4.1. De cursor positioneren, 4.2. Eén enkele toets inlezen · D11keuzeinput
+duur: 30
+
+#! begrijpen
+## De cursor positioneren (Deel 11 §4.1)
+
+Normaal schuift de cursor door bij elke `Write` en springt hij naar de volgende regel na een `WriteLine`. Met `SetCursorPosition` bepaal je zelf waar de volgende tekst verschijnt:
+
+```csharp norun
+Console.SetCursorPosition(10, 3);   // kolom 10, rij 3 (beide tellen vanaf 0)
+Console.Write("X");
+```
+
+- Het eerste argument is de **kolom** (*left*, van links naar rechts), het tweede de **rij** (*top*, van boven naar onder).
+- `Console.CursorLeft` en `Console.CursorTop` geven de huidige positie.
+- `Console.CursorVisible = false;` verbergt de knipperende cursor (handig voor spelletjes).
+
+## Eén toets inlezen (§4.2)
+
+`Console.ReadLine()` wacht tot de gebruiker op Enter drukt. `Console.ReadKey()` wacht op **één toetsaanslag**:
+
+```csharp norun
+ConsoleKeyInfo toets = Console.ReadKey(true);   // true: de toets niet op het scherm tonen
+if (toets.Key == ConsoleKey.LeftArrow) { ... }
+if (toets.KeyChar == 'q') { ... }
+```
+
+| Eigenschap | Type | Voorbeeld |
+|---|---|---|
+| `toets.Key` | `ConsoleKey` (een **enum**!) | `ConsoleKey.UpArrow`, `ConsoleKey.A`, `ConsoleKey.Enter` |
+| `toets.KeyChar` | `char` | `'a'`, `'1'` |
+
+`ConsoleKey` is een enum uit .NET zelf — zie je het verband met de vorige les?
+
+> [!NOTE]
+> In C# Quest werken `SetCursorPosition`, `Clear`, kleuren en `ReadKey` echt in de console rechts (klik in de console om toetsen te geven). De tests beoordelen zulke programma's op het **eindscherm**: wat de gebruiker uiteindelijk ziet.
+
+#! voorbeeld
+## Tekenen op een positie
+
+Klik op **Uitvoeren** om het resultaat in de console te zien.
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        Console.Clear();
+        TekenOp(2, 1, "linksboven");
+        TekenOp(20, 3, "verder rechts");
+        TekenOp(5, 5, "onderaan");
+        Console.SetCursorPosition(0, 7);
+    }
+
+    static void TekenOp(int kolom, int rij, string tekst) {
+        Console.SetCursorPosition(kolom, rij);
+        Console.Write(tekst);
+    }
+}
+```
+
+Speel in het **Code Lab** eens met het sjabloon **Console-spel (ReadKey)**: met de pijltjestoetsen beweeg je een @.
+
+#! voorspel id=v1 type=choice
+`Console.SetCursorPosition(4, 2); Console.Write("A");` — waar verschijnt de A?
++ In kolom 4 van rij 2 (beide vanaf 0 geteld)
+- In rij 4, kolom 2
+- Op de vierde regel
+- Op de huidige positie, 4 spaties verder
+? Eerst de kolom (left), dan de rij (top). Beide beginnen bij 0.
+
+#! voorspel id=v2 type=choice
+Wat is het type van `Console.ReadKey(true).Key`?
+- char
+- string
++ ConsoleKey (een enum)
+- int
+? `Key` is een waarde van de enum `ConsoleKey`, bv. `ConsoleKey.Escape`. `KeyChar` is het char.
+
+#! oefening id=L07-05-a rol=oefenen moeilijkheid=2 xp=80 titel="Kader op positie"
+Schrijf een method `TekenKader(int kolom, int rij, int breedte, int hoogte)` die met `SetCursorPosition` een kader van `#` tekent: de randen bestaan uit `#`, de binnenkant blijft leeg. De linkerbovenhoek staat op (kolom, rij).
+
+`Main` wist eerst het scherm en tekent dan een kader van 6 breed en 4 hoog op positie (2, 1), en zet daarna de cursor op (0, 6).
+
+Het eindscherm:
+
+```text
+
+  ######
+  #    #
+  #    #
+  ######
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Clear();
+            TekenKader(2, 1, 6, 4);
+            Console.SetCursorPosition(0, 6);
+        }
+    }
+}
+
+#! hint
+Een kader bestaat uit de bovenste en onderste rij (volledig `#`) en de zijkanten (enkel het eerste en laatste teken).
+
+#! hint
+Loop over de rijen `r` van 0 tot hoogte. Voor de eerste en laatste rij: zet de cursor op (kolom, rij + r) en schrijf `breedte` keer `#`. Voor de andere rijen: schrijf een `#` op kolom en op `kolom + breedte - 1`.
+
+#! hint
+`Console.SetCursorPosition(kolom + breedte - 1, rij + r); Console.Write("#");` tekent de rechterrand.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Clear();
+            TekenKader(2, 1, 6, 4);
+            Console.SetCursorPosition(0, 6);
+        }
+
+        static void TekenKader(int kolom, int rij, int breedte, int hoogte) {
+            for (int r = 0; r < hoogte; r++) {
+                if (r == 0 || r == hoogte - 1) {
+                    Console.SetCursorPosition(kolom, rij + r);
+                    for (int k = 0; k < breedte; k++) {
+                        Console.Write("#");
+                    }
+                } else {
+                    Console.SetCursorPosition(kolom, rij + r);
+                    Console.Write("#");
+                    Console.SetCursorPosition(kolom + breedte - 1, rij + r);
+                    Console.Write("#");
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- Met `SetCursorPosition` teken je enkel wat nodig is: de binnenkant wordt niet "met spaties gevuld".
+- De tests renderen je output op een virtueel scherm en vergelijken het eindbeeld. Daarom maakt de volgorde waarin je tekent niet uit.
+
+#! regel type=uses doel=SetCursorPosition bericht="Gebruik Console.SetCursorPosition"
+#! regel type=method doel=TekenKader geeft=void parameters=4 bericht="Maak een method TekenKader(int kolom, int rij, int breedte, int hoogte)"
+
+#! test naam="Eindscherm" mode=screen referentie=ja
+
+#! test naam="TekenKader op andere posities" soort=code
+string output = Check.Output(() => Program.TekenKader(0, 0, 3, 3));
+Check.True(output.Contains("###"), "bovenrand van 3 #");
+
+#! oefening id=L07-05-m rol=meesterschap moeilijkheid=3 xp=110 titel="Keuze met één toets" bron="D11keuzeinput"
+Schrijf een method `GetKeuze(string[] keuzes)` die de keuzes genummerd toont en de gebruiker één **toets** laat indrukken (`Console.ReadKey(true)`). Een cijfertoets van 1 t.e.m. het aantal keuzes wordt aanvaard; andere toetsen worden genegeerd (de method wacht dan gewoon op een volgende toets). De method geeft de **index** van de keuze terug.
+
+```csharp norun
+string[] keuzes = { "Rood", "Groen", "Blauw" };
+int index = GetKeuze(keuzes);
+Console.WriteLine($"U koos {keuzes[index]}");
+```
+
+Als de gebruiker op `x`, `9` en daarna `2` drukt:
+
+```text
+1. Rood
+2. Groen
+3. Blauw
+Druk op een cijfer:
+U koos Groen
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] keuzes = { "Rood", "Groen", "Blauw" };
+            int index = GetKeuze(keuzes);
+            Console.WriteLine($"U koos {keuzes[index]}");
+        }
+    }
+}
+
+#! hint
+Toon eerst de keuzes met een for loop (`$"{i + 1}. {keuzes[i]}"`) en daarna `Druk op een cijfer: `. Lees dan toetsen in een loop tot er een geldige komt.
+
+#! hint
+`char teken = Console.ReadKey(true).KeyChar;` Een cijfer omzetten: `int nummer = teken - '0';` (werkt enkel als `char.IsDigit(teken)`).
+
+#! hint
+Geldig als `char.IsDigit(teken) && nummer >= 1 && nummer <= keuzes.Length`. Geef `nummer - 1` terug. Zet na de geldige toets een `Console.WriteLine()` zodat het resultaat op een nieuwe regel komt.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] keuzes = { "Rood", "Groen", "Blauw" };
+            int index = GetKeuze(keuzes);
+            Console.WriteLine($"U koos {keuzes[index]}");
+        }
+
+        static int GetKeuze(string[] keuzes) {
+            for (int i = 0; i < keuzes.Length; i++) {
+                Console.WriteLine($"{i + 1}. {keuzes[i]}");
+            }
+            Console.Write("Druk op een cijfer: ");
+            while (true) {
+                char teken = Console.ReadKey(true).KeyChar;
+                if (char.IsDigit(teken)) {
+                    int nummer = teken - '0';
+                    if (nummer >= 1 && nummer <= keuzes.Length) {
+                        Console.WriteLine();
+                        return nummer - 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- `ReadKey(true)` leest één toets zonder ze te tonen. Ongeldige toetsen worden stil genegeerd.
+- `teken - '0'` zet een cijferkarakter om naar zijn getalwaarde ('2' − '0' = 2).
+- `while (true)` met een `return` erin: de method stopt pas bij een geldige toets.
+
+#! regel type=uses doel=ReadKey bericht="Lees één toets met Console.ReadKey"
+#! regel type=method doel=GetKeuze geeft=int parameters=1 bericht="Maak een method static int GetKeuze(string[] keuzes)"
+
+#! test naam="x, 9 en dan 2" referentie=ja
+#! invoer
+x92
+
+#! test naam="Meteen 3" referentie=ja verborgen=ja
+#! invoer
+3

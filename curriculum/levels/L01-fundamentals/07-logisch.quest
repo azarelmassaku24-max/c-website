@@ -1,0 +1,312 @@
+#! lesson
+id: L01-07
+titel: Logische operatoren en interval checking
+samenvatting: Voorwaarden combineren met &&, || en ! en bepalen in welk interval een waarde valt.
+skills: logisch, if-else
+bron: Deel 04 – 4. Logische bewerkingen, 5. Interval checking
+duur: 30
+
+#! begrijpen
+## And, or en not
+
+| Operator | Naam | Is `true` als… |
+|---|---|---|
+| `&&` | and | **beide** voorwaarden true zijn |
+| `\|\|` | or | **minstens één** voorwaarde true is |
+| `!` | not | de voorwaarde **false** is |
+
+Om na te gaan of een getal in een bereik valt, bv. 1 t.e.m. 100, moet het minstens even groot zijn als de ondergrens **én** maximaal even groot als de bovengrens:
+
+```csharp norun
+if (getal >= ondergrens && getal <= bovengrens) {
+    Console.WriteLine("Het getal ligt binnen het bereik.");
+}
+```
+
+> [!LET OP]
+> Schrijf niet `1 <= getal <= 100` zoals in wiskunde: in C# moet elke vergelijking volledig zijn.
+
+## Kortsluitevaluatie
+
+Bij `a && b` stopt C# zodra `a` false is (dan kan het geheel nooit nog true worden). Bij `a || b` stopt het zodra `a` true is.
+
+## Interval checking (Deel 04)
+
+Soms moet je bepalen **in welk interval** een waarde valt. Bijvoorbeeld leeftijdscategorieën:
+
+- kind: jonger dan 10
+- tiener: minstens 10 en jonger dan 18
+- jongvolwassene: minstens 18 en jonger dan 25
+- volwassene: minstens 25 en jonger dan 65
+- gepensioneerd: vanaf 65
+
+Letterlijk vertaald zou je overal `&&` gebruiken. Maar als je de grenzen **in volgorde** controleert, weet je in elk volgend `else if` al dat de vorige voorwaarden false waren:
+
+```csharp norun
+if (leeftijd < 10) {
+    categorie = "kind";
+} else if (leeftijd < 18) {      // hier weten we al: leeftijd >= 10
+    categorie = "tiener";
+} else if (leeftijd < 25) {
+    categorie = "jongvolwassene";
+} else if (leeftijd < 65) {
+    categorie = "volwassene";
+} else {
+    categorie = "gepensioneerd";
+}
+```
+
+Dat is korter, leesbaarder en minder foutgevoelig: er kan geen "gat" tussen twee intervallen vallen.
+
+#! voorbeeld
+## Logische operatoren in actie
+
+```csharp invoer="17\n150"
+Console.Write("Leeftijd? ");
+int leeftijd = int.Parse(Console.ReadLine());
+Console.Write("Lengte in cm? ");
+int lengte = int.Parse(Console.ReadLine());
+
+bool magInAttractie = leeftijd >= 12 && lengte >= 140;
+bool krijgtKorting = leeftijd < 12 || leeftijd >= 65;
+
+Console.WriteLine($"Mag in de attractie: {magInAttractie}");
+Console.WriteLine($"Krijgt korting: {krijgtKorting}");
+Console.WriteLine($"Betaalt volle prijs: {!krijgtKorting}");
+```
+
+Een vergelijking levert een `bool` op die je ook in een variabele kan bewaren. Dat maakt ingewikkelde voorwaarden leesbaarder.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int a = 5;
+int b = 12;
+Console.WriteLine(a > 3 && b < 10);
+Console.WriteLine(a > 3 || b < 10);
+Console.WriteLine(!(a == 5));
+```
+? `a > 3` is true, `b < 10` is false. true && false = **False**, true || false = **True**, en `!(true)` = **False**.
+
+#! voorspel id=v2 type=choice
+Welke voorwaarde test correct of `uur` tussen 9 en 17 ligt (grenzen inbegrepen)?
+- 9 <= uur <= 17
++ uur >= 9 && uur <= 17
+- uur >= 9 || uur <= 17
+- uur > 9 && uur < 17
+? Je hebt beide voorwaarden nodig (&&). Met || is élk getal true (elk getal is ≥ 9 of ≤ 17). `9 <= uur <= 17` compileert niet in C#.
+
+#! voorspel id=v3 type=output invoer="70"
+Wat toont dit programma bij invoer **70**?
+```csharp
+int score = int.Parse(Console.ReadLine());
+if (score > 82) {
+    Console.WriteLine("A");
+} else if (score > 67) {
+    Console.WriteLine("B");
+} else if (score > 52) {
+    Console.WriteLine("C");
+} else {
+    Console.WriteLine("D");
+}
+```
+? 70 > 82 is false, 70 > 67 is true → "B". Dankzij interval checking hoeft het tweede block niet ook nog `score <= 82` te testen.
+
+#! oefening id=L01-07-a rol=oefenen moeilijkheid=2 xp=60 titel="Schrikkeljaar" bron="D04schrikkeljaar"
+Maak een programma dat van een ingevoerd jaartal op de console brengt of het om een schrikkeljaar gaat of niet.
+
+Een schrikkeljaar is een jaar dat **deelbaar is door 4 en niet door 100**, **of** deelbaar is door 400.
+
+```text
+Geef een jaartal : 2024
+2024 is een schrikkeljaar
+```
+
+```text
+Geef een jaartal : 1900
+1900 is geen schrikkeljaar
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+"Deelbaar door 4" betekent: de rest na deling door 4 is 0. Welke operator geeft de rest?
+
+#! hint
+`jaar % 4 == 0` test deelbaarheid door 4. Combineer de drie voorwaarden met `&&`, `||` en `!=`.
+
+#! hint
+De volledige voorwaarde: `(jaar % 4 == 0 && jaar % 100 != 0) || jaar % 400 == 0`. Bewaar ze eventueel in een `bool isSchrikkeljaar`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een jaartal : ");
+            int jaar = int.Parse(Console.ReadLine());
+            bool isSchrikkeljaar = (jaar % 4 == 0 && jaar % 100 != 0) || jaar % 400 == 0;
+            if (isSchrikkeljaar) {
+                Console.WriteLine($"{jaar} is een schrikkeljaar");
+            } else {
+                Console.WriteLine($"{jaar} is geen schrikkeljaar");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Deelbaarheid test je met modulo: `jaar % 4 == 0`.
+- De haakjes maken duidelijk welke voorwaarden samen horen. (`&&` gaat vóór `||`, maar met haakjes is het leesbaarder.)
+- De voorwaarde staat in een `bool` met een duidelijke naam. `if (isSchrikkeljaar)` leest bijna als een zin — schrijf zeker niet `if (isSchrikkeljaar == true)`.
+
+#! regel type=statement doel=logical-and bericht="Gebruik de logische and-operator &&"
+#! regel type=statement doel=logical-or bericht="Gebruik de logische or-operator ||"
+
+#! test naam="2024"
+#! invoer
+2024
+#! verwacht
+Geef een jaartal : 2024
+2024 is een schrikkeljaar
+
+#! test naam="1900 (deelbaar door 100)"
+#! invoer
+1900
+#! verwacht
+Geef een jaartal : 1900
+1900 is geen schrikkeljaar
+
+#! test naam="2000 (deelbaar door 400)" referentie=ja
+#! invoer
+2000
+
+#! test naam="2023" referentie=ja verborgen=ja
+#! invoer
+2023
+
+#! oefening id=L01-07-m rol=meesterschap moeilijkheid=3 xp=90 titel="Patreon-sponsor" bron="D04patreonsponsor"
+Het YouTube-kanaal "Adrian's digital basement" kan gesponsord worden via Patreon, met de volgende sponsorniveaus:
+
+- vanaf 1 Eur: It's a binary buck
+- vanaf 2 Eur: Two's Complement
+- vanaf 3,5 Eur: Nibble-Size
+- vanaf 7 Eur: Glorious 8-bit simplicity
+- vanaf 14 Eur: 16-bit is the future
+- vanaf 28 Eur: Cooking with 32-bits
+- vanaf 55,5 Eur: Commodore 64
+
+Elke sponsor komt in het niveau terecht dat het best past bij het gedoneerde bedrag. Wie bv. 10 Eur doneert, wordt een "Glorious 8-bit simplicity"-sponsor. Minder dan 1 Eur doneren is niet mogelijk!
+
+Schrijf een programma dat de gebruiker om een geldbedrag vraagt en het bereikte sponsorniveau (**tussen aanhalingstekens**!) weergeeft. Gebruik **interval checking** zoals uitgelegd in de cursus.
+
+```text
+Hoeveel euro wil je uitgeven : 10
+Dan word je een "Glorious 8-bit simplicity" sponsor.
+```
+
+```text
+Hoeveel euro wil je uitgeven : 0,5
+Helaas, voor dat bedrag kun je niet sponsoren.
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Het bedrag kan een kommagetal zijn (3,5 en 55,5 zijn grenzen). Welke grens controleer je best eerst als je interval checking toepast?
+
+#! hint
+Begin met het geval "minder dan 1" en werk dan van klein naar groot (`< 2`, `< 3.5`, …), óf begin bij de grootste grens (`>= 55.5`) en werk naar beneden. Gebruik één `if … else if … else`-structuur.
+
+#! hint
+Een aanhalingsteken binnen een string schrijf je als `\"`. Bv. `$"Dan word je een \"{niveau}\" sponsor."`. Bewaar het niveau eerst in een string-variabele.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel euro wil je uitgeven : ");
+            double bedrag = double.Parse(Console.ReadLine());
+
+            if (bedrag < 1) {
+                Console.WriteLine("Helaas, voor dat bedrag kun je niet sponsoren.");
+            } else {
+                string niveau;
+                if (bedrag >= 55.5) {
+                    niveau = "Commodore 64";
+                } else if (bedrag >= 28) {
+                    niveau = "Cooking with 32-bits";
+                } else if (bedrag >= 14) {
+                    niveau = "16-bit is the future";
+                } else if (bedrag >= 7) {
+                    niveau = "Glorious 8-bit simplicity";
+                } else if (bedrag >= 3.5) {
+                    niveau = "Nibble-Size";
+                } else if (bedrag >= 2) {
+                    niveau = "Two's Complement";
+                } else {
+                    niveau = "It's a binary buck";
+                }
+                Console.WriteLine($"Dan word je een \"{niveau}\" sponsor.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- **Interval checking**: we beginnen bij de grootste grens. In elk volgend `else if` weten we dat het bedrag kleiner is dan de vorige grens, dus hoeven we geen `&&` te gebruiken.
+- Het geval "minder dan 1" wordt apart behandeld, omdat de output dan een andere zin is.
+- `\"` is een *escape-reeks*: zo kan je een aanhalingsteken in een string zetten zonder de string te beëindigen.
+
+#! regel type=statement doel=else-if aantal=5 bericht="Gebruik interval checking met een if … else if … else structuur"
+
+#! test naam="10 euro"
+#! invoer
+10
+#! verwacht
+Hoeveel euro wil je uitgeven : 10
+Dan word je een "Glorious 8-bit simplicity" sponsor.
+
+#! test naam="0,5 euro"
+#! invoer
+0,5
+#! verwacht
+Hoeveel euro wil je uitgeven : 0,5
+Helaas, voor dat bedrag kun je niet sponsoren.
+
+#! test naam="Precies op een grens (3,5)" referentie=ja
+#! invoer
+3,5
+
+#! test naam="Precies 1 euro" referentie=ja
+#! invoer
+1
+
+#! test naam="55,5 euro" referentie=ja verborgen=ja
+#! invoer
+55,5
+
+#! test naam="27,99 euro" referentie=ja verborgen=ja
+#! invoer
+27,99

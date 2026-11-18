@@ -1,0 +1,246 @@
+#! lesson
+id: L04-01
+titel: Arrays declareren en initialiseren
+samenvatting: Een verzameling waarden bijhouden in één variabele: declaratie, new, initializers, defaultwaarden en null.
+skills: arrays
+bron: Deel 08 – 1. Inleiding tot arrays, 2. Array variabelen, 3. Datatypes en hun defaultwaardes, 4. Array initializers
+duur: 30
+
+#! begrijpen
+## Waarom arrays?
+
+Zo goed als elke applicatie werkt met **verzamelingen** van gegevens: werknemers, artikels, recent geopende documenten… Voor 7 dagnamen wil je geen 7 aparte variabelen `dag1`, `dag2`, … Een **array** bewaart meerdere waarden van **hetzelfde type** onder één naam.
+
+Vergelijk een array met een rij **genummerde vakjes** (lockers): elk vakje heeft een nummer (de **index**) en bevat één waarde (een **element**). De nummering begint — net als bij strings — bij **0**.
+
+## Een array-variabele declareren (Deel 08 §2)
+
+```csharp norun
+string[] feestdagen;      // een variabele die naar een array van strings kan verwijzen
+int[] scores;
+```
+
+De `[]` achter het type betekent "array van". De declaratie maakt nog **geen** array; daarvoor gebruik je `new`.
+
+## Een nieuwe lege array (§4.1)
+
+```csharp norun
+string[] feestdagen = new string[12];   // 12 elementen, index 0 t.e.m. 11
+feestdagen[0] = "Nieuwjaar";
+feestdagen[1] = "Pasen";
+```
+
+De **lengte** ligt vast bij het aanmaken en vraag je op met `feestdagen.Length`.
+
+## Defaultwaardes (§3)
+
+Elk element van een nieuwe array krijgt automatisch een **defaultwaarde**:
+
+| Datatype | Defaultwaarde |
+|---|---|
+| `int`, `double` | `0` |
+| `bool` | `false` |
+| `char` | `'\0'` |
+| `string` (en andere reference types) | `null` |
+
+## null en reference types (§3.1)
+
+`null` betekent "**verwijst naar niets**". Een `string`-element dat nog niet ingevuld werd, is `null` — niet de lege string `""`! Strings en arrays zijn **reference types**: de variabele bevat een verwijzing naar de eigenlijke gegevens. Meer daarover in Level 7 en 10.
+
+## Een meteen opgevulde array (§4.2)
+
+Ken je de waarden al, gebruik dan een **array initializer**:
+
+```csharp norun
+string[] dagen = { "ma", "di", "wo", "do", "vr", "za", "zo" };
+int[] priemgetallen = new int[] { 2, 3, 5, 7, 11 };
+```
+
+De compiler telt zelf de elementen: `dagen.Length` is 7.
+
+#! voorbeeld
+## Arrays en defaultwaarden
+
+```csharp
+string[] dagen = { "ma", "di", "wo", "do", "vr", "za", "zo" };
+Console.WriteLine(dagen.Length);
+Console.WriteLine(dagen[0]);
+Console.WriteLine(dagen[6]);
+
+int[] scores = new int[3];
+scores[1] = 17;
+Console.WriteLine($"{scores[0]} {scores[1]} {scores[2]}");
+
+string[] namen = new string[2];
+Console.WriteLine(namen[0] == null);
+```
+
+Volg in de debugger de variabelen `dagen` en `scores`: je ziet de volledige inhoud van de array.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int[] getallen = new int[4];
+getallen[2] = 9;
+Console.WriteLine(getallen.Length);
+Console.WriteLine(getallen[0] + getallen[2]);
+```
+? De array heeft 4 elementen. Een niet-ingevuld int-element heeft defaultwaarde 0, dus 0 + 9 = 9.
+
+#! voorspel id=v2 type=choice
+Wat is de defaultwaarde van de elementen van `new string[5]`?
+- "" (lege string)
++ null
+- 0
+- " "
+? String is een reference type: de defaultwaarde is `null` (verwijst naar niets), niet de lege string.
+
+#! voorspel id=v3 type=text antwoord=11
+`string[] feestdagen = new string[12];` — wat is de **hoogste** geldige index?
+? 12 elementen, genummerd van 0 t.e.m. 11.
+
+#! oefening id=L04-01-a rol=oefenen moeilijkheid=1 xp=50 titel="Dagen met een initializer" bron="D08dagen"
+Vervang in onderstaand programma de regels (1) tot en met (8) door **één** declaratieregel met een **array-initializer** die meteen alle zeven waarden opgeeft. De uitvoer moet hetzelfde blijven:
+
+```text
+(7 elementen): ma di wo do vr za zo
+```
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            string[] dagen = new string[7];   // (1)
+            dagen[0] = "ma";                  // (2)
+            dagen[1] = "di";                  // (3)
+            dagen[2] = "wo";                  // (4)
+            dagen[3] = "do";                  // (5)
+            dagen[4] = "vr";                  // (6)
+            dagen[5] = "za";                  // (7)
+            dagen[6] = "zo";                  // (8)
+            Console.Write($"({dagen.Length} elementen): ");
+            for (int index = 0; index < dagen.Length; index++) {
+                Console.Write(dagen[index] + " ");
+            }
+        }
+    }
+}
+
+#! hint
+Een array initializer zet de waarden tussen accolades `{ }`, gescheiden door komma's.
+
+#! hint
+`string[] dagen = { "ma", "di", … };` — de lengte hoef je niet meer op te geven, die volgt uit het aantal waarden.
+
+#! hint
+Verwijder de regels (1) t.e.m. (8) en zet er één regel voor in de plaats. De for loop blijft ongewijzigd.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            string[] dagen = { "ma", "di", "wo", "do", "vr", "za", "zo" };
+            Console.Write($"({dagen.Length} elementen): ");
+            for (int index = 0; index < dagen.Length; index++) {
+                Console.Write(dagen[index] + " ");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De array initializer bepaalt meteen de lengte (7) en de waarden van alle elementen.
+- De for loop gebruikt `dagen.Length` als grens. Daardoor blijft hij correct als je dagen toevoegt of weglaat.
+
+#! regel type=no-regex doel="dagen\[\d\]\s*=" bericht="Gebruik een array initializer in plaats van losse toekenningen"
+#! regel type=no-regex doel="new\s+string\[7\]" bericht="Je hoeft de lengte niet op te geven bij een initializer"
+
+#! test naam="Uitvoer"
+#! verwacht
+(7 elementen): ma di wo do vr za zo
+
+#! oefening id=L04-01-m rol=meesterschap moeilijkheid=2 xp=80 titel="Dagnummer" bron="D08dagnummer"
+Schrijf een programma dat de gebruiker om een dagnummer vraagt van 1 t.e.m. 7 en toont welke weekdag daarmee overeenkomt (maandag is dag 1). Gebruik een **array** met de namen van de dagen.
+
+Indien de gebruiker geen geldig dagnummer intypt, toont het programma **niks**.
+
+```text
+Geef een dagnummer : 6
+Dagnummer 6 is zaterdag.
+```
+
+```text
+Geef een dagnummer : groen
+```
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Maak een array met de 7 dagnamen. Welke index hoort bij dagnummer 1 (maandag)?
+
+#! hint
+Dagnummer 1 hoort bij index 0: de index is dus `dagnummer - 1`. Gebruik `int.TryParse` voor robuuste invoer.
+
+#! hint
+Toon enkel iets als de omzetting lukt **én** `dagnummer >= 1 && dagnummer <= dagen.Length`. Anders zou je een IndexOutOfRangeException krijgen.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            string[] dagen = { "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag" };
+            Console.Write("Geef een dagnummer : ");
+            int dagnummer;
+            bool ok = int.TryParse(Console.ReadLine(), out dagnummer);
+            if (ok && dagnummer >= 1 && dagnummer <= dagen.Length) {
+                Console.WriteLine($"Dagnummer {dagnummer} is {dagen[dagnummer - 1]}.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De array vervangt een lange `if … else if`-reeks (vergelijk met D06weekdagnummer!).
+- Dagnummers beginnen bij 1, indexen bij 0: daarom `dagen[dagnummer - 1]`.
+- De grenscontrole voorkomt een IndexOutOfRangeException bij 0, -3 of 9.
+
+#! regel type=statement doel=array bericht="Gebruik een array met de dagnamen"
+#! regel type=uses doel=TryParse bericht="Gebruik TryParse voor robuuste invoer"
+
+#! test naam="Dag 6"
+#! invoer
+6
+#! verwacht
+Geef een dagnummer : 6
+Dagnummer 6 is zaterdag.
+
+#! test naam="Ongeldige tekst" referentie=ja
+#! invoer
+groen
+
+#! test naam="Buiten het bereik" referentie=ja
+#! invoer
+9
+
+#! test naam="Dag 1 en grens" referentie=ja verborgen=ja
+#! invoer
+1
+
+#! test naam="Negatief" referentie=ja verborgen=ja
+#! invoer
+-3

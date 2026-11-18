@@ -1,0 +1,320 @@
+#! lesson
+id: L10-02
+titel: Private en public, en objectdiagrammen
+samenvatting: Waarom datavelden private zijn, de underscore-conventie en objecten tekenen in een objectdiagram.
+skills: klassen
+bron: Deel 14 – 2.3. Private en public, 3. (reference type en run-time constructie), 4.1. Objectdiagrammen, 4.3.1. Underscore voor datavelden
+duur: 30
+
+#! begrijpen
+## Private en public (Deel 14 §2.3)
+
+| Modifier | Wie kan het gebruiken? |
+|---|---|
+| `private` | enkel code **binnen dezelfde klasse** |
+| `public` | ook code **buiten** de klasse (bv. Main) |
+
+Datavelden zijn **private**: de buitenwereld kan ze niet rechtstreeks wijzigen. Wil je toegang geven, dan doe je dat via **public methods** (Get/Set). Zo kan de klasse zelf bewaken dat haar toestand geldig blijft — dat heet **encapsulatie**:
+
+```csharp norun
+public void SetStraal(double straal) {
+    if (straal >= 0) {
+        _straal = straal;      // een negatieve straal wordt geweigerd
+    }
+}
+```
+
+Laat je de modifier weg, dan is een member standaard `private`.
+
+## Underscore voor datavelden (§4.3.1)
+
+In de cursus beginnen namen van datavelden met een **underscore**: `_naam`, `_saldo`. Zo zie je in een method meteen het verschil tussen een dataveld en een lokale variabele of parameter:
+
+```csharp norun
+public void SetNaam(string naam) {
+    _naam = naam;      // dataveld = parameter
+}
+```
+
+## Objectdiagrammen (§4.1)
+
+Een **objectdiagram** toont objecten tijdens de uitvoering: een rechthoek per object met de waarden van zijn datavelden, en pijlen voor verwijzingen.
+
+```text
+ cirkel1 ──► ┌───────────────┐
+             │ : Cirkel       │
+             │ _straal = 3,45 │
+             └───────────────┘
+```
+
+De variabele `cirkel1` bevat geen cirkel, maar een **verwijzing** (de pijl) naar het object. In de debugger van C# Quest zie je dat aan het nummer: `#1 Cirkel { _straal=3,45 }`.
+
+#! voorbeeld
+## Encapsulatie in actie
+
+```csharp
+using System;
+
+class Cirkel {
+    private double _straal;
+
+    public double GetStraal() { return _straal; }
+
+    public void SetStraal(double straal) {
+        if (straal >= 0) {
+            _straal = straal;
+        }
+    }
+
+    public double Omtrek() { return 2 * Math.PI * _straal; }
+}
+
+class Program {
+    static void Main() {
+        Cirkel cirkel1 = new Cirkel();
+        cirkel1.SetStraal(3.45);
+        cirkel1.SetStraal(-10);               // wordt geweigerd
+        Console.WriteLine(cirkel1.GetStraal());
+        Console.WriteLine($"{cirkel1.Omtrek():f2}");
+    }
+}
+```
+
+Probeer eens `cirkel1._straal = -10;` in Main: je krijgt compileerfout CS0122 (niet toegankelijk door zijn beveiligingsniveau).
+
+#! voorspel id=v1 type=choice
+`class Rekening { private decimal _saldo; }` — wat gebeurt er bij `rekening._saldo = 1000000;` in Main?
+- Het saldo wordt 1000000
++ Compileerfout: _saldo is private
+- Runtimefout
+- Het saldo blijft 0, zonder fout
+? Private members zijn enkel binnen de klasse bruikbaar. Precies daarom zijn datavelden private: zo kan niemand zomaar een miljoen op zijn rekening zetten.
+
+#! voorspel id=v2 type=choice
+Welke modifier heeft een member als je niets vermeldt?
+- public
++ private
+- static
+- internal voor datavelden, public voor methods
+? Zonder modifier is een member van een klasse private.
+
+#! oefening id=L10-02-a rol=oefenen moeilijkheid=2 xp=80 titel="Cirkel" bron="D14cirkel"
+Schrijf een klasse `Cirkel` (in `Cirkel.cs`) zodat we Cirkel-objecten een straal kunnen geven en die ook kunnen opvragen. Een negatieve straal wordt **geweigerd** (de straal blijft dan ongewijzigd). Een Cirkel kan ons ook vertellen wat zijn **oppervlakte** en **omtrek** is.
+
+Schrijf een `Main` (niet in de Cirkel-klasse!) die een cirkel aanmaakt met straal 3,45 en de informatie toont met 2 cijfers na de komma:
+
+```text
+Straal: 3,45
+Omtrek: 21,68
+Oppervlakte: 37,39
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+
+        }
+    }
+}
+
+#! starter bestand=Cirkel.cs
+using System;
+
+namespace D14 {
+    class Cirkel {
+
+    }
+}
+
+#! hint
+Eén private dataveld `_straal`, met `GetStraal` en `SetStraal`. In SetStraal controleer je eerst of de straal niet negatief is.
+
+#! hint
+`public double Omtrek() { return 2 * Math.PI * _straal; }` en `public double Oppervlakte() { return Math.PI * _straal * _straal; }`.
+
+#! hint
+In Main: `Cirkel cirkel = new Cirkel(); cirkel.SetStraal(3.45);` en dan drie WriteLines met `:f2`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Cirkel cirkel = new Cirkel();
+            cirkel.SetStraal(3.45);
+            Console.WriteLine($"Straal: {cirkel.GetStraal():f2}");
+            Console.WriteLine($"Omtrek: {cirkel.Omtrek():f2}");
+            Console.WriteLine($"Oppervlakte: {cirkel.Oppervlakte():f2}");
+        }
+    }
+}
+
+#! oplossing bestand=Cirkel.cs
+using System;
+
+namespace D14 {
+    class Cirkel {
+        private double _straal;
+
+        public double GetStraal() {
+            return _straal;
+        }
+
+        public void SetStraal(double straal) {
+            if (straal >= 0) {
+                _straal = straal;
+            }
+        }
+
+        public double Omtrek() {
+            return 2 * Math.PI * _straal;
+        }
+
+        public double Oppervlakte() {
+            return Math.PI * _straal * _straal;
+        }
+    }
+}
+
+#! uitleg
+- De Cirkel bewaakt zelf zijn toestand: een negatieve straal komt er niet in. Dat kan enkel omdat `_straal` private is.
+- Omtrek en oppervlakte worden **berekend** uit de straal en niet apart bewaard: zo kunnen ze nooit "uit de pas" lopen.
+
+#! regel type=class doel=Cirkel bericht="Maak een klasse Cirkel"
+#! regel type=private-fields bericht="Datavelden zijn private"
+
+#! test naam="Main"
+#! verwacht
+Straal: 3,45
+Omtrek: 21,68
+Oppervlakte: 37,39
+
+#! test naam="Negatieve straal wordt geweigerd" soort=code
+Cirkel c = new Cirkel();
+c.SetStraal(2);
+c.SetStraal(-5);
+Check.Equal(2.0, c.GetStraal(), "straal blijft 2 na SetStraal(-5)");
+Check.Equal(4 * Math.PI, c.Oppervlakte(), "oppervlakte bij straal 2");
+
+#! oefening id=L10-02-m rol=meesterschap moeilijkheid=3 xp=110 titel="Artikel met btw" bron="D14artikel"
+Maak een klasse `Artikel` (in `Artikel.cs`). Van of met een artikel willen we:
+
+- de prijs exclusief btw instellen en opvragen (`SetPrijsExclusief`, `GetPrijsExclusief`) — een negatieve prijs wordt geweigerd;
+- de btw (in %) instellen en opvragen (`SetBtw`, `GetBtw`); wordt ze niet ingesteld, dan is **21%** van toepassing;
+- de prijs inclusief btw opvragen (`GetPrijsInclusief`), afgerond op 2 cijfers (AwayFromZero).
+
+Gebruik **decimal**. De testcode in Program.cs toont:
+
+```text
+Laptop: 999,00 excl. / 1208,79 incl. (21%)
+Boek: 25,00 excl. / 26,50 incl. (6%)
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Artikel laptop = new Artikel();
+            laptop.SetPrijsExclusief(999M);
+            Artikel boek = new Artikel();
+            boek.SetPrijsExclusief(25M);
+            boek.SetBtw(6M);
+            Console.WriteLine($"Laptop: {laptop.GetPrijsExclusief():f2} excl. / {laptop.GetPrijsInclusief():f2} incl. ({laptop.GetBtw()}%)");
+            Console.WriteLine($"Boek: {boek.GetPrijsExclusief():f2} excl. / {boek.GetPrijsInclusief():f2} incl. ({boek.GetBtw()}%)");
+        }
+    }
+}
+
+#! starter bestand=Artikel.cs
+using System;
+
+namespace D14 {
+    class Artikel {
+
+    }
+}
+
+#! hint
+Twee datavelden: `_prijsExclusief` en `_btw`. Hoe zorg je voor de standaard 21%?
+
+#! hint
+`private decimal _btw = 21M;` — een dataveld met een beginwaarde. De prijs inclusief is een **berekening**, geen dataveld.
+
+#! hint
+`public decimal GetPrijsInclusief() { return Math.Round(_prijsExclusief * (1 + _btw / 100), 2, MidpointRounding.AwayFromZero); }`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Artikel laptop = new Artikel();
+            laptop.SetPrijsExclusief(999M);
+            Artikel boek = new Artikel();
+            boek.SetPrijsExclusief(25M);
+            boek.SetBtw(6M);
+            Console.WriteLine($"Laptop: {laptop.GetPrijsExclusief():f2} excl. / {laptop.GetPrijsInclusief():f2} incl. ({laptop.GetBtw()}%)");
+            Console.WriteLine($"Boek: {boek.GetPrijsExclusief():f2} excl. / {boek.GetPrijsInclusief():f2} incl. ({boek.GetBtw()}%)");
+        }
+    }
+}
+
+#! oplossing bestand=Artikel.cs
+using System;
+
+namespace D14 {
+    class Artikel {
+        private decimal _prijsExclusief;
+        private decimal _btw = 21M;
+
+        public decimal GetPrijsExclusief() {
+            return _prijsExclusief;
+        }
+
+        public void SetPrijsExclusief(decimal prijs) {
+            if (prijs >= 0) {
+                _prijsExclusief = prijs;
+            }
+        }
+
+        public decimal GetBtw() {
+            return _btw;
+        }
+
+        public void SetBtw(decimal btw) {
+            _btw = btw;
+        }
+
+        public decimal GetPrijsInclusief() {
+            return Math.Round(_prijsExclusief * (1 + _btw / 100), 2, MidpointRounding.AwayFromZero);
+        }
+    }
+}
+
+#! uitleg
+- De standaard btw zit in de initialisatie van het dataveld: wie SetBtw niet oproept, krijgt 21%.
+- De prijs inclusief wordt telkens **berekend**: verander je de btw, dan klopt de inclusieve prijs meteen ook.
+
+#! regel type=class doel=Artikel bericht="Maak een klasse Artikel"
+#! regel type=private-fields bericht="Datavelden zijn private"
+#! regel type=method doel=GetPrijsInclusief geeft=decimal parameters=0 bericht="Maak een method public decimal GetPrijsInclusief()"
+
+#! test naam="Testcode"
+#! verwacht
+Laptop: 999,00 excl. / 1208,79 incl. (21%)
+Boek: 25,00 excl. / 26,50 incl. (6%)
+
+#! test naam="Standaard 21% en negatieve prijs" soort=code
+Artikel a = new Artikel();
+Check.Equal(21M, a.GetBtw(), "standaard btw");
+a.SetPrijsExclusief(10M);
+a.SetPrijsExclusief(-3M);
+Check.Equal(10M, a.GetPrijsExclusief(), "negatieve prijs geweigerd");
+Check.Equal(12.10M, a.GetPrijsInclusief(), "10 euro + 21%");

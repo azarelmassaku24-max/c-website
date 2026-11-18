@@ -1,0 +1,292 @@
+#! lesson
+id: L05-01
+titel: Vroegtijdig een loop beëindigen met break
+samenvatting: Stoppen met zoeken zodra je gevonden hebt wat je zocht — met en zonder break.
+skills: break, array-zoeken
+bron: Deel 09 – 1. Vroegtijdig een loop beëindigen (1.1 zonder break, 1.2 met break)
+duur: 25
+
+#! begrijpen
+## Waarom vroegtijdig stoppen?
+
+Vaak overloop je een string of array op zoek naar één bepaald onderdeel, bijvoorbeeld:
+
+1. nagaan of een string minstens 1 leesteken bevat;
+2. checken of een array een bepaalde waarde bevat;
+3. de eerste onvoldoende vinden in een puntenlijst.
+
+Zodra je het antwoord kent, heeft het geen zin om verder te zoeken.
+
+## Stoppen zonder break (§1.1)
+
+Je kan een extra voorwaarde in de loop opnemen:
+
+```csharp norun
+bool gevonden = false;
+int i = 0;
+while (i < dieren.Length && !gevonden) {
+    if (dieren[i] == gezocht) {
+        gevonden = true;
+    }
+    i++;
+}
+```
+
+## Stoppen met break (§1.2)
+
+`break` beëindigt de (binnenste) loop **meteen**; het programma gaat verder na de loop.
+
+```csharp norun
+bool gevonden = false;
+for (int i = 0; i < dieren.Length; i++) {
+    if (dieren[i] == gezocht) {
+        gevonden = true;
+        break;
+    }
+}
+```
+
+> [!LET OP]
+> `break` stopt enkel de loop waarin hij **direct** staat. In geneste loops blijft de buitenste loop gewoon doorlopen. In de cursus zie je dat in het voorbeeld van "eau-de-cologneflesje": het zoeken in het woord stopt na het eerste koppelteken, maar de buitenste loop over de woorden gaat verder.
+
+Gebruik `break` met mate: een loop met veel uitgangen wordt moeilijk te volgen. Eén duidelijke `break` bij het vinden van een treffer is prima.
+
+#! voorbeeld
+## Zoek het eerste koppelteken
+
+Volg in de debugger hoe de binnenste loop stopt, maar de buitenste verdergaat.
+
+```csharp
+string[] woorden = { "eau-de-cologneflesje", "kast", "zee-egel" };
+foreach (string woord in woorden) {
+    int positie = -1;
+    for (int i = 0; i < woord.Length; i++) {
+        if (woord[i] == '-') {
+            positie = i;
+            break;
+        }
+    }
+    Console.WriteLine($"{woord}: eerste koppelteken op {positie}");
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int[] punten = { 13, 16, 8, 12, 3 };
+for (int i = 0; i < punten.Length; i++) {
+    if (punten[i] < 10) {
+        Console.WriteLine($"onvoldoende op positie {i}");
+        break;
+    }
+}
+Console.WriteLine("klaar");
+```
+? De eerste onvoldoende (8) staat op positie 2. Door `break` wordt de 3 op positie 4 niet meer bekeken.
+
+#! voorspel id=v2 type=text antwoord=3
+Hoeveel keer wordt de **buitenste** loop uitgevoerd?
+```csharp norun
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 10; j++) {
+        if (j == 2) break;
+    }
+}
+```
+? `break` stopt enkel de binnenste loop. De buitenste loop loopt gewoon 3 keer.
+
+#! oefening id=L05-01-a rol=oefenen moeilijkheid=2 xp=60 titel="Zoek het dier" bron="D09zoekdier"
+Begin een programma met
+
+```csharp norun
+string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+```
+
+en schrijf de rest van de code zodat het de gebruiker om een dier vraagt. Het programma meldt of het wel of niet om een boerderijdier gaat. Het programma is **hoofdletterongevoelig** en stopt met zoeken zodra het dier gevonden is (`break`).
+
+```text
+Geef een dier : PAARD
+paard is een boerderijdier
+```
+
+```text
+Geef een dier : dolfijn
+dolfijn is geen boerderijdier
+```
+
+Toon het dier in kleine letters.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+
+        }
+    }
+}
+
+#! hint
+Zet de invoer om naar kleine letters (de dieren in de array staan al in kleine letters). Overloop daarna de array.
+
+#! hint
+Gebruik een `bool gevonden = false;` en een for loop. Bij een treffer: `gevonden = true; break;`.
+
+#! hint
+Na de loop toon je op basis van `gevonden` de juiste zin.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+            Console.Write("Geef een dier : ");
+            string dier = Console.ReadLine().Trim().ToLower();
+            bool gevonden = false;
+            for (int i = 0; i < boerderijDieren.Length; i++) {
+                if (boerderijDieren[i] == dier) {
+                    gevonden = true;
+                    break;
+                }
+            }
+            if (gevonden) {
+                Console.WriteLine($"{dier} is een boerderijdier");
+            } else {
+                Console.WriteLine($"{dier} is geen boerderijdier");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De invoer wordt één keer opgekuist (`Trim().ToLower()`), daarna is gewoon `==` mogelijk.
+- `break` stopt de zoektocht bij de eerste treffer: bij "kip" wordt maar één element vergeleken.
+- Het resultaat van de zoektocht zit in de bool `gevonden`; de output staat buiten de loop.
+
+#! regel type=statement doel=break bericht="Stop het zoeken met break"
+
+#! test naam="Gevonden (hoofdletters)"
+#! invoer
+PAARD
+#! verwacht
+Geef een dier : PAARD
+paard is een boerderijdier
+
+#! test naam="Niet gevonden" referentie=ja
+#! invoer
+dolfijn
+
+#! test naam="Laatste dier" referentie=ja verborgen=ja
+#! invoer
+Schaap
+
+#! oefening id=L05-01-m rol=meesterschap moeilijkheid=3 xp=90 titel="Herkansing nodig?" bron="D09herkansing + D09maximumtemperatuur"
+Een docent wil weten of er een herkansing moet ingericht worden: dat is zo als minstens 1 student een onvoldoende (score < 10) behaalde.
+
+De gebruiker geeft eerst het aantal studenten in en daarna de scores. Het programma meldt:
+
+- de **eerste** onvoldoende (positie en score) en dat er een herkansing nodig is; stop met zoeken bij de eerste onvoldoende;
+- of `Geen herkansing nodig.`
+
+```text
+Aantal studenten? 5
+Score 1 : 13
+Score 2 : 16
+Score 3 : 8
+Score 4 : 12
+Score 5 : 3
+Herkansing nodig: eerste onvoldoende is 8 (student 3).
+```
+
+Een lege klas (0 studenten) heeft geen herkansing nodig.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Lees de scores in een array van de opgegeven grootte. Daarna zoek je in een aparte loop de eerste onvoldoende.
+
+#! hint
+Onthoud de positie van de eerste onvoldoende in `int positie = -1;`. Bij de eerste score < 10: positie bewaren en `break`.
+
+#! hint
+Na de zoekloop: `if (positie == -1)` → geen herkansing, anders toon `scores[positie]` en `positie + 1` (de gebruiker telt vanaf 1).
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            const int grens = 10;
+            Console.Write("Aantal studenten? ");
+            int aantal = int.Parse(Console.ReadLine());
+            int[] scores = new int[aantal];
+            for (int i = 0; i < scores.Length; i++) {
+                Console.Write($"Score {i + 1} : ");
+                scores[i] = int.Parse(Console.ReadLine());
+            }
+
+            int positie = -1;
+            for (int i = 0; i < scores.Length; i++) {
+                if (scores[i] < grens) {
+                    positie = i;
+                    break;
+                }
+            }
+
+            if (positie == -1) {
+                Console.WriteLine("Geen herkansing nodig.");
+            } else {
+                Console.WriteLine($"Herkansing nodig: eerste onvoldoende is {scores[positie]} (student {positie + 1}).");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Inlezen en zoeken zijn aparte loops: eerst alle gegevens, dan de analyse.
+- `positie = -1` betekent "niets gevonden" — dezelfde conventie als `IndexOf`.
+- Bij 0 studenten wordt geen enkele loop uitgevoerd en blijft `positie` -1: dit randgeval werkt vanzelf (net zoals bij D09maximumtemperatuur moet je altijd aan lege arrays denken!).
+
+#! regel type=statement doel=break bericht="Stop bij de eerste onvoldoende met break"
+
+#! test naam="Onvoldoende gevonden"
+#! invoer
+5
+13
+16
+8
+12
+3
+#! verwacht
+Aantal studenten? 5
+Score 1 : 13
+Score 2 : 16
+Score 3 : 8
+Score 4 : 12
+Score 5 : 3
+Herkansing nodig: eerste onvoldoende is 8 (student 3).
+
+#! test naam="Iedereen geslaagd" referentie=ja
+#! invoer
+3
+10
+15
+19
+
+#! test naam="Lege klas" referentie=ja verborgen=ja
+#! invoer
+0

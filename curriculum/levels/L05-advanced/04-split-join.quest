@@ -1,0 +1,260 @@
+#! lesson
+id: L05-04
+titel: De lege string, null, Split en Join
+samenvatting: Het verschil tussen "" en null, een string opsplitsen in een array en een array samenvoegen tot één string.
+skills: split-join
+bron: Deel 09 – 3.1–3.5 (string is geen char array, lege string, null, Split, Join)
+duur: 30
+
+#! begrijpen
+## Een string is geen char array (§3.1)
+
+Je kan karakters van een string opvragen met `[index]`, maar een string is géén `char[]`: hij is immutable en heeft eigen methods (`Length`, `IndexOf`, `Split`, …).
+
+## De lege string en null (§3.2–3.3)
+
+| Waarde | Betekenis | `Length` |
+|---|---|---|
+| `""` | een string **zonder karakters** | 0 |
+| `null` | **geen** string: de variabele verwijst naar niets | crasht (NullReferenceException) |
+
+```csharp norun
+string a = "";
+string b = null;
+Console.WriteLine(a.Length);   // 0
+Console.WriteLine(b.Length);   // NullReferenceException!
+```
+
+Een `string[]` die met `new` aangemaakt wordt, bevat `null`-elementen, geen lege strings.
+
+## Een string opsplitsen met Split (§3.4)
+
+`Split` hakt een string in stukken op basis van een **scheidingsteken** en geeft een `string[]` terug:
+
+```csharp norun
+string zin = "kip;koe;paard";
+string[] dieren = zin.Split(';');   // { "kip", "koe", "paard" }
+```
+
+Meerdere scheidingstekens tegelijk kan ook:
+
+```csharp norun
+string[] woorden = tekst.Split(' ', ',', '.', '!', '?');
+```
+
+> [!LET OP]
+> Twee scheidingstekens na elkaar (bv. ", ") geven een **lege string** in het resultaat. Die kan je overslaan met `if (woord != "")`, of met `tekst.Split(scheidingstekens, StringSplitOptions.RemoveEmptyEntries)`.
+
+## Een array samenvoegen met Join (§3.5)
+
+`String.Join` doet het omgekeerde: het plakt alle elementen samen met een scheidingsteken ertussen — **niet** na het laatste element:
+
+```csharp norun
+int[] getallen = { 4, 7, 9 };
+string tekst = String.Join(", ", getallen);   // "4, 7, 9"
+```
+
+Vergelijk met D08toongetallen: daar schreef je dat zelf met een loop!
+
+#! voorbeeld
+## Split en Join
+
+```csharp
+string invoer = "12;7;30;5";
+string[] stukken = invoer.Split(';');
+int som = 0;
+foreach (string stuk in stukken) {
+    som += int.Parse(stuk);
+}
+Console.WriteLine($"{stukken.Length} getallen, som {som}");
+Console.WriteLine(String.Join(" + ", stukken) + " = " + som);
+
+string zin = "Het werd donker, de kinderen gingen";
+string[] woorden = zin.Split(' ', ',');
+Console.WriteLine(woorden.Length);
+```
+
+Waarom geeft de laatste regel 7 en niet 6? Bekijk in de debugger de inhoud van `woorden`: tussen `,` en ` ` staat een lege string.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string data = "Jan,34,Gent";
+string[] velden = data.Split(',');
+Console.WriteLine(velden.Length);
+Console.WriteLine(velden[2]);
+```
+? Split op `,` geeft 3 stukken: "Jan", "34" en "Gent". `velden[2]` is "Gent".
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+string[] namen = { "Bassie", "Adriaan", "Paulus" };
+Console.WriteLine(String.Join("-", namen));
+```
+? Join plakt de elementen aan elkaar met `-` ertussen, niet na het laatste.
+
+#! voorspel id=v3 type=choice
+Wat is het verschil tussen `""` en `null`?
+- Er is geen verschil
++ "" is een string zonder karakters, null betekent dat er geen string is
+- null is een string met een spatie
+- "" geeft een fout bij .Length
+? `"".Length` is 0. Bij `null` is er geen object, dus `.Length` geeft een NullReferenceException.
+
+#! oefening id=L05-04-a rol=oefenen moeilijkheid=2 xp=60 titel="Getallen op één regel" bron="D09toongetallenmetjoin"
+De gebruiker geeft een reeks gehele getallen in op **één regel**, gescheiden door spaties. Het programma toont de getallen gescheiden door komma's (met `String.Join`), en hun som.
+
+```text
+Geef getallen : 4 7 9 34 2
+4, 7, 9, 34, 2
+De som is 56
+```
+
+Je mag ervan uitgaan dat de getallen telkens door precies één spatie gescheiden zijn.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef getallen : ");
+            string invoer = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+`invoer.Split(' ')` geeft een array van strings. Wat moet je doen om ze op te tellen?
+
+#! hint
+Overloop de stukken en tel `int.Parse(stuk)` op bij de som. Voor de output met komma's gebruik je `String.Join(", ", stukken)`.
+
+#! hint
+Je kan Join rechtstreeks op de string-array toepassen: de getallen hoeven daarvoor niet eerst omgezet te worden.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef getallen : ");
+            string invoer = Console.ReadLine();
+            string[] stukken = invoer.Split(' ');
+            int som = 0;
+            foreach (string stuk in stukken) {
+                som += int.Parse(stuk);
+            }
+            Console.WriteLine(String.Join(", ", stukken));
+            Console.WriteLine($"De som is {som}");
+        }
+    }
+}
+
+#! uitleg
+- `Split(' ')` hakt de invoer op bij elke spatie.
+- `String.Join(", ", stukken)` zet het scheidingsteken enkel **tussen** de elementen.
+- Voor de som moet elk stuk wél omgezet worden naar een getal.
+
+#! regel type=uses doel=Split bericht="Gebruik Split"
+#! regel type=uses doel=Join bericht="Gebruik String.Join"
+
+#! test naam="Vijf getallen"
+#! invoer
+4 7 9 34 2
+#! verwacht
+Geef getallen : 4 7 9 34 2
+4, 7, 9, 34, 2
+De som is 56
+
+#! test naam="Eén getal" referentie=ja
+#! invoer
+42
+
+#! test naam="Negatieve getallen" referentie=ja verborgen=ja
+#! invoer
+-5 10 -3
+
+#! oefening id=L05-04-m rol=meesterschap moeilijkheid=3 xp=100 titel="Langste woord" bron="D09langstewoord"
+Schrijf een programma dat de gebruiker om een tekst vraagt en toont hoeveel woorden erin voorkomen en wat het langste woord is. Zijn er meerdere woorden van die lengte, toon dan het eerste. Woorden worden enkel gescheiden door **spaties, komma's, punten, uitroeptekens en vraagtekens**.
+
+```text
+Geef een tekst : Het werd donker, de kinderen haastten zich naar huis...
+aantal woorden : 9
+langste woord : kinderen
+```
+
+Let op de lege strings die `Split` oplevert bij opeenvolgende scheidingstekens (zoals `, ` en `...`).
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+`tekst.Split(' ', ',', '.', '!', '?')` hakt de tekst op bij alle scheidingstekens. Bekijk in de debugger wat je krijgt bij "donker, de".
+
+#! hint
+Overloop de stukken en sla lege strings over (`if (woord != "")`). Tel de echte woorden en onthoud het langste.
+
+#! hint
+Gebruik `>` (niet `>=`) bij het vergelijken van lengtes, zodat bij gelijke lengte het eerste woord blijft staan.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            string[] stukken = tekst.Split(' ', ',', '.', '!', '?');
+            int aantalWoorden = 0;
+            string langste = "";
+            foreach (string woord in stukken) {
+                if (woord != "") {
+                    aantalWoorden++;
+                    if (woord.Length > langste.Length) {
+                        langste = woord;
+                    }
+                }
+            }
+            Console.WriteLine($"aantal woorden : {aantalWoorden}");
+            Console.WriteLine($"langste woord : {langste}");
+        }
+    }
+}
+
+#! uitleg
+- `Split` met meerdere scheidingstekens. Tussen `,` en de spatie, en tussen de drie puntjes, ontstaan **lege strings**: die tellen niet mee.
+- Vergelijk met de Level 3-boss: daar deed je hetzelfde karakter per karakter. Met Split is het veel korter.
+- Alternatief: `tekst.Split(new[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries)` laat de lege stukken meteen weg.
+
+#! regel type=uses doel=Split bericht="Gebruik Split om de woorden te bekomen"
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+Het werd donker, de kinderen haastten zich naar huis...
+#! verwacht
+Geef een tekst : Het werd donker, de kinderen haastten zich naar huis...
+aantal woorden : 9
+langste woord : kinderen
+
+#! test naam="Vraagtekens en uitroeptekens" referentie=ja
+#! invoer
+Wat?! Nee!! Echt? Ja.
+
+#! test naam="Gelijke lengte" referentie=ja verborgen=ja
+#! invoer
+kat, hond, muis, vis

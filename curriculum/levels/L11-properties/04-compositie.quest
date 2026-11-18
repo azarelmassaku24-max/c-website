@@ -1,0 +1,442 @@
+#! lesson
+id: L11-04
+titel: Objecten die andere objecten bevatten
+samenvatting: Compositie: een Cirkel met een Punt als middelpunt, objectrelaties en objectdiagrammen.
+skills: compositie, constructors
+bron: Deel 15 – Verwijzingen en samengestelde objecten (D15cirkelpunt, D15cirkeloverlapt)
+aanvulling: Opgebouwd vanuit de oefeningen en oplossingen van Deel 15; aanvullend geschreven waar nodig.
+duur: 35
+
+#! begrijpen
+## Een object als dataveld
+
+Een klasse mag **objecten van andere klassen** als dataveld of property hebben. Een cirkel *heeft een* middelpunt; dat middelpunt is zelf een `Punt`-object. Dit heet **compositie** ("heeft-een"-relatie).
+
+```csharp norun
+class Cirkel {
+    public Punt Middelpunt { get; private set; }
+    public double Straal { get; }
+
+    public Cirkel(double x, double y, double straal) {
+        Middelpunt = new Punt(x, y);
+        Straal = straal;
+    }
+}
+```
+
+Omdat `Punt` immutable is, kan je het niet "aanpassen": om de cirkel te verplaatsen maak je een **nieuw** Punt:
+
+```csharp norun
+public void VerplaatsNaar(double x, double y) {
+    Middelpunt = new Punt(x, y);
+}
+```
+
+## Objectdiagram
+
+```text
+ c ──► ┌─────────────┐        ┌──────────────┐
+       │ : Cirkel     │        │ : Punt        │
+       │ Straal = 5   │        │ X = 10        │
+       │ Middelpunt ──┼──────► │ Y = 20        │
+       └─────────────┘        └──────────────┘
+```
+
+De variabele `c` verwijst naar een Cirkel; die bevat zelf een verwijzing naar een Punt. In de debugger van C# Quest zie je dat als `#1 Cirkel { Middelpunt=#2 Punt {…} }`.
+
+## Objecten laten samenwerken
+
+Methods van het ene object kunnen methods van het andere gebruiken. `Cirkel.Bevat(Punt p)` gebruikt de afstandsmethod van Punt:
+
+```csharp norun
+public bool Bevat(Punt p) {
+    return Punt.GetAfstandTussen(Middelpunt, p) <= Straal;
+}
+```
+
+Elke klasse heeft één verantwoordelijkheid: Punt kent afstanden, Cirkel kent zijn omvang.
+
+> [!LET OP]
+> Geef je een verwijzing naar een **veranderbaar** intern object door (bv. een `List`), dan kan de buitenwereld je interne toestand wijzigen. Daarom zijn kleine, immutable objecten zoals Punt zo handig als onderdeel van een ander object.
+
+#! voorbeeld
+## Een cirkel met een middelpunt
+
+```csharp
+using System;
+
+class Punt {
+    public double X { get; }
+    public double Y { get; }
+    public Punt(double x, double y) { X = x; Y = y; }
+    public static double GetAfstandTussen(Punt a, Punt b) {
+        double dx = b.X - a.X, dy = b.Y - a.Y;
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+}
+
+class Cirkel {
+    public Punt Middelpunt { get; private set; }
+    public double Straal { get; }
+    public Cirkel(double x, double y, double straal) {
+        Middelpunt = new Punt(x, y);
+        Straal = straal;
+    }
+    public bool Bevat(Punt p) {
+        return Punt.GetAfstandTussen(Middelpunt, p) <= Straal;
+    }
+    public void VerplaatsNaar(double x, double y) {
+        Middelpunt = new Punt(x, y);
+    }
+}
+
+class Program {
+    static void Main() {
+        Cirkel c = new Cirkel(10, 20, 5);
+        Punt p = new Punt(13, 22);
+        Console.WriteLine(c.Bevat(p));
+        c.VerplaatsNaar(50, 50);
+        Console.WriteLine(c.Bevat(p));
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Punt {
+    public int X { get; }
+    public Punt(int x) { X = x; }
+}
+class Lijn {
+    public Punt Begin { get; }
+    public Punt Einde { get; }
+    public Lijn(int a, int b) { Begin = new Punt(a); Einde = new Punt(b); }
+    public int Lengte() { return Einde.X - Begin.X; }
+}
+class Program {
+    static void Main() {
+        Lijn l = new Lijn(3, 10);
+        Console.WriteLine(l.Lengte());
+        Console.WriteLine(l.Begin.X);
+    }
+}
+```
+? Lengte = 10 − 3 = 7. Met de punt-notatie ga je diep: `l.Begin.X` = het X van het Begin-punt = 3.
+
+#! voorspel id=v2 type=choice
+Welke relatie drukt "een Cirkel heeft een Middelpunt (Punt)" uit?
+- overerving
++ compositie ("heeft-een")
+- een static method
+- een enum
+? Het ene object bevat een verwijzing naar een ander object als onderdeel van zijn toestand.
+
+#! oefening id=L11-04-a rol=oefenen moeilijkheid=3 xp=110 titel="Cirkel met middelpunt" bron="D15cirkelpunt"
+Gebruik de immutable `Punt`-klasse (gegeven) en schrijf `Cirkel` met:
+
+- een constructor `Cirkel(double x, double y, double straal)`;
+- een property `Middelpunt` (van type Punt; van buiten enkel lezen);
+- een method `VerplaatsNaar(double x, double y)`;
+- een method `Bevat(Punt p)`: true als het punt in of op de cirkel ligt (gebruik `Punt.GetAfstandTussen`).
+
+De testcode toont:
+
+```text
+False
+True
+11
+27
+True
+False
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel c = new Cirkel(10, 20, 5);
+            Punt p1 = new Punt(13, 25);
+            Punt p2 = new Punt(8, 16);
+            Console.WriteLine(c.Bevat(p1));
+            Console.WriteLine(c.Bevat(p2));
+            c.VerplaatsNaar(11, 27);
+            Console.WriteLine(c.Middelpunt.X);
+            Console.WriteLine(c.Middelpunt.Y);
+            Console.WriteLine(c.Bevat(p1));
+            Console.WriteLine(c.Bevat(p2));
+        }
+    }
+}
+
+#! starter bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+        public double X { get; }
+        public double Y { get; }
+
+        public Punt(double x, double y) {
+            X = x;
+            Y = y;
+        }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! starter bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+
+    }
+}
+
+#! hint
+`public Punt Middelpunt { get; private set; }` en `public double Straal { get; }`. In de constructor maak je het middelpunt met `new Punt(x, y)`.
+
+#! hint
+`VerplaatsNaar` vervangt het middelpunt door een nieuw Punt (Punt zelf kan niet wijzigen).
+
+#! hint
+`Bevat`: de afstand tussen Middelpunt en p is niet groter dan de straal.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel c = new Cirkel(10, 20, 5);
+            Punt p1 = new Punt(13, 25);
+            Punt p2 = new Punt(8, 16);
+            Console.WriteLine(c.Bevat(p1));
+            Console.WriteLine(c.Bevat(p2));
+            c.VerplaatsNaar(11, 27);
+            Console.WriteLine(c.Middelpunt.X);
+            Console.WriteLine(c.Middelpunt.Y);
+            Console.WriteLine(c.Bevat(p1));
+            Console.WriteLine(c.Bevat(p2));
+        }
+    }
+}
+
+#! oplossing bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+        public double X { get; }
+        public double Y { get; }
+
+        public Punt(double x, double y) {
+            X = x;
+            Y = y;
+        }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! oplossing bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+        public Punt Middelpunt { get; private set; }
+        public double Straal { get; }
+
+        public Cirkel(double x, double y, double straal) {
+            Middelpunt = new Punt(x, y);
+            Straal = straal;
+        }
+
+        public void VerplaatsNaar(double x, double y) {
+            Middelpunt = new Punt(x, y);
+        }
+
+        public bool Bevat(Punt p) {
+            return Punt.GetAfstandTussen(Middelpunt, p) <= Straal;
+        }
+    }
+}
+
+#! uitleg
+- Cirkel *heeft een* Punt (compositie). `c.Middelpunt.X` navigeert door de objecten.
+- Het middelpunt vervangen = een nieuw Punt maken en de verwijzing wijzigen; de immutable Punt zelf verandert nooit.
+- Teken het objectdiagram op papier voor het einde van Main: één Cirkel, die naar een Punt (11, 27) verwijst; de punten p1 en p2 zijn losse objecten.
+
+#! regel type=property doel=Cirkel.Middelpunt bericht="Maak een property Middelpunt"
+#! regel type=constructor doel=Cirkel parameters=3 bericht="Maak een constructor Cirkel(double x, double y, double straal)"
+#! regel type=calls doel=GetAfstandTussen bericht="Gebruik Punt.GetAfstandTussen in Bevat"
+
+#! test naam="Testcode" mode=exact
+#! verwacht
+False
+True
+11
+27
+True
+False
+
+#! test naam="Grens telt mee" soort=code
+Cirkel c = new Cirkel(0, 0, 5);
+Check.Equal(true, c.Bevat(new Punt(3, 4)), "punt op de rand");
+Check.Equal(false, c.Bevat(new Punt(4, 4)), "punt buiten");
+
+#! oefening id=L11-04-m rol=meesterschap moeilijkheid=4 xp=130 titel="Overlappende cirkels" bron="D15cirkeloverlapt"
+Voeg aan `Cirkel` een **static** method `Overlapt(Cirkel c1, Cirkel c2)` toe. Twee cirkels overlappen als de afstand tussen hun middelpunten **kleiner is dan de som van hun stralen**.
+
+Kijk in de testcode of `Overlapt` een instance- of class method moet zijn.
+
+```text
+True
+False
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel c1 = new Cirkel(10, 20, 5);
+            Cirkel c2 = new Cirkel(8, 12, 10);
+            Cirkel c3 = new Cirkel(100, 200, 3);
+            Console.WriteLine(Cirkel.Overlapt(c1, c2));
+            Console.WriteLine(Cirkel.Overlapt(c2, c3));
+        }
+    }
+}
+
+#! starter bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+        public double X { get; }
+        public double Y { get; }
+
+        public Punt(double x, double y) {
+            X = x;
+            Y = y;
+        }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! starter bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+        public Punt Middelpunt { get; private set; }
+        public double Straal { get; }
+
+        public Cirkel(double x, double y, double straal) {
+            Middelpunt = new Punt(x, y);
+            Straal = straal;
+        }
+    }
+}
+
+#! hint
+De aanroep is `Cirkel.Overlapt(c1, c2)` — via de klassenaam, dus `static`.
+
+#! hint
+`public static bool Overlapt(Cirkel c1, Cirkel c2)` — gebruik `Punt.GetAfstandTussen(c1.Middelpunt, c2.Middelpunt)`.
+
+#! hint
+`return afstand < c1.Straal + c2.Straal;`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel c1 = new Cirkel(10, 20, 5);
+            Cirkel c2 = new Cirkel(8, 12, 10);
+            Cirkel c3 = new Cirkel(100, 200, 3);
+            Console.WriteLine(Cirkel.Overlapt(c1, c2));
+            Console.WriteLine(Cirkel.Overlapt(c2, c3));
+        }
+    }
+}
+
+#! oplossing bestand=Punt.cs
+using System;
+
+namespace D15 {
+    class Punt {
+        public double X { get; }
+        public double Y { get; }
+
+        public Punt(double x, double y) {
+            X = x;
+            Y = y;
+        }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! oplossing bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+        public Punt Middelpunt { get; private set; }
+        public double Straal { get; }
+
+        public Cirkel(double x, double y, double straal) {
+            Middelpunt = new Punt(x, y);
+            Straal = straal;
+        }
+
+        public static bool Overlapt(Cirkel c1, Cirkel c2) {
+            double afstand = Punt.GetAfstandTussen(c1.Middelpunt, c2.Middelpunt);
+            return afstand < c1.Straal + c2.Straal;
+        }
+    }
+}
+
+#! uitleg
+- De vergelijking gaat over **twee** cirkels zonder dat een van beide "de hoofdrol" speelt: een static method is hier natuurlijk. (Een instance-variant `c1.Overlapt(c2)` zou ook kunnen.)
+- Ze hergebruikt `Punt.GetAfstandTussen` via de middelpunten: twee klassen die samenwerken.
+
+#! regel type=regex doel="public\s+static\s+bool\s+Overlapt\s*\(\s*Cirkel" bericht="Maak een public static bool Overlapt(Cirkel c1, Cirkel c2)"
+
+#! test naam="Main" mode=exact
+#! verwacht
+True
+False
+
+#! test naam="Randgeval: raken" soort=code
+Cirkel a = new Cirkel(0, 0, 3);
+Cirkel b = new Cirkel(7, 0, 4);
+Check.Equal(false, Cirkel.Overlapt(a, b), "raken precies (afstand = som van stralen)");
+Check.Equal(true, Cirkel.Overlapt(a, new Cirkel(6, 0, 4)), "overlappen net wel");

@@ -1,0 +1,266 @@
+#! lesson
+id: L02-01
+titel: De for-loop
+samenvatting: Herhalen met een tellervariabele: beginwaarde, voorwaarde en aanpassing in één hoofding.
+skills: for
+bron: Deel 06 – 4.1. Controlestructuur: for loop, 4.2. Aandachtspunten
+duur: 30
+
+#! begrijpen
+## Een loop met een teller
+
+Veel loops gebruiken een **tellervariabele**. Zo'n loop heeft altijd drie onderdelen:
+
+1. de **beginwaarde** van de teller;
+2. de **loop voorwaarde**, gebaseerd op de teller;
+3. de **aanpassing** van de teller.
+
+Dit komt zo vaak voor dat C# er een aparte controlestructuur voor heeft: de **for loop**. De drie onderdelen staan samen in de **hoofding** (de eerste regel), zodat je ze makkelijk terugvindt:
+
+```csharp norun
+for (beginwaarde ; voorwaarde ; aanpassing) {
+    code block
+}
+```
+
+```csharp norun
+for (int getal = 1; getal < bovengrens; getal++) {
+    Console.WriteLine(getal);
+}
+```
+
+> [!BELANGRIJK]
+> - De tellervariabele is zo goed als altijd van type `int`.
+> - Wordt de teller in de hoofding gedeclareerd, dan is zijn **scope gelijk aan de loop body**: vóór en na de for loop bestaat hij niet.
+> - Heeft de teller geen echte betekenis, gebruik dan de namen `i`, `j` of `k`.
+
+## Wat gebeurt er precies? (Deel 06 §4.2)
+
+Bij een for loop die 3 keer herhaalt:
+
+1. teller krijgt beginwaarde
+2. voorwaarde check: true → loop body (eerste iteratie) → teller aanpassing
+3. voorwaarde check: true → loop body (tweede iteratie) → teller aanpassing
+4. voorwaarde check: true → loop body (derde iteratie) → teller aanpassing
+5. voorwaarde check: **false** → loop body overslaan, verder na de loop
+
+Een for loop kan dus ook **nul keer** herhalen, als de voorwaarde meteen false is.
+
+## Stapgrootte en richting
+
+De mate waarin de teller verandert noemt men de **stapgrootte**. Die kan ook groter dan 1 of negatief zijn:
+
+| De teller… | Kenmerken |
+|---|---|
+| stijgt | beginwaarde lager dan grenswaarde, stapgrootte positief, voorwaarde met `<` of `<=` |
+| daalt | beginwaarde hoger dan grenswaarde, stapgrootte negatief, voorwaarde met `>` of `>=` |
+
+```csharp norun
+for (int i = 10; i <= 30; i += 5) { ... }   // 10, 15, 20, 25, 30
+for (int i = 10; i >= 1; i--) { ... }       // 10, 9, ..., 1
+```
+
+## Programmeurs tellen vanaf 0
+
+`for (int i = 1; i <= aantal; i++)` schrijven programmeurs meestal als `for (int i = 0; i < aantal; i++)`: beginwaarde 0 en `<`. Later, bij strings en arrays, zie je waarom (posities beginnen bij 0).
+
+> [!LET OP]
+> Een vaak voorkomende fout is een **off by one error**: je loop doet één herhaling te veel of te weinig. Controleer altijd de eerste en de laatste iteratie.
+
+#! voorbeeld
+## Hiep hiep hoera
+
+```csharp invoer="3"
+Console.Write("Hoe oud wordt de jarige : ");
+int leeftijd = int.Parse(Console.ReadLine());
+for (int i = 1; i <= leeftijd; i++) {
+    Console.WriteLine("Hiep hiep hiep, hoera!");
+}
+```
+
+De teller `i` heeft geen andere rol dan het aantal herhalingen bijhouden, daarom de naam `i`.
+
+## Oplopend en aflopend
+
+Volg in de **stap-voor-stap**-weergave hoe de teller verandert en wanneer de voorwaarde false wordt.
+
+```csharp
+for (int i = 10; i <= 30; i += 5) {
+    Console.WriteLine(i);
+}
+for (int i = 3; i >= 1; i--) {
+    Console.WriteLine($"Nog {i}...");
+}
+Console.WriteLine("Start!");
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af? (D06voorspeloutput b)
+```csharp
+for (int i = 4; i >= -3; i--) {
+    Console.WriteLine(i);
+}
+```
+? De teller daalt van 4 tot en met -3: 4, 3, 2, 1, 0, -1, -2, -3. Bij i = -4 is de voorwaarde false.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af? (D06voorspeloutput g)
+```csharp
+for (int i = 0; i < 16; i += 4) {
+    Console.WriteLine(i);
+}
+```
+? Stapgrootte 4: 0, 4, 8, 12. Bij i = 16 is `16 < 16` false.
+
+#! voorspel id=v3 type=text antwoord=0|nul
+Hoeveel keer wordt de loop body uitgevoerd? (D06voorspeloutput f)
+```csharp norun
+for (int i = 20; i < 15; i++) { Console.WriteLine(i); }
+```
+? De voorwaarde `20 < 15` is meteen false, dus de loop body wordt nul keer uitgevoerd.
+
+#! voorspel id=v4 type=output
+En deze? (D06voorspeloutput h)
+```csharp
+for (int i = 45; i < 1000; i *= 2) {
+    Console.WriteLine(i);
+}
+```
+? De teller verdubbelt telkens: 45, 90, 180, 360, 720. Daarna 1440, en dat is niet meer kleiner dan 1000.
+
+#! oefening id=L02-01-a rol=oefenen moeilijkheid=1 xp=50 titel="Kwadraten sommeren" bron="D06sommeer1tem10"
+Schrijf een programma dat de **kwadraten** van de getallen van 1 t.e.m. 10 sommeert en het resultaat toont. Gebruik een **for loop**.
+
+```text
+De som van de kwadraten van 1 t.e.m. 10 is 385
+```
+
+(1 + 4 + 9 + 16 + 25 + 36 + 49 + 64 + 81 + 100 = 385)
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Je hebt een teller nodig die van 1 tot en met 10 loopt, en een variabele die de som bijhoudt (zoals in Level 1).
+
+#! hint
+`int som = 0;` vóór de loop. De loop: `for (int getal = 1; getal <= 10; getal++)`. In de loop body tel je het kwadraat bij de som op.
+
+#! hint
+Het kwadraat van `getal` is `getal * getal`. Dus: `som += getal * getal;`. Toon de som na de loop.
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            int som = 0;
+            for (int getal = 1; getal <= 10; getal++) {
+                som += getal * getal;
+            }
+            Console.WriteLine($"De som van de kwadraten van 1 t.e.m. 10 is {som}");
+        }
+    }
+}
+
+#! uitleg
+- De teller heet hier `getal` omdat hij een betekenis heeft: hij ís het getal dat we kwadrateren.
+- `som` staat buiten de loop: anders zou hij elke iteratie opnieuw op 0 beginnen en zou hij na de loop niet meer bestaan.
+- Traceer de eerste drie iteraties: som = 1, 5, 14.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop"
+
+#! test naam="Som van de kwadraten" mode=exact
+#! verwacht
+De som van de kwadraten van 1 t.e.m. 10 is 385
+
+#! oefening id=L02-01-m rol=meesterschap moeilijkheid=3 xp=90 titel="Optelling tussen grenzen" bron="D06somtussengrenzen + D06toonsomtussengrenzen"
+Schrijf een programma dat de gebruiker om een onder- en een bovengrens vraagt en de som van de getallen **tussen** die grenzen toont (de grenzen zelf tellen niet mee). Toon de **volledige optelling**.
+
+Een voorbeelduitvoering waarin de gebruiker 5 en 10 ingeeft:
+
+```text
+Geef de ondergrens: 5
+Geef de bovengrens: 10
+6 + 7 + 8 + 9 = 30
+```
+
+Je mag ervan uitgaan dat er minstens één getal tussen de grenzen ligt.
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Welke getallen zitten er tussen 5 en 10? Wat is dus de beginwaarde en de grenswaarde van je teller — en gebruik je `<` of `<=`?
+
+#! hint
+`for (int i = ondergrens + 1; i < bovengrens; i++)`. Hou de som bij én bouw een string op met de optelling (`optelling += ...`).
+
+#! hint
+Het lastige: er staat een ` + ` tussen de getallen, maar niet vóór het eerste. Een aanpak: begin de string met het eerste getal en voeg in de loop telkens `" + " + i` toe voor de volgende getallen (start de loop dan bij `ondergrens + 2`).
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de ondergrens: ");
+            int ondergrens = int.Parse(Console.ReadLine());
+            Console.Write("Geef de bovengrens: ");
+            int bovengrens = int.Parse(Console.ReadLine());
+
+            int eerste = ondergrens + 1;
+            int som = eerste;
+            string optelling = $"{eerste}";
+            for (int i = eerste + 1; i < bovengrens; i++) {
+                som += i;
+                optelling += $" + {i}";
+            }
+            Console.WriteLine($"{optelling} = {som}");
+        }
+    }
+}
+
+#! uitleg
+- **Tussen** de grenzen betekent: start bij `ondergrens + 1` en stop vóór `bovengrens` (`<`, niet `<=`). Een off-by-one-fout ligt hier op de loer.
+- Het eerste getal wordt vóór de loop verwerkt, zodat er geen `+` vooraan de optelling komt. Een alternatief is in de loop testen `if (i != eerste)`.
+- De string `optelling` groeit met `+=` — zoals je in Deel 03 zag, werkt dat ook voor strings.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop"
+
+#! test naam="5 en 10"
+#! invoer
+5
+10
+#! verwacht
+Geef de ondergrens: 5
+Geef de bovengrens: 10
+6 + 7 + 8 + 9 = 30
+
+#! test naam="Eén tussenliggend getal" referentie=ja
+#! invoer
+3
+5
+
+#! test naam="Negatieve grenzen" referentie=ja verborgen=ja
+#! invoer
+-3
+4

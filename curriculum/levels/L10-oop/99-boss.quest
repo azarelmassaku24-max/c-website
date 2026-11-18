@@ -1,0 +1,321 @@
+#! boss
+id: L10-BOSS
+titel: De Bankrekening-applicatie
+samenvatting: Ontwerp een klasse Bankrekening en bouw er een kleine bankapp rond.
+skills: klassen, static, null
+bron: Deel 14 – D14bankrekening, D14uitlening
+verhaal: De Spaarbank van Ketelstraat heeft haar boekhouder ontslagen. Jij schrijft de kern van het nieuwe systeem: een klasse die weet wat een rekening is, wat ze mag en wat ze nooit mag.
+duur: 55
+
+#! begrijpen
+## Briefing
+
+Een `Bankrekening` heeft een **rekeningnummer** (tekst), een **saldo** (decimal, begint op 0) en kan:
+
+- `Storten(decimal bedrag)` — enkel positieve bedragen; geeft `true` bij succes, anders `false`;
+- `Afhalen(decimal bedrag)` — enkel positieve bedragen die het saldo niet overschrijden; geeft `true`/`false`;
+- `GetSaldo()` en `GetRekeningnummer()`, `SetRekeningnummer(string)`.
+
+De klasse bewaakt zelf haar toestand: een saldo kan nooit negatief worden. Dat kan enkel omdat het dataveld private is.
+
+#! oefening id=L10-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="De klasse Bankrekening" bron="D14bankrekening"
+Schrijf `Bankrekening.cs` met bovenstaande members. De testcode in `Program.cs` toont:
+
+```text
+Saldo: 150,00
+Afhalen van 200 mislukt.
+Saldo: 150,00
+Storten van -5 mislukt.
+Saldo: 100,00
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Bankrekening rekening = new Bankrekening();
+            rekening.SetRekeningnummer("BE68 5390 0754 7034");
+            rekening.Storten(150M);
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+            if (!rekening.Afhalen(200M)) {
+                Console.WriteLine("Afhalen van 200 mislukt.");
+            }
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+            if (!rekening.Storten(-5M)) {
+                Console.WriteLine("Storten van -5 mislukt.");
+            }
+            rekening.Afhalen(50M);
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+        }
+    }
+}
+
+#! starter bestand=Bankrekening.cs
+namespace D14 {
+    class Bankrekening {
+
+    }
+}
+
+#! hint
+Twee private datavelden: `_rekeningnummer` (string) en `_saldo` (decimal). Het saldo heeft geen Set-method: enkel Storten en Afhalen wijzigen het.
+
+#! hint
+`Storten`: als `bedrag > 0` → saldo verhogen en `true` teruggeven, anders `false`.
+
+#! hint
+`Afhalen`: voorwaarde `bedrag > 0 && bedrag <= _saldo`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Bankrekening rekening = new Bankrekening();
+            rekening.SetRekeningnummer("BE68 5390 0754 7034");
+            rekening.Storten(150M);
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+            if (!rekening.Afhalen(200M)) {
+                Console.WriteLine("Afhalen van 200 mislukt.");
+            }
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+            if (!rekening.Storten(-5M)) {
+                Console.WriteLine("Storten van -5 mislukt.");
+            }
+            rekening.Afhalen(50M);
+            Console.WriteLine($"Saldo: {rekening.GetSaldo():f2}");
+        }
+    }
+}
+
+#! oplossing bestand=Bankrekening.cs
+namespace D14 {
+    class Bankrekening {
+        private string _rekeningnummer;
+        private decimal _saldo;
+
+        public string GetRekeningnummer() {
+            return _rekeningnummer;
+        }
+
+        public void SetRekeningnummer(string rekeningnummer) {
+            _rekeningnummer = rekeningnummer;
+        }
+
+        public decimal GetSaldo() {
+            return _saldo;
+        }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) {
+                _saldo += bedrag;
+                return true;
+            }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= _saldo) {
+                _saldo -= bedrag;
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+#! uitleg
+- Het saldo is private en heeft geen setter: de enige manier om het te wijzigen loopt via methods die de regels afdwingen. Dat is **encapsulatie**.
+- De bool als return value laat de oproeper beslissen wat er met een mislukte bewerking gebeurt.
+
+#! regel type=class doel=Bankrekening bericht="Maak een klasse Bankrekening"
+#! regel type=private-fields bericht="Datavelden zijn private"
+#! regel type=method doel=Storten geeft=bool parameters=1 bericht="Maak een method public bool Storten(decimal bedrag)"
+#! regel type=method doel=Afhalen geeft=bool parameters=1 bericht="Maak een method public bool Afhalen(decimal bedrag)"
+
+#! test naam="Testcode"
+#! verwacht
+Saldo: 150,00
+Afhalen van 200 mislukt.
+Saldo: 150,00
+Storten van -5 mislukt.
+Saldo: 100,00
+
+#! test naam="Saldo kan nooit negatief worden" soort=code
+Bankrekening r = new Bankrekening();
+Check.Equal(true, r.Storten(100M), "Storten(100)");
+Check.Equal(false, r.Afhalen(100.01M), "Afhalen(100,01) bij saldo 100");
+Check.Equal(true, r.Afhalen(100M), "Afhalen(100)");
+Check.Equal(0M, r.GetSaldo(), "saldo 0");
+Check.Equal(false, r.Storten(0M), "Storten(0)");
+Check.Equal(false, r.Afhalen(-1M), "Afhalen(-1)");
+
+#! oefening id=L10-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=200 titel="De bank met meerdere rekeningen"
+Bouw de bankapp. In `Program` houdt een `Bankrekening[] rekeningen` (grootte 5, in het begin allemaal `null`) de rekeningen bij, samen met een teller `aantal`.
+
+Schrijf deze static methods:
+
+- `static void Openen(Bankrekening[] rekeningen, int aantal, string nummer)` — maakt een rekening aan op positie `aantal` (de oproeper verhoogt zelf `aantal`).
+- `static Bankrekening Zoek(Bankrekening[] rekeningen, string nummer)` — geeft de rekening met dat nummer, of `null`.
+- `static bool Overschrijven(Bankrekening van, Bankrekening naar, decimal bedrag)` — afhalen van `van` en storten op `naar`; geeft `false` (en wijzigt niets) als een van beide `null` is of het afhalen mislukt.
+
+Main (gegeven) toont:
+
+```text
+A: 70,00 | B: 30,00
+Overschrijving naar onbekende rekening mislukt.
+Overschrijving van 500 mislukt.
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Bankrekening[] rekeningen = new Bankrekening[5];
+            int aantal = 0;
+            Openen(rekeningen, aantal, "A"); aantal++;
+            Openen(rekeningen, aantal, "B"); aantal++;
+            Zoek(rekeningen, "A").Storten(100M);
+            Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "B"), 30M);
+            Console.WriteLine($"A: {Zoek(rekeningen, "A").GetSaldo():f2} | B: {Zoek(rekeningen, "B").GetSaldo():f2}");
+            if (!Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "Z"), 10M)) {
+                Console.WriteLine("Overschrijving naar onbekende rekening mislukt.");
+            }
+            if (!Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "B"), 500M)) {
+                Console.WriteLine("Overschrijving van 500 mislukt.");
+            }
+        }
+    }
+}
+
+#! starter bestand=Bankrekening.cs
+namespace D14 {
+    class Bankrekening {
+        private string _rekeningnummer;
+        private decimal _saldo;
+
+        public string GetRekeningnummer() { return _rekeningnummer; }
+        public void SetRekeningnummer(string rekeningnummer) { _rekeningnummer = rekeningnummer; }
+        public decimal GetSaldo() { return _saldo; }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) { _saldo += bedrag; return true; }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= _saldo) { _saldo -= bedrag; return true; }
+            return false;
+        }
+    }
+}
+
+#! hint
+Let op de `null`-elementen van de array: in `Zoek` mag je enkel `GetRekeningnummer()` oproepen op elementen die niet null zijn.
+
+#! hint
+`Zoek`: loop over `rekeningen`; `if (r != null && r.GetRekeningnummer() == nummer) return r;` en op het einde `return null;`.
+
+#! hint
+`Overschrijven`: `if (van == null || naar == null) return false; if (!van.Afhalen(bedrag)) return false; naar.Storten(bedrag); return true;`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Bankrekening[] rekeningen = new Bankrekening[5];
+            int aantal = 0;
+            Openen(rekeningen, aantal, "A"); aantal++;
+            Openen(rekeningen, aantal, "B"); aantal++;
+            Zoek(rekeningen, "A").Storten(100M);
+            Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "B"), 30M);
+            Console.WriteLine($"A: {Zoek(rekeningen, "A").GetSaldo():f2} | B: {Zoek(rekeningen, "B").GetSaldo():f2}");
+            if (!Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "Z"), 10M)) {
+                Console.WriteLine("Overschrijving naar onbekende rekening mislukt.");
+            }
+            if (!Overschrijven(Zoek(rekeningen, "A"), Zoek(rekeningen, "B"), 500M)) {
+                Console.WriteLine("Overschrijving van 500 mislukt.");
+            }
+        }
+
+        static void Openen(Bankrekening[] rekeningen, int aantal, string nummer) {
+            Bankrekening nieuw = new Bankrekening();
+            nieuw.SetRekeningnummer(nummer);
+            rekeningen[aantal] = nieuw;
+        }
+
+        static Bankrekening Zoek(Bankrekening[] rekeningen, string nummer) {
+            foreach (Bankrekening r in rekeningen) {
+                if (r != null && r.GetRekeningnummer() == nummer) {
+                    return r;
+                }
+            }
+            return null;
+        }
+
+        static bool Overschrijven(Bankrekening van, Bankrekening naar, decimal bedrag) {
+            if (van == null || naar == null) {
+                return false;
+            }
+            if (!van.Afhalen(bedrag)) {
+                return false;
+            }
+            naar.Storten(bedrag);
+            return true;
+        }
+    }
+}
+
+#! oplossing bestand=Bankrekening.cs
+namespace D14 {
+    class Bankrekening {
+        private string _rekeningnummer;
+        private decimal _saldo;
+
+        public string GetRekeningnummer() { return _rekeningnummer; }
+        public void SetRekeningnummer(string rekeningnummer) { _rekeningnummer = rekeningnummer; }
+        public decimal GetSaldo() { return _saldo; }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) { _saldo += bedrag; return true; }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= _saldo) { _saldo -= bedrag; return true; }
+            return false;
+        }
+    }
+}
+
+#! uitleg
+- `null` in de array betekent "geen rekening": `r != null` beschermt tegen een NullReferenceException.
+- `Zoek` geeft `null` terug als er niets gevonden werd; `Overschrijven` controleert dat vóór het iets doet.
+- Eerst afhalen, dan pas storten: mislukt het afhalen, dan is er niets gewijzigd.
+- Je beheerst klassen en objecten. Level 11 brengt **properties** en **constructors** — veel minder Get/Set-gedoe!
+
+#! regel type=method doel=Zoek geeft=Bankrekening parameters=2 bericht="Maak een method static Bankrekening Zoek(Bankrekening[] rekeningen, string nummer)"
+#! regel type=method doel=Overschrijven geeft=bool parameters=3 bericht="Maak een method static bool Overschrijven(Bankrekening van, Bankrekening naar, decimal bedrag)"
+
+#! test naam="Main"
+#! verwacht
+A: 70,00 | B: 30,00
+Overschrijving naar onbekende rekening mislukt.
+Overschrijving van 500 mislukt.
+
+#! test naam="Zoek en Overschrijven" soort=code
+Bankrekening[] rek = new Bankrekening[3];
+Program.Openen(rek, 0, "X");
+Check.True(Program.Zoek(rek, "X") == rek[0], "Zoek vindt X");
+Check.True(Program.Zoek(rek, "Y") == null, "Zoek geeft null voor onbekend nummer");
+Check.Equal(false, Program.Overschrijven(null, rek[0], 5M), "van is null");
+rek[0].Storten(10M);
+Check.Equal(false, Program.Overschrijven(rek[0], null, 5M), "naar is null en saldo ongewijzigd");
+Check.Equal(10M, rek[0].GetSaldo(), "saldo na mislukte overschrijving");

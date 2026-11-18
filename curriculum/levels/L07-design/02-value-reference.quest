@@ -1,0 +1,316 @@
+#! lesson
+id: L07-02
+titel: Value types en reference types als parameter
+samenvatting: Wat er écht gebeurt als je een int of een array doorgeeft aan een method.
+skills: value-reference, parameters
+bron: Deel 11 – 2.2. Parameters doorgeven van value types, 2.3. … van reference types · D11reversearray, D11dierenwissenarray
+duur: 30
+
+#! begrijpen
+## Value types: een kopie (Deel 11 §2.2)
+
+`int`, `double`, `bool`, `char` (en enums) zijn **value types**. De variabele bevat de waarde zelf. Geef je ze mee als argument, dan krijgt de parameter een **kopie** van de waarde:
+
+```csharp norun
+static void Verhoog(int getal) {
+    getal++;                 // wijzigt enkel de kopie
+}
+
+int x = 5;
+Verhoog(x);
+Console.WriteLine(x);        // nog steeds 5
+```
+
+## Reference types: een verwijzing (§2.3)
+
+Arrays (en strings, en later objecten) zijn **reference types**. De variabele bevat geen gegevens, maar een **verwijzing** (een adres) naar de gegevens elders in het geheugen. Geef je een array mee, dan wordt de **verwijzing** gekopieerd: de parameter en het argument verwijzen naar **dezelfde array**.
+
+```csharp norun
+static void VerhoogAlles(int[] getallen) {
+    for (int i = 0; i < getallen.Length; i++) {
+        getallen[i]++;       // wijzigt de array van de oproeper!
+    }
+}
+
+int[] scores = { 5, 8 };
+VerhoogAlles(scores);
+Console.WriteLine(scores[0]);   // 6
+```
+
+Vergelijk het met een **adres op een briefje**: geef je iemand een kopie van het briefje, dan kan die persoon naar hetzelfde huis gaan en daar de meubels verplaatsen.
+
+> [!NOTE]
+> Strings zijn ook reference types, maar ze zijn **immutable**: een method kan de string van de oproeper dus niet wijzigen.
+
+## Wat als de method een **nieuwe** array maakt?
+
+```csharp norun
+static void Vervang(int[] getallen) {
+    getallen = new int[] { 0, 0 };   // de parameter verwijst nu naar een NIEUWE array
+}
+```
+
+Daarna verwijst enkel de parameter naar de nieuwe array; de variabele van de oproeper verwijst nog naar de oude. Wil je een nieuwe array aan de oproeper geven, gebruik dan een **return value** (volgende les).
+
+#! voorbeeld
+## Kopie versus verwijzing
+
+Volg beide variabelen in de debugger. Let in het tabblad **Variabelen** op het nummer `#1` bij de array: dat is de identiteit van de array. In `VerhoogAlles` heeft de parameter `getallen` hetzelfde nummer — het is dezelfde array.
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int x = 5;
+        Verhoog(x);
+        Console.WriteLine($"x = {x}");
+
+        int[] scores = { 5, 8 };
+        VerhoogAlles(scores);
+        Console.WriteLine($"scores = {String.Join(", ", scores)}");
+    }
+
+    static void Verhoog(int getal) {
+        getal++;
+    }
+
+    static void VerhoogAlles(int[] getallen) {
+        for (int i = 0; i < getallen.Length; i++) {
+            getallen[i]++;
+        }
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        int a = 10;
+        int[] b = { 10 };
+        Wijzig(a, b);
+        Console.WriteLine($"{a} {b[0]}");
+    }
+    static void Wijzig(int getal, int[] rij) {
+        getal = 99;
+        rij[0] = 99;
+    }
+}
+```
+? De int wordt gekopieerd: `a` blijft 10. De array wordt via een verwijzing doorgegeven: `b[0]` wordt 99.
+
+#! voorspel id=v2 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        int[] rij = { 1, 2 };
+        Vervang(rij);
+        Console.WriteLine(rij[0]);
+    }
+    static void Vervang(int[] getallen) {
+        getallen = new int[] { 7, 7 };
+    }
+}
+```
+? De parameter krijgt een nieuwe array, maar de variabele `rij` van Main verwijst nog naar de oude array: 1.
+
+#! oefening id=L07-02-a rol=oefenen moeilijkheid=2 xp=70 titel="Reverse" bron="D11reversearray"
+Schrijf een method `Reverse` met een `string[]` parameter die de volgorde van de elementen **in de array zelf** omkeert. De method geeft niets terug (`void`): ze wijzigt de array van de oproeper.
+
+```csharp norun
+string[] woorden = { "een", "twee", "drie", "vier", "vijf" };
+Console.WriteLine(string.Join(", ", woorden));
+Reverse(woorden);
+Console.WriteLine(string.Join(", ", woorden));
+```
+
+```text
+een, twee, drie, vier, vijf
+vijf, vier, drie, twee, een
+```
+
+Je oplossing moet ook werken voor een lege array en voor arrays met 1, 2, 3 of 4 elementen. Gebruik geen `Array.Reverse`.
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] woorden = { "een", "twee", "drie", "vier", "vijf" };
+            Console.WriteLine(string.Join(", ", woorden));
+            Reverse(woorden);
+            Console.WriteLine(string.Join(", ", woorden));
+        }
+    }
+}
+
+#! hint
+Omdat arrays reference types zijn, wijzigt de method de array van Main rechtstreeks. Je hoeft niets terug te geven.
+
+#! hint
+Gebruik het wisselalgoritme uit Level 4: wissel element `i` met element `Length - 1 - i`, tot de helft.
+
+#! hint
+`static void Reverse(string[] woorden) { for (int i = 0; i < woorden.Length / 2; i++) { … wissel met hulpvariabele … } }`
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] woorden = { "een", "twee", "drie", "vier", "vijf" };
+            Console.WriteLine(string.Join(", ", woorden));
+            Reverse(woorden);
+            Console.WriteLine(string.Join(", ", woorden));
+        }
+
+        static void Reverse(string[] woorden) {
+            for (int i = 0; i < woorden.Length / 2; i++) {
+                int tegenover = woorden.Length - 1 - i;
+                string hulp = woorden[i];
+                woorden[i] = woorden[tegenover];
+                woorden[tegenover] = hulp;
+            }
+        }
+    }
+}
+
+#! uitleg
+- `Reverse` krijgt een **kopie van de verwijzing**: ze werkt op dezelfde array als Main. Daarom is `void` voldoende.
+- Bij een lege array of 1 element is `Length / 2` gelijk aan 0: de loop wordt niet uitgevoerd. Correct!
+
+#! regel type=method doel=Reverse geeft=void parameters=1 bericht="Maak een method static void Reverse(string[] woorden)"
+#! regel type=forbids doel=Array.Reverse bericht="Gebruik geen Array.Reverse"
+
+#! test naam="Main"
+#! verwacht
+een, twee, drie, vier, vijf
+vijf, vier, drie, twee, een
+
+#! test naam="Alle testarrays uit de cursus" soort=code
+string[] test0 = { };
+string[] test1 = { "een" };
+string[] test2 = { "een", "twee" };
+string[] test4 = { "een", "twee", "drie", "vier" };
+Program.Reverse(test0);
+Program.Reverse(test1);
+Program.Reverse(test2);
+Program.Reverse(test4);
+Check.Equal(new string[] { }, test0, "lege array");
+Check.Equal(new[] { "een" }, test1, "1 element");
+Check.Equal(new[] { "twee", "een" }, test2, "2 elementen");
+Check.Equal(new[] { "vier", "drie", "twee", "een" }, test4, "4 elementen");
+
+#! oefening id=L07-02-m rol=meesterschap moeilijkheid=3 xp=100 titel="Dieren wissen" bron="D11dierenwissenarray"
+Begin met `string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };`. Het programma toont de dieren en vraagt welk dier gewist moet worden (hoofdlettergevoelig). In de array wordt dat dier vervangen door `null`. Op plaatsen waar `null` staat, toont het programma `GEWIST` (maar dat woord staat niet in de array). Wordt het dier niet gevonden, dan gebeurt er niets. Het programma herhaalt dit tot de gebruiker `stop` typt.
+
+Gebruik twee methods die de array als parameter krijgen:
+
+- `static void ToonDieren(string[] dieren)`
+- `static void WisDier(string[] dieren, string dier)` — wijzigt de array van de oproeper
+
+```text
+kip koe paard geit schaap
+Welk dier wil je verwijderen : paard
+kip koe GEWIST geit schaap
+Welk dier wil je verwijderen : dolfijn
+kip koe GEWIST geit schaap
+Welk dier wil je verwijderen : stop
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+
+        }
+    }
+}
+
+#! hint
+`WisDier` zoekt het dier en zet dat element op `null`. Omdat de array een reference type is, ziet Main de wijziging.
+
+#! hint
+`ToonDieren`: `foreach (string dier in dieren) { if (dier == null) Console.Write("GEWIST "); else Console.Write(dier + " "); } Console.WriteLine();`
+
+#! hint
+Main: toon, en dan een loop: vraag, stop bij "stop", anders `WisDier(boerderijDieren, invoer); ToonDieren(boerderijDieren);`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+            ToonDieren(boerderijDieren);
+            Console.Write("Welk dier wil je verwijderen : ");
+            string invoer = Console.ReadLine();
+            while (invoer != "stop") {
+                WisDier(boerderijDieren, invoer);
+                ToonDieren(boerderijDieren);
+                Console.Write("Welk dier wil je verwijderen : ");
+                invoer = Console.ReadLine();
+            }
+        }
+
+        static void ToonDieren(string[] dieren) {
+            foreach (string dier in dieren) {
+                if (dier == null) {
+                    Console.Write("GEWIST ");
+                } else {
+                    Console.Write(dier + " ");
+                }
+            }
+            Console.WriteLine();
+        }
+
+        static void WisDier(string[] dieren, string dier) {
+            for (int i = 0; i < dieren.Length; i++) {
+                if (dieren[i] == dier) {
+                    dieren[i] = null;
+                    return;
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- `WisDier` wijzigt de array van Main, omdat beide naar dezelfde array verwijzen.
+- `null` betekent "geen string"; `ToonDieren` vertaalt dat naar de tekst GEWIST.
+- `return;` in een void-method stopt meteen, zoals break de loop zou stoppen.
+
+#! regel type=method doel=ToonDieren geeft=void parameters=1 bericht="Maak een method static void ToonDieren(string[] dieren)"
+#! regel type=method doel=WisDier geeft=void parameters=2 bericht="Maak een method static void WisDier(string[] dieren, string dier)"
+
+#! test naam="Voorbeeld"
+#! invoer
+paard
+dolfijn
+stop
+#! verwacht
+kip koe paard geit schaap
+Welk dier wil je verwijderen : paard
+kip koe GEWIST geit schaap
+Welk dier wil je verwijderen : dolfijn
+kip koe GEWIST geit schaap
+Welk dier wil je verwijderen : stop
+
+#! test naam="WisDier wijzigt de array" soort=code
+string[] dieren = { "a", "b", "c" };
+Program.WisDier(dieren, "b");
+Check.True(dieren[1] == null, "het gewiste element is null");
+Check.Equal("a", dieren[0], "de andere elementen blijven");
+Program.WisDier(dieren, "x");
+Check.Equal("c", dieren[2], "een onbekend dier verandert niets");

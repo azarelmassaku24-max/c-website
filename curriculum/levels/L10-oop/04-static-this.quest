@@ -1,0 +1,336 @@
+#! lesson
+id: L10-04
+titel: Instance methods, static methods en this
+samenvatting: Methods die bij een object horen versus methods die bij de klasse horen, en het sleutelwoord this.
+skills: static, klassen
+bron: Deel 14 – 4. Instance methods oproepen, 4.2. Instance methods versus class methods · D14afstandtussenpunten
+duur: 30
+
+#! begrijpen
+## Object gerelateerde methods (Deel 14 §4.2.1)
+
+Een **instance method** (zonder `static`) hoort bij een **object**. Je roept ze op via een object, en ze werkt met de datavelden van dát object:
+
+```csharp norun
+double opp = rechthoek1.Oppervlakte();
+```
+
+## Klasse gerelateerde methods (§4.2.2)
+
+Een **class method** (met `static`) hoort bij de **klasse** zelf, niet bij één object. Je roept ze op via de klassenaam:
+
+```csharp norun
+double afstand = Punt.GetAfstandTussen(p1, p2);
+double wortel = Math.Sqrt(16);     // Math is een klasse vol static methods
+```
+
+Een static method heeft geen "huidig object" en kan dus niet rechtstreeks de (instance) datavelden gebruiken — enkel via objecten die als parameter meegegeven worden.
+
+| | instance method | static method |
+|---|---|---|
+| oproepen via | een object: `p1.GetX()` | de klasse: `Punt.GetAfstandTussen(...)` |
+| toegang tot datavelden | ja, van het eigen object | enkel via parameters |
+| voorbeeld | `tekst.ToUpper()` | `Math.Max(a, b)`, `Main` |
+
+Daarom zijn alle methods in de class Program tot nu toe `static`: Main is static en heeft geen object.
+
+## this
+
+In een instance method verwijst `this` naar **het object waarop de method opgeroepen werd**. Handig om het verschil te maken tussen een dataveld en een parameter met dezelfde naam, of om het huidige object mee te geven:
+
+```csharp norun
+public double GetAfstandTot(Punt ander) {
+    return GetAfstandTussen(this, ander);   // dit punt en het andere punt
+}
+```
+
+#! voorbeeld
+## Static en instance naast elkaar
+
+```csharp
+using System;
+
+class Punt {
+    private double _x;
+    private double _y;
+
+    public void Set(double x, double y) { _x = x; _y = y; }
+    public double GetX() { return _x; }
+    public double GetY() { return _y; }
+
+    public static double GetAfstandTussen(Punt p1, Punt p2) {
+        double dx = p2.GetX() - p1.GetX();
+        double dy = p2.GetY() - p1.GetY();
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+
+    public double GetAfstandTot(Punt ander) {
+        return GetAfstandTussen(this, ander);
+    }
+}
+
+class Program {
+    static void Main() {
+        Punt a = new Punt();
+        a.Set(4, 6);
+        Punt b = new Punt();
+        b.Set(7, 2);
+        Console.WriteLine(Punt.GetAfstandTussen(a, b));
+        Console.WriteLine(a.GetAfstandTot(b));
+    }
+}
+```
+
+#! voorspel id=v1 type=choice
+Hoe roep je een static method `GetAfstandTussen` van de klasse Punt op?
++ Punt.GetAfstandTussen(p1, p2)
+- p1.GetAfstandTussen(p2)
+- new Punt().GetAfstandTussen
+- GetAfstandTussen.Punt(p1, p2)
+? Een static method hoort bij de klasse: je roept ze op via de klassenaam.
+
+#! voorspel id=v2 type=choice
+Waarom geeft deze code een compileerfout?
+```csharp norun
+class Teller {
+    private int _waarde;
+    public static void Verhoog() { _waarde++; }
+}
+```
+- _waarde moet public zijn
++ Een static method heeft geen object en kan dus geen instance dataveld gebruiken
+- ++ werkt niet op datavelden
+- Een klasse mag geen static methods hebben
+? In een static method is er geen "huidig object" (geen this). Welke `_waarde` zou het moeten zijn? CS0120.
+
+#! oefening id=L10-04-a rol=oefenen moeilijkheid=2 xp=80 titel="Afstand tussen punten" bron="D14afstandtussenpunten"
+Schrijf een klasse `Punt` (in `Punt.cs`) met een x- en een y-coördinaat, beide van type double. Voorzie private datavelden en Get- en Set-methods (`GetX`, `SetX`, `GetY`, `SetY`).
+
+Voeg een **class method** (static) `GetAfstandTussen` toe met twee Punt-parameters. Deze method geeft de afstand tussen de 2 punten terug: √((x₂−x₁)² + (y₂−y₁)²).
+
+Main berekent de afstand tussen de punten (4,6) en (7,2):
+
+```text
+De afstand is 5
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+
+        }
+    }
+}
+
+#! starter bestand=Punt.cs
+using System;
+
+namespace D14 {
+    class Punt {
+
+    }
+}
+
+#! hint
+Vier Get/Set-methods voor `_x` en `_y` (instance methods, zonder static).
+
+#! hint
+`public static double GetAfstandTussen(Punt p1, Punt p2)` — in de body vraag je de coördinaten op via `p1.GetX()` enz. en gebruik je `Math.Sqrt`.
+
+#! hint
+In Main: twee punten maken en instellen, dan `Punt.GetAfstandTussen(punt1, punt2)` tonen.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Punt punt1 = new Punt();
+            punt1.SetX(4);
+            punt1.SetY(6);
+            Punt punt2 = new Punt();
+            punt2.SetX(7);
+            punt2.SetY(2);
+            Console.WriteLine($"De afstand is {Punt.GetAfstandTussen(punt1, punt2)}");
+        }
+    }
+}
+
+#! oplossing bestand=Punt.cs
+using System;
+
+namespace D14 {
+    class Punt {
+        private double _x;
+        private double _y;
+
+        public double GetX() { return _x; }
+        public void SetX(double x) { _x = x; }
+        public double GetY() { return _y; }
+        public void SetY(double y) { _y = y; }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.GetX() - p1.GetX();
+            double dy = p2.GetY() - p1.GetY();
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! uitleg
+- `GetAfstandTussen` is static: ze hoort bij het begrip "punt" in het algemeen, niet bij één bepaald punt. Ze werkt enkel met de punten die je meegeeft.
+- Opgeroepen via de klassenaam: `Punt.GetAfstandTussen(punt1, punt2)` — net zoals `Math.Sqrt`.
+
+#! regel type=class doel=Punt bericht="Maak een klasse Punt"
+#! regel type=regex doel="public\s+static\s+double\s+GetAfstandTussen\s*\(\s*Punt" bericht="Maak een public static method GetAfstandTussen(Punt p1, Punt p2)"
+#! regel type=private-fields bericht="Datavelden zijn private"
+
+#! test naam="Main"
+#! verwacht
+De afstand is 5
+
+#! test naam="GetAfstandTussen" soort=code
+Punt a = new Punt(); a.SetX(0); a.SetY(0);
+Punt b = new Punt(); b.SetX(-3); b.SetY(4);
+Check.Equal(5.0, Punt.GetAfstandTussen(a, b), "(0,0) en (-3,4)");
+Check.Equal(0.0, Punt.GetAfstandTussen(a, a), "afstand tot zichzelf");
+
+#! oefening id=L10-04-m rol=meesterschap moeilijkheid=3 xp=110 titel="Het dichtstbijzijnde punt"
+Breid de klasse `Punt` uit met een **instance method** `GetAfstandTot(Punt ander)` die de afstand van dít punt tot een ander punt teruggeeft. Gebruik daarvoor de static method en `this`.
+
+Schrijf in Program een method `static Punt GetDichtstbij(Punt start, Punt[] punten)` die het punt uit de array teruggeeft dat het dichtst bij `start` ligt.
+
+```text
+Het dichtstbijzijnde punt is (2, 3) op afstand 1,41
+```
+
+voor start (1, 2) en de punten (5, 5), (2, 3), (-1, -4).
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Punt start = MaakPunt(1, 2);
+            Punt[] punten = { MaakPunt(5, 5), MaakPunt(2, 3), MaakPunt(-1, -4) };
+            Punt dichtst = GetDichtstbij(start, punten);
+            Console.WriteLine($"Het dichtstbijzijnde punt is ({dichtst.GetX()}, {dichtst.GetY()}) op afstand {start.GetAfstandTot(dichtst):f2}");
+        }
+
+        static Punt MaakPunt(double x, double y) {
+            Punt p = new Punt();
+            p.SetX(x);
+            p.SetY(y);
+            return p;
+        }
+    }
+}
+
+#! starter bestand=Punt.cs
+using System;
+
+namespace D14 {
+    class Punt {
+        private double _x;
+        private double _y;
+
+        public double GetX() { return _x; }
+        public void SetX(double x) { _x = x; }
+        public double GetY() { return _y; }
+        public void SetY(double y) { _y = y; }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.GetX() - p1.GetX();
+            double dy = p2.GetY() - p1.GetY();
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
+}
+
+#! hint
+`public double GetAfstandTot(Punt ander) { return GetAfstandTussen(this, ander); }` — `this` is het punt waarop de method opgeroepen wordt.
+
+#! hint
+`GetDichtstbij` lijkt op "het grootste getal zoeken" (Level 1), maar dan met de kleinste afstand. Begin met het eerste punt als beste kandidaat.
+
+#! hint
+`Punt beste = punten[0]; foreach (Punt p in punten) { if (start.GetAfstandTot(p) < start.GetAfstandTot(beste)) beste = p; } return beste;`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Punt start = MaakPunt(1, 2);
+            Punt[] punten = { MaakPunt(5, 5), MaakPunt(2, 3), MaakPunt(-1, -4) };
+            Punt dichtst = GetDichtstbij(start, punten);
+            Console.WriteLine($"Het dichtstbijzijnde punt is ({dichtst.GetX()}, {dichtst.GetY()}) op afstand {start.GetAfstandTot(dichtst):f2}");
+        }
+
+        static Punt MaakPunt(double x, double y) {
+            Punt p = new Punt();
+            p.SetX(x);
+            p.SetY(y);
+            return p;
+        }
+
+        static Punt GetDichtstbij(Punt start, Punt[] punten) {
+            Punt beste = punten[0];
+            foreach (Punt p in punten) {
+                if (start.GetAfstandTot(p) < start.GetAfstandTot(beste)) {
+                    beste = p;
+                }
+            }
+            return beste;
+        }
+    }
+}
+
+#! oplossing bestand=Punt.cs
+using System;
+
+namespace D14 {
+    class Punt {
+        private double _x;
+        private double _y;
+
+        public double GetX() { return _x; }
+        public void SetX(double x) { _x = x; }
+        public double GetY() { return _y; }
+        public void SetY(double y) { _y = y; }
+
+        public static double GetAfstandTussen(Punt p1, Punt p2) {
+            double dx = p2.GetX() - p1.GetX();
+            double dy = p2.GetY() - p1.GetY();
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        public double GetAfstandTot(Punt ander) {
+            return GetAfstandTussen(this, ander);
+        }
+    }
+}
+
+#! uitleg
+- `GetAfstandTot` is een instance method: `start.GetAfstandTot(p)` leest als "de afstand van start tot p". Ze hergebruikt de static method (DRY) en geeft zichzelf mee via `this`.
+- Een static en een instance method vullen elkaar aan: kies wat het leesbaarst is op de plaats van gebruik.
+
+#! regel type=method doel=GetAfstandTot geeft=double parameters=1 bericht="Maak een instance method public double GetAfstandTot(Punt ander)"
+#! regel type=statement doel=this bericht="Gebruik this om het huidige punt mee te geven"
+#! regel type=method doel=GetDichtstbij geeft=Punt parameters=2 bericht="Maak een method static Punt GetDichtstbij(Punt start, Punt[] punten)"
+
+#! test naam="Main"
+#! verwacht
+Het dichtstbijzijnde punt is (2, 3) op afstand 1,41
+
+#! test naam="GetAfstandTot" soort=code
+Punt a = new Punt(); a.SetX(1); a.SetY(1);
+Punt b = new Punt(); b.SetX(4); b.SetY(5);
+Check.Equal(5.0, a.GetAfstandTot(b), "a tot b");
+Check.Equal(5.0, b.GetAfstandTot(a), "b tot a");

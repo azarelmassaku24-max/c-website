@@ -1,0 +1,311 @@
+#! lesson
+id: L01-05
+titel: Traceertabellen en debugging
+samenvatting: De uitvoering van een programma volgen met een traceertabel en fouten opsporen met de debugger.
+skills: traceren
+bron: Deel 03 – 4. Traceertabellen · Deel 04 – 2. Debugging
+duur: 30
+
+#! begrijpen
+## Drie soorten fouten (Deel 04)
+
+1. **Compileerfouten** — de compiler verstaat je niet of verhindert een bewerking (bv. een vergeten `;`). Het programma start niet eens.
+2. **Runtimefouten (exceptions)** — treden pas op tijdens het uitvoeren, in uitzonderlijke omstandigheden (bv. `int.Parse("abc")`).
+3. **Logische fouten** — er is geen compiler of runtime die je waarschuwt: het programma doet gewoon niet wat het zou moeten doen.
+
+Logische fouten zijn het moeilijkst op te sporen. Een voorbeeld:
+
+```csharp norun
+int getal1 = 10;
+int getal2 = 20;
+int som = getal1 * getal2;   // oeps: * in plaats van +
+Console.WriteLine("Som: " + som);
+```
+
+## Traceertabellen (Deel 03)
+
+Een **traceertabel** toont hoe de waarden van variabelen evolueren tijdens één specifieke uitvoering van het programma.
+
+- Elke (interessante) variabele krijgt een **kolom**, meestal ook een kolom voor de **output**.
+- Elke **rij** is een moment in de uitvoering, overeenkomstig met een regel in de broncode.
+- De rijen staan in volgorde van uitvoering: de tijd loopt naar onderen.
+
+| Regel | a | b | c | Output |
+|---|---|---|---|---|
+| 1: `int a = 5;` | 5 | | | |
+| 2: `int b = a * 2;` | 5 | 10 | | |
+| 3: `int c = b % 3;` | 5 | 10 | 1 | |
+| 4: `Console.WriteLine(c);` | 5 | 10 | 1 | 1 |
+
+Als programmeur stel je zulke tabellen later niet meer op, maar bij het **leren** programmeren komen ze heel goed van pas.
+
+## De debugger (Deel 04)
+
+In Visual Studio gebruik je de **debugger**:
+
+- een **breakpoint** pauzeert het programma op een bepaalde regel;
+- het **Locals**-venster toont de actuele waarden van de variabelen;
+- met **Step Over (F10)** voer je regel per regel uit.
+
+In C# Quest werkt het net zo: klik in de **marge naast een regelnummer** voor een breakpoint en kies **Debug**. De debugger voert je programma echt uit, toont de variabelen en stelt automatisch een **traceertabel** op.
+
+> [!TIP]
+> Bij een logische fout: zet een breakpoint vlak nadat de invoer is ingelezen en controleer stap voor stap of elke variabele de waarde krijgt die je verwacht. Waar het voor het eerst afwijkt, zit de fout.
+
+#! voorbeeld
+## Traceer dit programma
+
+Klik op **Stap voor stap** en open het tabblad **Traceertabel**. Vergelijk met de tabel die je zelf zou maken.
+
+```csharp
+int a = 5;
+int b = 10;
+int c = a / b;
+c = b % a;
+c = 4;
+c -= 20;
+b--;
+c = b % a;
+double e = 3.3;
+double f = a / b * e;
+double g = e * a / b;
+Console.WriteLine(f);
+Console.WriteLine(g);
+```
+
+Dit is (een deel van) de oefening **D03traceeralfabetsoep**. Kijk vooral naar `f` en `g`:
+
+- `a / b * e`: eerst `a / b` = `5 / 9` = **0** (gehele deling!), daarna `0 * 3.3` = 0.
+- `e * a / b`: eerst `3.3 * 5` = 16,5 (een double), daarna `16,5 / 9` = 1,833…
+
+Dezelfde getallen, een andere volgorde, een totaal ander resultaat.
+
+#! voorspel id=v1 type=text antwoord=0
+In `int c = a / b;` met `a = 5` en `b = 10`: welke waarde krijgt `c`?
+? `5 / 10` is een gehele deling tussen twee ints: 0 (0,5 wordt afgekapt).
+
+#! voorspel id=v2 type=text antwoord=-16
+Na `c = 4;` volgt `c -= 20;`. Welke waarde heeft `c` dan?
+? `c -= 20` betekent `c = c - 20`, dus 4 − 20 = −16.
+
+#! voorspel id=v3 type=output
+Wat drukt deze code af?
+```csharp
+int x = 3;
+int y = x;
+x = 8;
+Console.WriteLine(y);
+```
+? Op het moment van `int y = x;` wordt de **waarde** 3 gekopieerd naar `y`. Als `x` daarna verandert, blijft `y` gewoon 3.
+
+#! voorspel id=v4 type=choice
+Een programma compileert, crasht niet, maar toont een verkeerd totaal. Welk soort fout is dit?
+- Compileerfout
+- Runtimefout (exception)
++ Logische fout
+? Er is geen melding van de compiler of runtime: het programma doet gewoon niet wat het moet doen. Dat is een logische fout. De debugger helpt je die te vinden.
+
+#! oefening id=L01-05-a rol=oefenen moeilijkheid=2 xp=60 titel="Muntstukken (debuggen)" bron="D04muntstukken"
+Dit programma loopt fout: het levert een foutieve uitvoer op. Bij invoer van 5, 4 en 3 krijgen we:
+
+```text
+4 x 2 + 0 x 1 + 3 x 0.5 = 9 euro
+```
+
+Dat resultaat is uiteraard niet correct. Het totaal zou 15,5 moeten zijn, en in de formule moeten we `4 x 1` terugvinden:
+
+```text
+Aantal muntstukken van 2 euro?: 5
+Aantal muntstukken van 1 euro?: 4
+Aantal muntstukken van 50 eurocent?: 3
+5 x 2 + 4 x 1 + 3 x 0.5 = 15,5 euro
+```
+
+Gebruik de **debugger** om in te schatten waar en wat er foutloopt. Corrigeer dan de code. (Er zitten **twee** fouten in.)
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            int muntstukkenVan2Euro;
+            Console.Write("Aantal muntstukken van 2 euro?: ");
+            muntstukkenVan2Euro = int.Parse(Console.ReadLine());
+
+            int muntstukkenVan1Euro = 0;
+            Console.Write("Aantal muntstukken van 1 euro?: ");
+            muntstukkenVan2Euro = int.Parse(Console.ReadLine());
+
+            int muntstukkenVan50Cent;
+            Console.Write("Aantal muntstukken van 50 eurocent?: ");
+            muntstukkenVan50Cent = int.Parse(Console.ReadLine());
+
+            double totaalBedrag = muntstukkenVan2Euro * 2;
+            totaalBedrag += muntstukkenVan1Euro;
+            totaalBedrag += muntstukkenVan50Cent / 2;
+
+            string formuleAlsTekst = $"{muntstukkenVan2Euro} x 2 + ";
+            formuleAlsTekst += $"{muntstukkenVan1Euro} x 1 + ";
+            formuleAlsTekst += $"{muntstukkenVan50Cent} x 0.5";
+            Console.WriteLine($"{formuleAlsTekst} = {totaalBedrag} euro");
+        }
+    }
+}
+
+#! hint
+Start de **Debugger** met invoer 5, 4 en 3. Kijk na de drie invoerregels naar de variabelen: hebben `muntstukkenVan2Euro` en `muntstukkenVan1Euro` de waarden die je verwacht?
+
+#! hint
+Fout 1: de tweede invoer wordt in de verkeerde variabele gestopt. Fout 2: `muntstukkenVan50Cent / 2` met 3 geeft 1 in plaats van 1,5. Waarom?
+
+#! hint
+Stop de tweede invoer in `muntstukkenVan1Euro`. Deel door `2.0` in plaats van `2` (dan is het geen gehele deling meer). Verander niets aan de tekst `x 0.5` in de formule.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            int muntstukkenVan2Euro;
+            Console.Write("Aantal muntstukken van 2 euro?: ");
+            muntstukkenVan2Euro = int.Parse(Console.ReadLine());
+
+            int muntstukkenVan1Euro = 0;
+            Console.Write("Aantal muntstukken van 1 euro?: ");
+            muntstukkenVan1Euro = int.Parse(Console.ReadLine());
+
+            int muntstukkenVan50Cent;
+            Console.Write("Aantal muntstukken van 50 eurocent?: ");
+            muntstukkenVan50Cent = int.Parse(Console.ReadLine());
+
+            double totaalBedrag = muntstukkenVan2Euro * 2;
+            totaalBedrag += muntstukkenVan1Euro;
+            totaalBedrag += muntstukkenVan50Cent / 2.0;
+
+            string formuleAlsTekst = $"{muntstukkenVan2Euro} x 2 + ";
+            formuleAlsTekst += $"{muntstukkenVan1Euro} x 1 + ";
+            formuleAlsTekst += $"{muntstukkenVan50Cent} x 0.5";
+            Console.WriteLine($"{formuleAlsTekst} = {totaalBedrag} euro");
+        }
+    }
+}
+
+#! uitleg
+Met een breakpoint na de invoer zie je in het Locals-venster (of het tabblad **Variabelen**):
+
+- `muntstukkenVan2Euro` = 4 en `muntstukkenVan1Euro` = 0 → de tweede invoer overschreef de eerste. **Fout 1**: kopiëren-plakken zonder de variabelenaam aan te passen.
+- Bij de regel met `/ 2` wordt `totaalBedrag` maar 1 groter in plaats van 1,5 → **fout 2**: gehele deling (int / int). Met `2.0` wordt het een kommadeling.
+
+Dit is typisch voor **logische fouten**: geen enkele foutmelding, enkel verkeerde resultaten.
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+5
+4
+3
+#! verwacht
+Aantal muntstukken van 2 euro?: 5
+Aantal muntstukken van 1 euro?: 4
+Aantal muntstukken van 50 eurocent?: 3
+5 x 2 + 4 x 1 + 3 x 0.5 = 15,5 euro
+
+#! test naam="Eén van elk"
+#! invoer
+1
+1
+1
+#! verwacht
+Aantal muntstukken van 2 euro?: 1
+Aantal muntstukken van 1 euro?: 1
+Aantal muntstukken van 50 eurocent?: 1
+1 x 2 + 1 x 1 + 1 x 0.5 = 3,5 euro
+
+#! test naam="Enkel 50 cent" referentie=ja verborgen=ja
+#! invoer
+0
+0
+4
+
+#! oefening id=L01-05-m rol=meesterschap moeilijkheid=3 xp=80 titel="Getal ontleden"
+Schrijf een programma dat een getal van **drie cijfers** inleest en de honderdtallen, tientallen en eenheden apart toont.
+
+```text
+Geef een getal van drie cijfers : 123
+Honderdtallen: 1
+Tientallen: 2
+Eenheden: 3
+```
+
+Gebruik enkel rekenkundige bewerkingen (`/` en `%`), geen tekstbewerkingen.
+
+Maak daarna met de **debugger** een traceertabel voor invoer 123 en controleer of elke variabele de verwachte waarde krijgt (zoals in oefening D03traceergetalontleden).
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Denk aan de vorige les: welke bewerking geeft het **laatste cijfer** van een getal? En welke bewerking haalt dat laatste cijfer eraf?
+
+#! hint
+`getal % 10` geeft het laatste cijfer (eenheden). `getal / 10` haalt het laatste cijfer weg. De honderdtallen zijn `getal / 100`.
+
+#! hint
+Voor 123: honderdtallen = 123 / 100 = 1; tientallen = (123 / 10) % 10 = 12 % 10 = 2; eenheden = 123 % 10 = 3.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een getal van drie cijfers : ");
+            int getal = int.Parse(Console.ReadLine());
+            int honderdtallen = getal / 100;
+            int tientallen = getal / 10 % 10;
+            int eenheden = getal % 10;
+            Console.WriteLine($"Honderdtallen: {honderdtallen}");
+            Console.WriteLine($"Tientallen: {tientallen}");
+            Console.WriteLine($"Eenheden: {eenheden}");
+        }
+    }
+}
+
+#! uitleg
+| Regel | getal | honderdtallen | tientallen | eenheden |
+|---|---|---|---|---|
+| invoer | 123 | | | |
+| `getal / 100` | 123 | 1 | | |
+| `getal / 10 % 10` | 123 | 1 | 2 | |
+| `getal % 10` | 123 | 1 | 2 | 3 |
+
+`/` en `%` hebben dezelfde voorrang en worden van links naar rechts uitgevoerd: `getal / 10 % 10` is `(getal / 10) % 10`.
+
+#! regel type=regex doel="%" bericht="Gebruik de modulo-operator %"
+#! regel type=no-regex doel="Substring|\[[0-9]\]|ToString" bericht="Gebruik enkel rekenkundige bewerkingen (geen tekstbewerkingen)"
+
+#! test naam="123"
+#! invoer
+123
+#! verwacht
+Geef een getal van drie cijfers : 123
+Honderdtallen: 1
+Tientallen: 2
+Eenheden: 3
+
+#! test naam="907" referentie=ja
+#! invoer
+907
+
+#! test naam="580" referentie=ja verborgen=ja
+#! invoer
+580

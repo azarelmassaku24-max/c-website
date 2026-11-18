@@ -1,0 +1,290 @@
+#! lesson
+id: L02-03
+titel: Geneste loops en kiezen tussen loops
+samenvatting: Een loop in een loop (rijen en kolommen) en wanneer je for, while of do while gebruikt.
+skills: geneste-loops, for
+bron: Deel 06 – 4.3. Kiezen tussen de verschillende soorten loops · D06rechthoekopmaat, D06rechthoekigedriehoek
+duur: 35
+
+#! begrijpen
+## Kiezen tussen de loops (Deel 06 §4.3)
+
+| Situatie | Kies |
+|---|---|
+| Het aantal herhalingen is **gekend** vóór de loop start (een teller van … tot …) | `for` |
+| Herhalen **zolang** een voorwaarde geldt; mogelijk nul keer | `while` |
+| Het block moet **minstens één keer** uitgevoerd worden (bv. invoer vragen) | `do while` |
+
+Alle drie kunnen technisch hetzelfde, maar de juiste keuze maakt je code **leesbaarder**: wie `for` leest, weet meteen dat er geteld wordt.
+
+## Geneste loops
+
+Een loop body kan zelf een loop bevatten. Voor elke iteratie van de **buitenste** loop, wordt de **binnenste** loop helemaal doorlopen. Typisch voor rijen en kolommen:
+
+```csharp norun
+for (int rij = 1; rij <= 3; rij++) {
+    for (int kolom = 1; kolom <= 5; kolom++) {
+        Console.Write("*");
+    }
+    Console.WriteLine();   // einde van de rij: naar een nieuwe regel
+}
+```
+
+```text
+*****
+*****
+*****
+```
+
+- De buitenste loop telt de **rijen**, de binnenste de **sterren per rij**.
+- `Console.Write` (zonder Line) zet de sterren naast elkaar; `Console.WriteLine()` sluit de rij af.
+- Hoeveel keer wordt `Console.Write("*")` uitgevoerd? 3 × 5 = 15 keer.
+
+## De binnenste loop hangt af van de buitenste
+
+Bij een driehoek verschilt het aantal sterren per rij: rij 1 heeft 1 ster, rij 2 heeft 2 sterren… De grenswaarde van de binnenste loop is dan de teller van de buitenste:
+
+```csharp norun
+for (int rij = 1; rij <= hoogte; rij++) {
+    for (int ster = 1; ster <= rij; ster++) {
+        Console.Write("*");
+    }
+    Console.WriteLine();
+}
+```
+
+#! voorbeeld
+## Een tafel van vermenigvuldiging
+
+Volg in de stap-voor-stap-weergave hoe de binnenste loop telkens opnieuw van voor af begint.
+
+```csharp
+for (int rij = 1; rij <= 3; rij++) {
+    for (int kolom = 1; kolom <= 4; kolom++) {
+        int product = rij * kolom;
+        Console.Write($"{product}\t");
+    }
+    Console.WriteLine();
+}
+```
+
+`\t` is een tab: zo staan de kolommen netjes onder elkaar.
+
+#! voorspel id=v1 type=text antwoord=12
+Hoeveel sterren drukt deze code in totaal af?
+```csharp norun
+for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 3; j++) {
+        Console.Write("*");
+    }
+    Console.WriteLine();
+}
+```
+? 4 rijen × 3 sterren = 12 sterren.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+for (int rij = 1; rij <= 3; rij++) {
+    for (int k = 1; k <= rij; k++) {
+        Console.Write(k);
+    }
+    Console.WriteLine();
+}
+```
+? De binnenste loop telt telkens tot de waarde van `rij`: eerst `1`, dan `12`, dan `123`.
+
+#! voorspel id=v3 type=choice
+Je vraagt een wachtwoord tot de gebruiker het juiste intypt. Welke loop is het meest geschikt?
+- for
+- while
++ do while
+? Je moet minstens één keer vragen, en je weet niet hoe vaak. Een do while drukt dat het duidelijkst uit.
+
+#! oefening id=L02-03-a rol=oefenen moeilijkheid=2 xp=60 titel="Rechthoek op maat" bron="D06rechthoekopmaat"
+Schrijf een programma dat de gebruiker om 2 positieve getallen vraagt (breedte en hoogte) en een rechthoek van sterretjes toont met de gevraagde afmetingen. Baseer je oplossing op **for loops**.
+
+Zorg ervoor dat het programma een vraag **herhaalt** zolang de gebruiker geen deftig getal invoert (gebruik `TryParse` i.p.v. `Parse`; een getal kleiner dan 1 is ook niet deftig).
+
+```text
+Geef de breedte : 2
+Geef de hoogte : 4
+**
+**
+**
+**
+```
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Er zijn twee delen: robuuste invoer (twee keer) en het tekenen. Voor de invoer: welke loop gebruik je om een vraag minstens één keer te stellen en te herhalen tot het antwoord goed is?
+
+#! hint
+Invoer: `do { Console.Write("Geef de breedte : "); invoerOk = int.TryParse(Console.ReadLine(), out breedte) && breedte > 0; } while (!invoerOk);`. Tekenen: een for loop voor de rijen, met een for loop voor de sterren erin.
+
+#! hint
+`for (int rij = 0; rij < hoogte; rij++) { for (int kolom = 0; kolom < breedte; kolom++) { Console.Write("*"); } Console.WriteLine(); }`
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            int breedte;
+            bool invoerOk;
+            do {
+                Console.Write("Geef de breedte : ");
+                invoerOk = int.TryParse(Console.ReadLine(), out breedte) && breedte > 0;
+            } while (!invoerOk);
+
+            int hoogte;
+            do {
+                Console.Write("Geef de hoogte : ");
+                invoerOk = int.TryParse(Console.ReadLine(), out hoogte) && hoogte > 0;
+            } while (!invoerOk);
+
+            for (int rij = 0; rij < hoogte; rij++) {
+                for (int kolom = 0; kolom < breedte; kolom++) {
+                    Console.Write("*");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+
+#! uitleg
+- Twee keer het do-while-patroon uit Deel 05 voor robuuste invoer. (Merk op dat dit stuk code bijna dubbel staat — in Level 6 leer je dat netjes op te lossen met een **method**.)
+- `&& breedte > 0`: dankzij kortsluitevaluatie wordt `breedte > 0` enkel getest als TryParse lukte.
+- De geneste for loops tekenen rijen × kolommen. De teller begint bij 0 met `<` (zoals programmeurs dat doen).
+
+#! regel type=loop doel=for aantal=2 bericht="Gebruik (geneste) for loops om te tekenen"
+#! regel type=uses doel=TryParse bericht="Gebruik TryParse voor robuuste invoer"
+
+#! test naam="2 bij 4"
+#! invoer
+2
+4
+#! verwacht
+Geef de breedte : 2
+Geef de hoogte : 4
+**
+**
+**
+**
+
+#! test naam="Ongeldige invoer wordt herhaald" referentie=ja
+#! invoer
+breed
+0
+5
+-2
+hoog
+3
+
+#! test naam="1 bij 1" referentie=ja verborgen=ja
+#! invoer
+1
+1
+
+#! oefening id=L02-03-m rol=meesterschap moeilijkheid=4 xp=110 titel="Driehoek rechts" bron="D06rechthoekigedriehoekrechts"
+Vraag de gebruiker om een geheel getal en toon een rechthoekige driehoek met de **rechte hoek aan de rechterkant**.
+
+Een uitvoering waarbij de gebruiker 4 ingeeft:
+
+```text
+Geef de hoogte : 4
+   *
+  **
+ ***
+****
+```
+
+Elke rij is precies `hoogte` tekens breed: eerst spaties, dan sterren.
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de hoogte : ");
+            int hoogte = int.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+Teken de driehoek eerst op papier met hoogte 4 en noteer per rij hoeveel spaties en hoeveel sterren er zijn. Zie je een verband met het rijnummer?
+
+#! hint
+In rij `r` (1 t.e.m. hoogte) staan `r` sterren en `hoogte - r` spaties. Per rij heb je dus twee binnenste loops na elkaar: eerst de spaties, dan de sterren.
+
+#! hint
+`for (int rij = 1; rij <= hoogte; rij++) { for (int s = 0; s < hoogte - rij; s++) Console.Write(" "); for (int k = 0; k < rij; k++) Console.Write("*"); Console.WriteLine(); }`
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de hoogte : ");
+            int hoogte = int.Parse(Console.ReadLine());
+
+            for (int rij = 1; rij <= hoogte; rij++) {
+                int aantalSpaties = hoogte - rij;
+                for (int i = 0; i < aantalSpaties; i++) {
+                    Console.Write(" ");
+                }
+                for (int i = 0; i < rij; i++) {
+                    Console.Write("*");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+
+#! uitleg
+| rij | spaties (`hoogte - rij`) | sterren (`rij`) |
+|---|---|---|
+| 1 | 3 | 1 |
+| 2 | 2 | 2 |
+| 3 | 1 | 3 |
+| 4 | 0 | 4 |
+
+- Eerst het patroon zoeken op papier, dan pas coderen: dat is de kern van algoritmisch denken.
+- De twee binnenste loops staan **na elkaar** in de body van de buitenste loop. Beide mogen de teller `i` noemen: hun scope overlapt niet.
+
+#! regel type=loop doel=for aantal=3 bericht="Gebruik geneste for loops (één voor de rijen, twee erin)"
+
+#! test naam="Hoogte 4" mode=exact
+#! invoer
+4
+#! verwacht
+Geef de hoogte : 4
+   *
+  **
+ ***
+****
+
+#! test naam="Hoogte 6" referentie=ja mode=exact
+#! invoer
+6
+
+#! test naam="Hoogte 1" referentie=ja mode=exact verborgen=ja
+#! invoer
+1

@@ -1,0 +1,215 @@
+#! boss
+id: L02-BOSS
+titel: Simon Memory Game
+samenvatting: Bouw het geheugenspel Simon met Random, loops, Console.Clear en Thread.Sleep.
+skills: pauzeren, while, random
+bron: Deel 06 – D06simon
+verhaal: De Simon-machine knippert met een reeks cijfers en wist dan het scherm. Elke ronde wordt de reeks langer. Eén fout en de machine lacht je uit. Bouw haar na — en speel daarna zelf tegen je eigen code.
+duur: 45
+
+#! begrijpen
+## Briefing: Simon
+
+In plaats van kleuren worden er cijfers gebruikt: `1`, `2`, `3` en `4`.
+
+Het programma begint met een reeks van **1 cijfer**. Na elke correcte ingave voegt het programma **1 willekeurig cijfer** toe. Bijvoorbeeld: `2`, `23`, `231`, `2312`, …
+
+- Het programma wist het scherm en toont de reeks gedurende **2 seconden**.
+- Daarna wordt het scherm gewist en verschijnt `Geef de code`. De gebruiker typt de reeks.
+- Is de reeks correct, dan volgt de volgende ronde.
+- Bij een fout toont het programma de correcte reeks en eindigt het spel.
+
+Je bouwt de boss in twee fases. Gebruik **één** `Random`-object en `rnd.Next(1, 5)` voor elk nieuw cijfer, zodat de tests je spel kunnen naspelen.
+
+#! oefening id=L02-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=3 xp=120 titel="Eén ronde Simon"
+Begin klein: maak **één ronde** van het spel.
+
+1. Kies een willekeurig cijfer (`rnd.Next(1, 5)`).
+2. Wis het scherm en toon `U hebt 2 seconden om deze code te onthouden` met daaronder het cijfer.
+3. Wacht 2 seconden, wis het scherm en toon `Geef de code`.
+4. Lees de invoer. Is ze juist: `Correct!`, anders `Helaas, de code was` met op de volgende regel het cijfer.
+
+```text
+[scherm gewist]
+U hebt 2 seconden om deze code te onthouden
+3
+[scherm gewist]
+Geef de code
+3
+Correct!
+```
+
+#! starter
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+
+        }
+    }
+}
+
+#! hint
+Volg de stappen letterlijk: Next, Clear, WriteLine (2 keer), Sleep, Clear, WriteLine, ReadLine, if/else.
+
+#! hint
+Je kan het cijfer als `int` houden en de invoer met `int.Parse` omzetten, of het cijfer naar tekst omzetten en strings vergelijken. Voor fase 2 is werken met een **string** handiger: `string code = "" + rnd.Next(1, 5);`.
+
+#! hint
+Vergelijk `invoer == code` (strings). Bij een fout: `Console.WriteLine("Helaas, de code was"); Console.WriteLine(code);`.
+
+#! oplossing
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            string code = "" + rnd.Next(1, 5);
+
+            Console.Clear();
+            Console.WriteLine("U hebt 2 seconden om deze code te onthouden");
+            Console.WriteLine(code);
+            Thread.Sleep(2000);
+            Console.Clear();
+            Console.WriteLine("Geef de code");
+            string invoer = Console.ReadLine();
+
+            if (invoer == code) {
+                Console.WriteLine("Correct!");
+            } else {
+                Console.WriteLine("Helaas, de code was");
+                Console.WriteLine(code);
+            }
+        }
+    }
+}
+
+#! uitleg
+- `"" + rnd.Next(1, 5)` zet het getal om naar tekst (lege string + getal = tekst). Zo kan je straks makkelijk cijfers **achteraan toevoegen** met `+=`.
+- Clear → tonen → Sleep → Clear: zo verdwijnt de code na 2 seconden.
+
+#! regel type=uses doel=Clear aantal=2 bericht="Wis het scherm met Console.Clear()"
+#! regel type=uses doel=Sleep bericht="Toon de code 2 seconden met Thread.Sleep(2000)"
+
+#! test naam="Juist (seed 4)" referentie=ja seed=4
+#! invoer
+4
+
+#! test naam="Fout (seed 21)" referentie=ja seed=21
+#! invoer
+1
+
+#! oefening id=L02-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=200 titel="Het volledige Simon-spel" interactief=ja bron="D06simon"
+Maak nu het volledige spel: na elke correcte ingave wordt de reeks één cijfer langer en begint een nieuwe ronde. Bij de eerste fout eindigt het spel met de correcte reeks.
+
+```text
+[scherm gewist]
+U hebt 2 seconden om deze code te onthouden
+2
+[scherm gewist]
+Geef de code
+2
+[scherm gewist]
+U hebt 2 seconden om deze code te onthouden
+23
+[scherm gewist]
+Geef de code
+23
+[scherm gewist]
+U hebt 2 seconden om deze code te onthouden
+231
+[scherm gewist]
+Geef de code
+2311
+Helaas, de code was
+231
+```
+
+Speel daarna je eigen spel via **Uitvoeren** — hoe ver geraak jij?
+
+#! starter
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+
+        }
+    }
+}
+
+#! hint
+Het spel herhaalt rondes zolang de invoer juist is. Elke ronde moet minstens één keer gespeeld worden — welke loop past daarbij?
+
+#! hint
+Een `do { … } while (invoer == code);` met `string code = "";` vóór de loop. Aan het begin van de loop body: `code += rnd.Next(1, 5);`.
+
+#! hint
+Na de loop weet je dat de laatste invoer fout was: toon `Helaas, de code was` en de code. Let op: `invoer` moet vóór de loop gedeclareerd worden, want de voorwaarde staat buiten de loop body.
+
+#! oplossing
+using System;
+using System.Threading;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            string invoer;
+            string code = "";
+            do {
+                int nieuwGetal = rnd.Next(1, 5);
+                code += nieuwGetal;
+                Console.Clear();
+                Console.WriteLine("U hebt 2 seconden om deze code te onthouden");
+                Console.WriteLine(code);
+                Thread.Sleep(2000);
+                Console.Clear();
+                Console.WriteLine("Geef de code");
+                invoer = Console.ReadLine();
+            } while (invoer == code);
+            Console.WriteLine("Helaas, de code was");
+            Console.WriteLine(code);
+        }
+    }
+}
+
+#! uitleg
+Dit is de oplossing uit de cursus (D06simon):
+
+- `code += nieuwGetal;` plakt het nieuwe cijfer achteraan de string.
+- De do while herhaalt zolang de gebruiker juist antwoordt; de eerste fout beëindigt de loop.
+- Leuk detail uit de cursus: je kan **valsspelen** door de code al in te typen terwijl ze nog getoond wordt! De computer houdt een *input buffer* bij met alle ingetypte tekens die nog niet door het programma "geconsumeerd" zijn.
+
+Je versloeg de Simon-machine. Level 3 wacht: **strings en characters**!
+
+#! regel type=loop bericht="Gebruik een loop voor de rondes"
+#! regel type=uses doel=Clear bericht="Wis het scherm met Console.Clear()"
+#! regel type=uses doel=Sleep bericht="Toon de code 2 seconden met Thread.Sleep(2000)"
+
+#! test naam="Fout in ronde 4 (seed 4)" referentie=ja seed=4
+#! invoer
+4
+44
+443
+4431
+
+#! test naam="Fout in ronde 6 (seed 8)" referentie=ja seed=8
+#! invoer
+4
+41
+412
+4122
+41224
+412240
+
+#! test naam="Meteen fout (seed 21)" referentie=ja seed=21 verborgen=ja
+#! invoer
+4

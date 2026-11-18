@@ -1,0 +1,253 @@
+#! lesson
+id: L03-04
+titel: Strings overlopen en immutable strings
+samenvatting: Alle karakters overlopen met for en foreach, en waarom je een string niet kan wijzigen.
+skills: strings
+bron: Deel 07 – 2.4. Alle karakters in een string overlopen, 2.5. Strings zijn immutable
+duur: 25
+
+#! begrijpen
+## Overlopen met een for loop
+
+```csharp norun
+for (int i = 0; i < tekst.Length; i++) {
+    char c = tekst[i];
+    ...
+}
+```
+
+Je hebt de **index** `i` ter beschikking: handig als je de positie nodig hebt (bv. "de eerste 5 karakters" of "het vorige karakter").
+
+## Overlopen met een foreach loop
+
+```csharp norun
+foreach (char c in tekst) {
+    ...
+}
+```
+
+`foreach` geeft je één voor één elk karakter, zonder index. Korter en leesbaarder als je de positie niet nodig hebt.
+
+| Je hebt de positie nodig | `for` |
+|---|---|
+| Je hebt enkel de karakters nodig | `foreach` |
+| Je wil achterstevoren overlopen | `for` met dalende teller |
+
+## Strings zijn immutable (Deel 07 §2.5)
+
+Een string kan je na het aanmaken **niet meer wijzigen**: hij is *immutable*.
+
+```csharp norun
+string woord = "kat";
+woord[0] = 'b';          // compileerfout! (CS0200)
+```
+
+Methods als `ToUpper()`, `Trim()` of `Replace()` wijzigen de string dus niet: ze maken een **nieuwe** string. Wil je een "gewijzigde" tekst, dan bouw je een nieuwe string op:
+
+```csharp norun
+string resultaat = "";
+foreach (char c in woord) {
+    resultaat += char.ToUpper(c);
+}
+```
+
+> [!NOTE]
+> Bij elke `+=` maakt C# eigenlijk een nieuwe string. Voor korte teksten maakt dat niet uit; voor heel lange teksten bestaat er `StringBuilder` (buiten de leerstof van deze cursus).
+
+#! voorbeeld
+## for en foreach
+
+```csharp
+string tekst = "C# Quest";
+foreach (char c in tekst) {
+    Console.Write($"[{c}]");
+}
+Console.WriteLine();
+
+string omgekeerd = "";
+for (int i = tekst.Length - 1; i >= 0; i--) {
+    omgekeerd += tekst[i];
+}
+Console.WriteLine(omgekeerd);
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string s = "abc";
+string t = s.ToUpper();
+Console.WriteLine(s);
+Console.WriteLine(t);
+```
+? Strings zijn immutable: `ToUpper()` verandert `s` niet maar geeft een nieuwe string terug. `s` blijft "abc".
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+string resultaat = "";
+foreach (char c in "hey") {
+    resultaat = c + resultaat;
+}
+Console.WriteLine(resultaat);
+```
+? Elk nieuw karakter komt **vooraan**: "h", "eh", "yeh". Een slimme manier om een tekst om te keren!
+
+#! voorspel id=v3 type=choice
+Waarom geeft `woord[0] = 'K';` een compileerfout?
+- Omdat 'K' een hoofdletter is
+- Omdat index 0 niet bestaat
++ Omdat strings immutable zijn: je kan hun karakters niet wijzigen
+- Omdat je == moet gebruiken
+? Je kan karakters van een string lezen met [index], maar niet overschrijven. Bouw een nieuwe string op.
+
+#! oefening id=L03-04-a rol=oefenen moeilijkheid=1 xp=50 titel="Achterstevoren" bron="D07achterstevoren"
+Schrijf een programma dat de gebruiker om tekst vraagt en die tekst daarna achterstevoren weergeeft.
+
+```text
+Geef een tekst : programmeren
+neremmargorp
+```
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Je kan de string niet wijzigen. Bouw dus een nieuwe string op, karakter per karakter.
+
+#! hint
+Overloop de tekst met een for loop van achter naar voor: de laatste index is `tekst.Length - 1`, de eerste is 0.
+
+#! hint
+`string omgekeerd = ""; for (int i = tekst.Length - 1; i >= 0; i--) { omgekeerd += tekst[i]; }` en toon `omgekeerd`.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            string omgekeerd = "";
+            for (int i = tekst.Length - 1; i >= 0; i--) {
+                omgekeerd += tekst[i];
+            }
+            Console.WriteLine(omgekeerd);
+        }
+    }
+}
+
+#! uitleg
+- Een dalende for loop begint bij de laatste geldige index (`Length - 1`) en stopt na index 0.
+- `omgekeerd += tekst[i]` plakt telkens een karakter achteraan de nieuwe string.
+- Een alternatief zonder dalende loop: `foreach (char c in tekst) omgekeerd = c + omgekeerd;`.
+
+#! regel type=loop bericht="Gebruik een loop"
+#! regel type=forbids doel=Reverse bericht="Gebruik geen Reverse(): bouw de string zelf op"
+
+#! test naam="programmeren"
+#! invoer
+programmeren
+#! verwacht
+Geef een tekst : programmeren
+neremmargorp
+
+#! test naam="Palindroom" referentie=ja
+#! invoer
+lepel
+
+#! test naam="Met spaties" referentie=ja verborgen=ja
+#! invoer
+C# is top
+
+#! oefening id=L03-04-m rol=meesterschap moeilijkheid=3 xp=90 titel="Eerste 5 in hoofdletters" bron="D07beginmethoofdletters"
+Schrijf een programma dat de gebruiker om een tekst vraagt en de karakters op de **eerste 5 posities** omzet naar hoofdletters.
+
+| Input | Output |
+|---|---|
+| programmeren | PROGRammeren |
+| 12 monkeys | 12 MOnkeys |
+| lol | LOL |
+
+```text
+Geef een tekst : programmeren
+PROGRammeren
+```
+
+Let op: de tekst kan korter zijn dan 5 karakters!
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Je hebt de **positie** van elk karakter nodig (eerste 5 of niet). Welke loop geeft je de index?
+
+#! hint
+Bouw een nieuwe string op. In de loop: is `i < 5`, voeg dan `char.ToUpper(tekst[i])` toe, anders het originele karakter.
+
+#! hint
+Door `i < tekst.Length` als loopvoorwaarde te gebruiken, werkt het ook voor korte teksten zoals "lol". Cijfers en spaties blijven gewoon hetzelfde met ToUpper.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalHoofdletters = 5;
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            string resultaat = "";
+            for (int i = 0; i < tekst.Length; i++) {
+                if (i < aantalHoofdletters) {
+                    resultaat += char.ToUpper(tekst[i]);
+                } else {
+                    resultaat += tekst[i];
+                }
+            }
+            Console.WriteLine(resultaat);
+        }
+    }
+}
+
+#! uitleg
+- Omdat strings immutable zijn, bouwen we een nieuwe string `resultaat` op.
+- De **for** loop geeft ons de index, zodat we kunnen beslissen of het karakter bij de eerste 5 hoort.
+- De loop loopt tot `tekst.Length`, dus ook bij "lol" (3 karakters) is er geen IndexOutOfRangeException.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop (je hebt de positie nodig)"
+
+#! test naam="programmeren"
+#! invoer
+programmeren
+#! verwacht
+Geef een tekst : programmeren
+PROGRammeren
+
+#! test naam="12 monkeys" referentie=ja
+#! invoer
+12 monkeys
+
+#! test naam="Kort: lol" referentie=ja
+#! invoer
+lol

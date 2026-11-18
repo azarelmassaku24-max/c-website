@@ -1,0 +1,250 @@
+#! lesson
+id: L08-04
+titel: Tijdsduren met TimeSpan
+samenvatting: Het verschil tussen twee momenten berekenen en periodes vergelijken.
+skills: datetime
+bron: Deel 12 – 3.2. Een tijdsduur voorstellen met TimeSpan · D12leeftijdindagen, D12leeftijdinjaren, D12periodeoverlapt
+duur: 30
+
+#! begrijpen
+## TimeSpan: een tijdsduur (Deel 12 §3.2)
+
+Een `DateTime` is een **moment**, een `TimeSpan` is een **duur** (bv. "3 dagen en 4 uur"). Trek je twee DateTime-waarden van elkaar af, dan krijg je een TimeSpan:
+
+```csharp norun
+DateTime begin = new DateTime(2026, 9, 21);
+DateTime einde = new DateTime(2026, 12, 18);
+TimeSpan duur = einde - begin;
+Console.WriteLine(duur.Days);         // aantal hele dagen: 88
+Console.WriteLine(duur.TotalHours);   // als double: 2112
+```
+
+| Property | Betekenis |
+|---|---|
+| `.Days`, `.Hours`, `.Minutes` | het deel dagen, uren, minuten (een "klok") |
+| `.TotalDays`, `.TotalHours`, `.TotalMinutes` | de volledige duur uitgedrukt in die eenheid (double) |
+
+Een TimeSpan kan je ook optellen bij een DateTime: `afspraak + TimeSpan.FromMinutes(45)`.
+
+## Leeftijd in jaren
+
+Een leeftijd in jaren is **niet** `Days / 365` (schrikkeljaren!). Juister: neem het verschil in jaartallen en trek er 1 af als de verjaardag dit jaar nog niet geweest is:
+
+```csharp norun
+int leeftijd = vandaag.Year - geboorte.Year;
+if (geboorte.AddYears(leeftijd) > vandaag) {
+    leeftijd--;
+}
+```
+
+## Periodes vergelijken
+
+Twee periodes [begin1, einde1] en [begin2, einde2] **overlappen** als `begin1 <= einde2 && begin2 <= einde1` — exact dezelfde logica als bij D10intervaloverlap, maar nu met DateTime!
+
+#! voorbeeld
+## Hoe lang nog?
+
+```csharp
+DateTime examen = new DateTime(2027, 1, 11, 9, 0, 0);
+DateTime nu = new DateTime(2026, 11, 16, 14, 30, 0);
+TimeSpan resterend = examen - nu;
+Console.WriteLine($"Nog {resterend.Days} dagen, {resterend.Hours} uur en {resterend.Minutes} minuten.");
+Console.WriteLine($"Dat is {resterend.TotalHours} uur in totaal.");
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+DateTime a = new DateTime(2026, 3, 1);
+DateTime b = new DateTime(2026, 2, 1);
+TimeSpan verschil = a - b;
+Console.WriteLine(verschil.Days);
+```
+? Februari 2026 heeft 28 dagen (geen schrikkeljaar): 28.
+
+#! voorspel id=v2 type=choice
+Wat is het type van `datum2 - datum1` als beide variabelen DateTime zijn?
+- DateTime
+- int
++ TimeSpan
+- double
+? Het verschil tussen twee momenten is een duur: een TimeSpan.
+
+#! oefening id=L08-04-a rol=oefenen moeilijkheid=2 xp=70 titel="Leeftijd in dagen" bron="D12leeftijdindagen"
+Schrijf een programma dat een geboortedatum en de datum van vandaag inleest en toont hoeveel dagen de persoon al leeft.
+
+```text
+Geboortedatum : 23/12/1997
+Datum van vandaag : 16/11/2026
+Je leeft al 10555 dagen.
+```
+
+(We vragen de datum van vandaag in, zodat het programma testbaar blijft. In een echt programma gebruik je `DateTime.Today`.)
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Lees beide datums in met `DateTime.Parse`. Het verschil is een TimeSpan.
+
+#! hint
+`TimeSpan leeftijd = vandaag - geboorte;` en `leeftijd.Days` geeft het aantal hele dagen.
+
+#! hint
+Volgorde: eerst de latere datum, dan de vroegere — anders wordt het resultaat negatief.
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geboortedatum : ");
+            DateTime geboorte = DateTime.Parse(Console.ReadLine());
+            Console.Write("Datum van vandaag : ");
+            DateTime vandaag = DateTime.Parse(Console.ReadLine());
+            TimeSpan leeftijd = vandaag - geboorte;
+            Console.WriteLine($"Je leeft al {leeftijd.Days} dagen.");
+        }
+    }
+}
+
+#! uitleg
+- Twee DateTime's aftrekken geeft een TimeSpan; `.Days` is het aantal hele dagen.
+- Schrikkeljaren worden automatisch correct meegerekend.
+
+#! regel type=type doel=TimeSpan bericht="Gebruik een TimeSpan voor het verschil"
+
+#! test naam="Voorbeeld"
+#! invoer
+23/12/1997
+16/11/2026
+#! verwacht
+Geboortedatum : 23/12/1997
+Datum van vandaag : 16/11/2026
+Je leeft al 10555 dagen.
+
+#! test naam="Pasgeboren" referentie=ja
+#! invoer
+10/11/2026
+16/11/2026
+
+#! oefening id=L08-04-m rol=meesterschap moeilijkheid=4 xp=120 titel="Periodes overlappen" bron="D12periodeoverlapt + D12leeftijdinjaren"
+Een vakantiewoning kan je huren voor een periode. Schrijf:
+
+- `static bool IsOverlappend(DateTime begin1, DateTime einde1, DateTime begin2, DateTime einde2)` — overlappen twee periodes (grenzen inbegrepen)?
+- `static int GetAantalNachten(DateTime aankomst, DateTime vertrek)` — het aantal nachten tussen aankomst en vertrek.
+
+Het programma leest een bestaande en een gevraagde boeking in en meldt of de gevraagde boeking kan:
+
+```text
+Bestaande boeking van : 10/07/2026
+Bestaande boeking tot : 17/07/2026
+Gevraagde boeking van : 15/07/2026
+Gevraagde boeking tot : 20/07/2026
+Niet mogelijk: overlapt met een bestaande boeking.
+```
+
+```text
+...
+Gevraagde boeking van : 18/07/2026
+Gevraagde boeking tot : 25/07/2026
+Mogelijk: 7 nachten.
+```
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Lees vier datums in. Zelfde logica als D10intervaloverlap: `begin1 <= einde2 && begin2 <= einde1`.
+
+#! hint
+`GetAantalNachten`: `(vertrek - aankomst).Days`.
+
+#! hint
+Schrijf eventueel een method `LeesDatum(string vraag)` die de vraag stelt en een DateTime teruggeeft — dat bespaart vier keer dezelfde twee regels (DRY).
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            DateTime bestaandBegin = LeesDatum("Bestaande boeking van : ");
+            DateTime bestaandEinde = LeesDatum("Bestaande boeking tot : ");
+            DateTime gevraagdBegin = LeesDatum("Gevraagde boeking van : ");
+            DateTime gevraagdEinde = LeesDatum("Gevraagde boeking tot : ");
+
+            if (IsOverlappend(bestaandBegin, bestaandEinde, gevraagdBegin, gevraagdEinde)) {
+                Console.WriteLine("Niet mogelijk: overlapt met een bestaande boeking.");
+            } else {
+                Console.WriteLine($"Mogelijk: {GetAantalNachten(gevraagdBegin, gevraagdEinde)} nachten.");
+            }
+        }
+
+        static DateTime LeesDatum(string vraag) {
+            Console.Write(vraag);
+            return DateTime.Parse(Console.ReadLine());
+        }
+
+        static bool IsOverlappend(DateTime begin1, DateTime einde1, DateTime begin2, DateTime einde2) {
+            return begin1 <= einde2 && begin2 <= einde1;
+        }
+
+        static int GetAantalNachten(DateTime aankomst, DateTime vertrek) {
+            return (vertrek - aankomst).Days;
+        }
+    }
+}
+
+#! uitleg
+- Dezelfde overlap-logica als bij getallen: DateTime's vergelijk je net zo met `<=`.
+- `LeesDatum` maakt Main leesbaar en voorkomt herhaalde code.
+
+#! regel type=method doel=IsOverlappend geeft=bool parameters=4 bericht="Maak een query IsOverlappend met 4 DateTime-parameters"
+#! regel type=method doel=GetAantalNachten geeft=int parameters=2 bericht="Maak een query static int GetAantalNachten(DateTime aankomst, DateTime vertrek)"
+
+#! test naam="Overlapt"
+#! invoer
+10/07/2026
+17/07/2026
+15/07/2026
+20/07/2026
+#! verwacht
+Bestaande boeking van : 10/07/2026
+Bestaande boeking tot : 17/07/2026
+Gevraagde boeking van : 15/07/2026
+Gevraagde boeking tot : 20/07/2026
+Niet mogelijk: overlapt met een bestaande boeking.
+
+#! test naam="Mogelijk" referentie=ja
+#! invoer
+10/07/2026
+17/07/2026
+18/07/2026
+25/07/2026
+
+#! test naam="Queries" soort=code
+DateTime a = new DateTime(2026, 7, 1);
+DateTime b = new DateTime(2026, 7, 10);
+DateTime c = new DateTime(2026, 7, 10);
+DateTime d = new DateTime(2026, 7, 12);
+Check.Equal(true, Program.IsOverlappend(a, b, c, d), "aanraken op 10/07 telt als overlap");
+Check.Equal(false, Program.IsOverlappend(a, b, d, d.AddDays(3)), "na elkaar");
+Check.Equal(9, Program.GetAantalNachten(a, b), "1/7 → 10/7 = 9 nachten");

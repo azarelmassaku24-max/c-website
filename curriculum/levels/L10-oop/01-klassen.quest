@@ -1,0 +1,387 @@
+#! lesson
+id: L10-01
+titel: Objecten, klassen, datavelden en methods
+samenvatting: Toestand en gedrag bundelen in een eigen klasse, en objecten aanmaken met new.
+skills: klassen
+bron: Deel 14 – 1. Objecten, 2. Klasse, datavelden en methods (gedrag en toestand, terminologie, nieuwe klasse toevoegen)
+duur: 35
+
+#! begrijpen
+## Objecten (Deel 14 §1)
+
+Vaak werken we in code met **objecten**. Objecten bundelen zaken die conceptueel bij elkaar horen:
+
+- **informatie** die bij bv. een persoon hoort: naam, adres, geboortedatum — de **toestand**;
+- **functionaliteit** die met die persoon te maken heeft: adres wijzigen, leeftijd berekenen — het **gedrag**.
+
+Denk aan de parallelle arrays van Level 5 (vakken[] en scores[]): met objecten hoort alles van één "ding" vanzelf samen.
+
+## Klasse en object (§2)
+
+Een **klasse** is een **bouwplan** (een mal); een **object** is een concreet exemplaar volgens dat plan (een *instantie*). De klasse `Persoon` beschrijft wat élke persoon heeft; de objecten "Jan" en "Mieke" hebben elk hun eigen naam.
+
+```csharp norun
+class Rechthoek {
+    private double _hoogte;            // dataveld (toestand)
+    private double _breedte;
+
+    public double GetHoogte() {        // method (gedrag)
+        return _hoogte;
+    }
+
+    public void SetHoogte(double hoogte) {
+        _hoogte = hoogte;
+    }
+
+    public double Oppervlakte() {
+        return _hoogte * _breedte;
+    }
+}
+```
+
+## Terminologie (§2.2)
+
+| Begrip | Betekenis |
+|---|---|
+| **dataveld** (field) | variabele die bij het object hoort (de toestand) |
+| **method** | gedrag van het object; werkt met zijn datavelden |
+| **member** | verzamelnaam voor datavelden en methods |
+| **instantie** | een object van een klasse |
+
+Merk op: deze methods hebben geen `static` — ze horen bij een **object** (meer in les 4).
+
+## Objecten aanmaken en gebruiken
+
+```csharp norun
+Rechthoek r1 = new Rechthoek();   // een nieuw object
+r1.SetHoogte(4.1);
+r1.SetBreedte(8);
+Console.WriteLine(r1.Oppervlakte());
+
+Rechthoek r2 = new Rechthoek();   // een ander object met eigen datavelden
+```
+
+`new Rechthoek()` maakt een nieuw object aan; elk object heeft zijn **eigen** kopie van de datavelden.
+
+## Een nieuwe klasse toevoegen (§2.4)
+
+In Visual Studio: rechterklik op het project > *Add* > *Class…* → een nieuw bestand `Rechthoek.cs`. Elke klasse in een eigen bestand met dezelfde naam. In C# Quest: de **+** naast de bestandstabs.
+
+#! voorbeeld
+## Twee objecten, elk hun eigen toestand
+
+Kijk in de debugger: `rechthoek1` en `rechthoek2` hebben elk hun eigen `_hoogte` en `_breedte` (en een eigen nummer #1, #2).
+
+```csharp
+using System;
+
+class Rechthoek {
+    private double _hoogte;
+    private double _breedte;
+
+    public void SetHoogte(double hoogte) { _hoogte = hoogte; }
+    public void SetBreedte(double breedte) { _breedte = breedte; }
+    public double Oppervlakte() { return _hoogte * _breedte; }
+}
+
+class Program {
+    static void Main() {
+        Rechthoek rechthoek1 = new Rechthoek();
+        rechthoek1.SetHoogte(4.1);
+        rechthoek1.SetBreedte(8);
+
+        Rechthoek rechthoek2 = new Rechthoek();
+        rechthoek2.SetHoogte(5);
+        rechthoek2.SetBreedte(10.2);
+
+        Console.WriteLine(rechthoek1.Oppervlakte());
+        Console.WriteLine(rechthoek2.Oppervlakte());
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Teller {
+    private int _waarde;
+    public void Verhoog() { _waarde++; }
+    public int GetWaarde() { return _waarde; }
+}
+class Program {
+    static void Main() {
+        Teller a = new Teller();
+        Teller b = new Teller();
+        a.Verhoog();
+        a.Verhoog();
+        b.Verhoog();
+        Console.WriteLine($"{a.GetWaarde()} {b.GetWaarde()}");
+    }
+}
+```
+? Elk object heeft zijn eigen `_waarde`: a wordt 2, b wordt 1.
+
+#! voorspel id=v2 type=choice
+Wat is het verschil tussen een klasse en een object?
++ Een klasse is het bouwplan, een object is een concreet exemplaar volgens dat plan
+- Er is geen verschil
+- Een object is het bouwplan, een klasse een exemplaar
+- Een klasse bevat enkel methods, een object enkel datavelden
+? Uit één klasse kan je zoveel objecten maken als je wil, elk met hun eigen toestand.
+
+#! oefening id=L10-01-a rol=oefenen moeilijkheid=2 xp=80 titel="Rechthoek" bron="D14rechthoek"
+Maak een klasse waarvan de objecten een eenvoudige voorstelling zijn van een **rechthoek**. Van of met een rechthoek willen we:
+
+- de hoogte kunnen instellen en opvragen (`SetHoogte`, `GetHoogte`)
+- de breedte kunnen instellen en opvragen (`SetBreedte`, `GetBreedte`)
+- de oppervlakte kunnen opvragen (`Oppervlakte`)
+
+Schrijf de klasse in het bestand `Rechthoek.cs`. De testcode in `Program.cs` is gegeven en moet dit programmaverloop opleveren:
+
+```text
+Rechthoek met hoogte 4,1, breedte 8 en oppervlakte 32,8.
+Rechthoek met hoogte 5, breedte 10,2 en oppervlakte 51.
+```
+
+Gebruik **private** datavelden met een underscore (`_hoogte`).
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Rechthoek rechthoek1 = new Rechthoek();
+            rechthoek1.SetHoogte(4.1);
+            rechthoek1.SetBreedte(8);
+            Rechthoek rechthoek2 = new Rechthoek();
+            rechthoek2.SetHoogte(5);
+            rechthoek2.SetBreedte(10.2);
+            PrintRechthoek(rechthoek1);
+            PrintRechthoek(rechthoek2);
+        }
+
+        static void PrintRechthoek(Rechthoek r) {
+            Console.WriteLine($"Rechthoek met hoogte {r.GetHoogte()}, breedte {r.GetBreedte()} en oppervlakte {r.Oppervlakte()}.");
+        }
+    }
+}
+
+#! starter bestand=Rechthoek.cs
+namespace D14 {
+    class Rechthoek {
+        // Datavelden en methods
+    }
+}
+
+#! hint
+Welke toestand heeft een rechthoek? Twee doubles. Maak ze private met een underscore.
+
+#! hint
+Per dataveld een Get-method (geeft het dataveld terug) en een Set-method (krijgt een parameter en kent die toe aan het dataveld). Deze methods zijn `public`, zonder `static`.
+
+#! hint
+`public double Oppervlakte() { return _hoogte * _breedte; }`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Rechthoek rechthoek1 = new Rechthoek();
+            rechthoek1.SetHoogte(4.1);
+            rechthoek1.SetBreedte(8);
+            Rechthoek rechthoek2 = new Rechthoek();
+            rechthoek2.SetHoogte(5);
+            rechthoek2.SetBreedte(10.2);
+            PrintRechthoek(rechthoek1);
+            PrintRechthoek(rechthoek2);
+        }
+
+        static void PrintRechthoek(Rechthoek r) {
+            Console.WriteLine($"Rechthoek met hoogte {r.GetHoogte()}, breedte {r.GetBreedte()} en oppervlakte {r.Oppervlakte()}.");
+        }
+    }
+}
+
+#! oplossing bestand=Rechthoek.cs
+namespace D14 {
+    class Rechthoek {
+        private double _hoogte;
+        private double _breedte;
+
+        public double GetHoogte() {
+            return _hoogte;
+        }
+
+        public void SetHoogte(double hoogte) {
+            _hoogte = hoogte;
+        }
+
+        public double GetBreedte() {
+            return _breedte;
+        }
+
+        public void SetBreedte(double breedte) {
+            _breedte = breedte;
+        }
+
+        public double Oppervlakte() {
+            return _hoogte * _breedte;
+        }
+    }
+}
+
+#! uitleg
+- De **toestand** (hoogte, breedte) zit in private datavelden; het **gedrag** in public methods.
+- De methods zijn niet static: ze werken op de datavelden van het object waarop ze opgeroepen worden (`rechthoek1.Oppervlakte()` gebruikt de hoogte van rechthoek1).
+- De klasse staat in een eigen bestand met dezelfde naam (Rechthoek.cs), in dezelfde namespace als Program.
+
+#! regel type=class doel=Rechthoek bericht="Maak een klasse Rechthoek"
+#! regel type=private-fields bericht="Datavelden zijn private"
+#! regel type=method doel=Oppervlakte geeft=double parameters=0 bericht="Maak een method public double Oppervlakte()"
+
+#! test naam="Testcode" mode=exact
+#! verwacht
+Rechthoek met hoogte 4,1, breedte 8 en oppervlakte 32,8.
+Rechthoek met hoogte 5, breedte 10,2 en oppervlakte 51.
+
+#! test naam="Objecten zijn onafhankelijk" soort=code
+Rechthoek a = new Rechthoek();
+Rechthoek b = new Rechthoek();
+a.SetHoogte(2); a.SetBreedte(3);
+b.SetHoogte(10); b.SetBreedte(1);
+Check.Equal(6.0, a.Oppervlakte(), "a: 2 x 3");
+Check.Equal(10.0, b.Oppervlakte(), "b: 10 x 1");
+Check.Equal(2.0, a.GetHoogte(), "a.GetHoogte()");
+
+#! oefening id=L10-01-m rol=meesterschap moeilijkheid=3 xp=110 titel="Counter" bron="D14counter"
+Schrijf een klasse `Counter` (in `Counter.cs`) die een teller voorstelt. Elke counter heeft een **value** en een **step value**.
+
+- `Advance()` verhoogt de teller met de step value.
+- De value is 0 bij het begin: instellen met `SetValue`, opvragen met `GetValue`.
+- De step value is standaard 1: opvragen met `GetStep`, instellen met `SetStep`.
+
+De testcode in `Program.cs` toont:
+
+```text
+10
+110
+1100
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Counter c1 = new Counter();
+            Counter c2 = new Counter();
+            c2.SetValue(100);
+            Counter c3 = new Counter();
+            c3.SetValue(1000);
+            c3.SetStep(10);
+            for (int i = 0; i < 10; i++) {
+                c1.Advance();
+                c2.Advance();
+                c3.Advance();
+            }
+            Console.WriteLine(c1.GetValue());
+            Console.WriteLine(c2.GetValue());
+            Console.WriteLine(c3.GetValue());
+        }
+    }
+}
+
+#! starter bestand=Counter.cs
+namespace D14 {
+    class Counter {
+
+    }
+}
+
+#! hint
+Twee private datavelden: `_value` en `_step`. Hoe zorg je dat de step standaard 1 is?
+
+#! hint
+Een dataveld kan een beginwaarde krijgen bij de declaratie: `private int _step = 1;`.
+
+#! hint
+`public void Advance() { _value += _step; }` plus vier Get/Set-methods.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D14 {
+    class Program {
+        static void Main() {
+            Counter c1 = new Counter();
+            Counter c2 = new Counter();
+            c2.SetValue(100);
+            Counter c3 = new Counter();
+            c3.SetValue(1000);
+            c3.SetStep(10);
+            for (int i = 0; i < 10; i++) {
+                c1.Advance();
+                c2.Advance();
+                c3.Advance();
+            }
+            Console.WriteLine(c1.GetValue());
+            Console.WriteLine(c2.GetValue());
+            Console.WriteLine(c3.GetValue());
+        }
+    }
+}
+
+#! oplossing bestand=Counter.cs
+namespace D14 {
+    class Counter {
+        private int _value;
+        private int _step = 1;
+
+        public void Advance() {
+            _value += _step;
+        }
+
+        public int GetValue() {
+            return _value;
+        }
+
+        public void SetValue(int value) {
+            _value = value;
+        }
+
+        public int GetStep() {
+            return _step;
+        }
+
+        public void SetStep(int step) {
+            _step = step;
+        }
+    }
+}
+
+#! uitleg
+- Datavelden krijgen een defaultwaarde (0 voor int), maar je kan ze bij de declaratie zelf initialiseren: `_step = 1`.
+- Elke Counter houdt zijn eigen toestand bij; Advance werkt enkel op de teller waarop je het oproept.
+
+#! regel type=class doel=Counter bericht="Maak een klasse Counter"
+#! regel type=private-fields bericht="Datavelden zijn private"
+#! regel type=method doel=Advance geeft=void parameters=0 bericht="Maak een method public void Advance()"
+
+#! test naam="Testcode" mode=exact
+#! verwacht
+10
+110
+1100
+
+#! test naam="Standaard step is 1" soort=code
+Counter c = new Counter();
+Check.Equal(1, c.GetStep(), "GetStep() van een nieuwe counter");
+Check.Equal(0, c.GetValue(), "GetValue() van een nieuwe counter");
+c.SetStep(-2);
+c.Advance();
+Check.Equal(-2, c.GetValue(), "negatieve step");

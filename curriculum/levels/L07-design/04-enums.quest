@@ -1,0 +1,286 @@
+#! lesson
+id: L07-04
+titel: Enumeraties
+samenvatting: Een eigen datatype met een vast aantal benoemde waarden.
+skills: enums
+bron: Deel 11 – 3. Enumeraties
+duur: 25
+
+#! begrijpen
+## Een eigen datatype (Deel 11 §3)
+
+Een **enumeratie** (*enum*) introduceert een nieuw, zelfverzonnen datatype met een lijst van voorgedefinieerde waarden:
+
+```csharp norun
+enum KledingMaat { ExtraSmall, Small, Regular, Large, ExtraLarge };
+enum Richting { Links, Rechts, Boven, Onder };
+enum Tarief { Regulier, Senioren };
+```
+
+Zo'n enum gebruik je als type voor variabelen, parameters en return values:
+
+```csharp norun
+KledingMaat maat = KledingMaat.Large;
+
+if (tarief == Tarief.Senioren) {
+    prijs *= 0.8;          // senioren betalen maar 80%
+}
+
+static void VerplaatsSpelerNaar(Richting r) { ... }
+VerplaatsSpelerNaar(Richting.Boven);
+```
+
+## Waar zet je de definitie?
+
+Op hetzelfde niveau als de methods (dus **niet** in een method), gewoonlijk **bovenaan** in de klasse:
+
+```csharp norun
+class Program {
+    enum Richting { Links, Rechts, Boven, Onder };
+
+    static void Main() { ... }
+}
+```
+
+> [!BELANGRIJK]
+> Vermeld altijd de naam van de enum bij de waarde: `KledingMaat.Small`, niet `Small`. Er kunnen immers meerdere `Small` waarden bestaan (`KledingMaat.Small` en `LetterGrootte.Small`).
+
+## Waarom geen string of int?
+
+- Met `string tarief` kan er een typfout insluipen: `if (tarief == "Sineoren")` — de compiler ziet niets.
+- Met `int richting` is het onduidelijk: `VerplaatsSpelerNaar(0)` — welke richting is 0? En `-12345` wordt ook aanvaard.
+
+Een enum is **veilig** (de compiler controleert de waarde) en **leesbaar** (de waarde heeft een naam). Een enum is een value type.
+
+#! voorbeeld
+## Enum als parameter en return type
+
+```csharp invoer="70"
+using System;
+
+class Program {
+    enum Tarief { Kind, Regulier, Senioren };
+
+    static void Main(string[] args) {
+        Console.Write("Leeftijd? ");
+        int leeftijd = int.Parse(Console.ReadLine());
+        Tarief tarief = GetTarief(leeftijd);
+        Console.WriteLine($"Tarief: {tarief}, prijs: {GetPrijs(tarief)} euro");
+    }
+
+    static Tarief GetTarief(int leeftijd) {
+        if (leeftijd < 12) return Tarief.Kind;
+        if (leeftijd >= 65) return Tarief.Senioren;
+        return Tarief.Regulier;
+    }
+
+    static double GetPrijs(Tarief tarief) {
+        if (tarief == Tarief.Kind) return 5;
+        if (tarief == Tarief.Senioren) return 8;
+        return 10;
+    }
+}
+```
+
+Een enumwaarde toon je gewoon met interpolatie: je ziet haar naam (`Senioren`).
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Program {
+    enum Seizoen { Lente, Zomer, Herfst, Winter };
+    static void Main() {
+        Seizoen s = Seizoen.Herfst;
+        Console.WriteLine(s);
+        Console.WriteLine(s == Seizoen.Zomer);
+    }
+}
+```
+? Een enumwaarde wordt getoond met haar naam: Herfst. Herfst is niet gelijk aan Zomer: False.
+
+#! voorspel id=v2 type=choice
+Waar plaats je `enum Richting { Links, Rechts };`?
+- In de Main method
++ In de klasse, op hetzelfde niveau als de methods (bovenaan)
+- In elke method die ze gebruikt
+- Na de laatste accolade van het bestand, verplicht
+? De definitie van een enum staat op hetzelfde nesting-niveau als de methods, gewoonlijk bovenaan.
+
+#! oefening id=L07-04-a rol=oefenen moeilijkheid=2 xp=70 titel="Kledingmaat"
+Maak een `enum KledingMaat { Small, Medium, Large, ExtraLarge }` en een query `static KledingMaat GetKledingMaat(int borstomtrek)`:
+
+- minder dan 90 cm: Small
+- 90 tot (niet inbegrepen) 100: Medium
+- 100 tot (niet inbegrepen) 110: Large
+- vanaf 110: ExtraLarge
+
+```text
+Borstomtrek in cm? 104
+Je maat is Large
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Borstomtrek in cm? ");
+            int omtrek = int.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+De enum staat bovenaan in de klasse, buiten Main. De method geeft een waarde van het type `KledingMaat` terug.
+
+#! hint
+`static KledingMaat GetKledingMaat(int borstomtrek) { if (borstomtrek < 90) return KledingMaat.Small; … }`
+
+#! hint
+In Main: `KledingMaat maat = GetKledingMaat(omtrek); Console.WriteLine($"Je maat is {maat}");`
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        enum KledingMaat { Small, Medium, Large, ExtraLarge };
+
+        static void Main(string[] args) {
+            Console.Write("Borstomtrek in cm? ");
+            int omtrek = int.Parse(Console.ReadLine());
+            KledingMaat maat = GetKledingMaat(omtrek);
+            Console.WriteLine($"Je maat is {maat}");
+        }
+
+        static KledingMaat GetKledingMaat(int borstomtrek) {
+            if (borstomtrek < 90) {
+                return KledingMaat.Small;
+            } else if (borstomtrek < 100) {
+                return KledingMaat.Medium;
+            } else if (borstomtrek < 110) {
+                return KledingMaat.Large;
+            }
+            return KledingMaat.ExtraLarge;
+        }
+    }
+}
+
+#! uitleg
+- De enum maakt duidelijk welke vier waarden mogelijk zijn; een tikfout in een maat geeft meteen een compileerfout.
+- Interval checking met return, zoals bij GetLetterCodeForPercentage.
+
+#! regel type=statement doel=enum bericht="Definieer een enum KledingMaat"
+#! regel type=method doel=GetKledingMaat geeft=KledingMaat parameters=1 bericht="Maak een query static KledingMaat GetKledingMaat(int borstomtrek)"
+
+#! test naam="104 cm"
+#! invoer
+104
+#! verwacht
+Borstomtrek in cm? 104
+Je maat is Large
+
+#! test naam="Grenzen" referentie=ja
+#! invoer
+90
+
+#! test naam="Grote maat" referentie=ja verborgen=ja
+#! invoer
+125
+
+#! oefening id=L07-04-m rol=meesterschap moeilijkheid=3 xp=110 titel="Robotroute"
+Een robot staat op positie (0, 0). De gebruiker geeft een route in als één reeks letters: `l` (links), `r` (rechts), `b` (boven) en `o` (onder). Andere letters worden genegeerd.
+
+Maak:
+
+- `enum Richting { Links, Rechts, Boven, Onder, Geen }`
+- `static Richting GetRichting(char letter)` — zet een letter om naar een Richting (`Geen` voor onbekende letters, hoofdletters tellen ook)
+- In Main: overloop de route en pas de positie aan: links → x - 1, rechts → x + 1, boven → y - 1, onder → y + 1.
+
+```text
+Route? rrbbblO
+Eindpositie: (1, -2)
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Eerst de enum (bovenaan) en de query `GetRichting`. Zet de letter met `char.ToLower` om voor je vergelijkt.
+
+#! hint
+In Main: `foreach (char letter in route) { Richting r = GetRichting(letter); if (r == Richting.Links) x--; else if … }`.
+
+#! hint
+`Geen` laat de positie ongewijzigd — je hoeft daar niets voor te doen. Toon op het einde `$"Eindpositie: ({x}, {y})"`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        enum Richting { Links, Rechts, Boven, Onder, Geen };
+
+        static void Main(string[] args) {
+            Console.Write("Route? ");
+            string route = Console.ReadLine();
+            int x = 0;
+            int y = 0;
+            foreach (char letter in route) {
+                Richting richting = GetRichting(letter);
+                if (richting == Richting.Links) {
+                    x--;
+                } else if (richting == Richting.Rechts) {
+                    x++;
+                } else if (richting == Richting.Boven) {
+                    y--;
+                } else if (richting == Richting.Onder) {
+                    y++;
+                }
+            }
+            Console.WriteLine($"Eindpositie: ({x}, {y})");
+        }
+
+        static Richting GetRichting(char letter) {
+            char klein = char.ToLower(letter);
+            if (klein == 'l') return Richting.Links;
+            if (klein == 'r') return Richting.Rechts;
+            if (klein == 'b') return Richting.Boven;
+            if (klein == 'o') return Richting.Onder;
+            return Richting.Geen;
+        }
+    }
+}
+
+#! uitleg
+- De vertaling van letter naar betekenis zit op één plaats (`GetRichting`). De rest van het programma werkt met de leesbare enumwaarden.
+- Wil je later pijltjestoetsen gebruiken, dan pas je enkel de vertaling aan — precies wat je in de boss van dit level doet!
+
+#! regel type=statement doel=enum bericht="Definieer een enum Richting"
+#! regel type=method doel=GetRichting geeft=Richting parameters=1 bericht="Maak een query static Richting GetRichting(char letter)"
+
+#! test naam="Voorbeeld"
+#! invoer
+rrbbblO
+#! verwacht
+Route? rrbbblO
+Eindpositie: (1, -2)
+
+#! test naam="Met onbekende letters" referentie=ja
+#! invoer
+oo?xlL!
+
+#! test naam="Lege route" referentie=ja verborgen=ja
+#! invoer
+-

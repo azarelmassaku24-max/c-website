@@ -1,0 +1,282 @@
+#! lesson
+id: L09-03
+titel: Exception handling: try, catch en finally
+samenvatting: Runtimefouten opvangen zodat je programma niet crasht, met meerdere catch-blokken en finally.
+skills: exceptions, bestanden
+bron: Deel 13 – 2. Exception handling (programma-afbreking, vermijden, sprong naar catch, meerdere catch blokken, documentatie)
+duur: 30
+
+#! begrijpen
+## Programma-afbreking (Deel 13 §2.1)
+
+Een **exception** is een runtimefout: het bestand bestaat niet, de tekst is geen getal, je deelt door nul… Wordt ze niet opgevangen, dan **crasht** je programma.
+
+## Exceptions opvangen (§2.2)
+
+```csharp norun
+try {
+    string inhoud = File.ReadAllText("instellingen.txt");
+    Console.WriteLine(inhoud);
+} catch (FileNotFoundException) {
+    Console.WriteLine("Het bestand werd niet gevonden.");
+}
+Console.WriteLine("Het programma gaat gewoon verder.");
+```
+
+- De code in **try** wordt uitgevoerd.
+- Treedt er een exception op, dan **springt** het programma meteen naar het passende **catch**-blok (§2.3): de rest van het try-blok wordt overgeslagen.
+- Na het catch-blok gaat het programma verder na de try/catch.
+
+## Meerdere catch-blokken (§2.4)
+
+```csharp norun
+try {
+    int getal = int.Parse(File.ReadAllText("getal.txt"));
+} catch (FileNotFoundException) {
+    Console.WriteLine("Bestand niet gevonden.");
+} catch (FormatException) {
+    Console.WriteLine("Het bestand bevat geen geldig getal.");
+} catch (Exception ex) {
+    Console.WriteLine($"Onverwachte fout: {ex.Message}");
+}
+```
+
+Het **eerste passende** catch-blok wordt gekozen. Zet de specifieke exceptions dus vóór de algemene `Exception`. Met `ex.Message` krijg je de (Engelstalige) boodschap.
+
+## finally
+
+Een `finally`-blok wordt **altijd** uitgevoerd, met of zonder exception — handig om op te ruimen (bv. een bestand sluiten, zie volgende les).
+
+## Vermijden of opvangen?
+
+Kan je een fout eenvoudig **vooraf controleren**, doe dat dan (bv. `TryParse`, `File.Exists`). Exception handling is voor situaties die je niet kan voorzien of controleren: een bestand dat op slot zit, een netwerk dat wegvalt…
+
+> [!LET OP]
+> Een leeg catch-blok (`catch { }`) "slikt" de fout in: niemand merkt dat er iets misging. Toon minstens een duidelijke melding.
+
+## Documentatie (§2.5)
+
+Welke exceptions een method kan gooien, staat in de documentatie onder **Exceptions** (bv. `File.ReadAllText` → `FileNotFoundException`, `DirectoryNotFoundException`, `UnauthorizedAccessException`, …).
+
+#! voorbeeld
+## Sprong naar catch
+
+Volg met **Stap voor stap**: na de exception op regel 3 wordt regel 4 overgeslagen.
+
+```csharp
+try {
+    Console.WriteLine("Start");
+    int getal = int.Parse("twaalf");
+    Console.WriteLine("Deze regel wordt overgeslagen");
+} catch (FormatException ex) {
+    Console.WriteLine("Fout opgevangen: " + ex.GetType().Name);
+} finally {
+    Console.WriteLine("finally wordt altijd uitgevoerd");
+}
+Console.WriteLine("Einde");
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+try {
+    Console.WriteLine("A");
+    int[] a = new int[2];
+    a[5] = 1;
+    Console.WriteLine("B");
+} catch (IndexOutOfRangeException) {
+    Console.WriteLine("C");
+}
+Console.WriteLine("D");
+```
+? A wordt getoond, daarna treedt de exception op bij `a[5]` → B wordt overgeslagen → C (catch) → D (na de try/catch).
+
+#! voorspel id=v2 type=choice
+Welk catch-blok wordt uitgevoerd als `int.Parse("x")` faalt?
+```csharp norun
+try { int.Parse("x"); }
+catch (Exception) { /* 1 */ }
+catch (FormatException) { /* 2 */ }
+```
++ Blok 1 (en de compiler waarschuwt zelfs dat blok 2 onbereikbaar is)
+- Blok 2
+- Beide
+- Geen van beide
+? Het eerste passende blok wint. Exception vangt álle exceptions, dus FormatException komt nooit aan bod. Zet specifieke exceptions eerst.
+
+#! oefening id=L09-03-a rol=oefenen moeilijkheid=2 xp=70 titel="Instellingen inlezen"
+Schrijf een programma dat de gebruiker een bestandsnaam vraagt en de inhoud toont. Bestaat het bestand niet, dan toont het programma `Het bestand 'x.txt' werd niet gevonden.` in plaats van te crashen. Gebruik **try/catch** (niet File.Exists).
+
+```text
+Welk bestand? instellingen.txt
+thema=donker
+taal=nl
+```
+
+```text
+Welk bestand? bestaatniet.txt
+Het bestand 'bestaatniet.txt' werd niet gevonden.
+```
+
+#! bestand naam=instellingen.txt
+thema=donker
+taal=nl
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Welk bestand? ");
+            string naam = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Zet het inlezen en tonen in een try-blok. Welke exception treedt op als het bestand niet bestaat?
+
+#! hint
+`catch (FileNotFoundException) { Console.WriteLine($"Het bestand '{naam}' werd niet gevonden."); }`
+
+#! hint
+De naam van de exception vind je in de documentatie van File.ReadAllText, of door het eens te laten crashen in het Code Lab!
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Welk bestand? ");
+            string naam = Console.ReadLine();
+            try {
+                string inhoud = File.ReadAllText(naam);
+                Console.WriteLine(inhoud.TrimEnd());
+            } catch (FileNotFoundException) {
+                Console.WriteLine($"Het bestand '{naam}' werd niet gevonden.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De risicovolle bewerking (een bestand lezen) staat in het try-blok.
+- Enkel de exception die we verwachten en kunnen afhandelen, wordt opgevangen.
+- `TrimEnd()` verwijdert het regeleinde achteraan het bestand, zodat er geen lege regel extra verschijnt.
+
+#! regel type=statement doel=try bericht="Gebruik try/catch"
+#! regel type=regex doel="catch\s*\(\s*FileNotFoundException" bericht="Vang een FileNotFoundException op"
+#! regel type=forbids doel=Exists bericht="Gebruik voor deze oefening try/catch in plaats van File.Exists"
+
+#! test naam="Bestaand bestand"
+#! invoer
+instellingen.txt
+#! verwacht
+Welk bestand? instellingen.txt
+thema=donker
+taal=nl
+
+#! test naam="Onbestaand bestand" referentie=ja
+#! invoer
+bestaatniet.txt
+
+#! oefening id=L09-03-m rol=meesterschap moeilijkheid=3 xp=110 titel="Meetwaarden met fouten"
+Het bestand `metingen.txt` bevat per regel een temperatuurmeting. Sommige regels zijn beschadigd. Schrijf een programma dat:
+
+- elke regel probeert om te zetten met `double.Parse` in een **try/catch**;
+- bij een ongeldige regel `Regel 3 is ongeldig: "kapot"` toont en verdergaat;
+- op het einde het aantal geldige metingen en het gemiddelde (2 cijfers na de komma) toont;
+- als het bestand niet bestaat: `Geen metingen gevonden.`
+
+```text
+Regel 3 is ongeldig: "kapot"
+Regel 5 is ongeldig: ""
+4 geldige metingen, gemiddelde 19,05
+```
+
+Gebruik **twee catch-blokken**: `FormatException` (per regel) en `FileNotFoundException` (rond het geheel).
+
+#! bestand naam=metingen.txt
+18,5
+21
+kapot
+17,2
+<leeg>
+19,5
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Een try/catch in een try/catch: de buitenste vangt het ontbrekende bestand op, de binnenste (in de loop) een ongeldige regel.
+
+#! hint
+In de loop: `try { double waarde = double.Parse(regels[i]); som += waarde; aantal++; } catch (FormatException) { Console.WriteLine($"Regel {i + 1} is ongeldig: \"{regels[i]}\""); }`.
+
+#! hint
+Na de loop: bereken het gemiddelde enkel als `aantal > 0`.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            try {
+                string[] regels = File.ReadAllLines("metingen.txt");
+                double som = 0;
+                int aantal = 0;
+                for (int i = 0; i < regels.Length; i++) {
+                    try {
+                        double waarde = double.Parse(regels[i]);
+                        som += waarde;
+                        aantal++;
+                    } catch (FormatException) {
+                        Console.WriteLine($"Regel {i + 1} is ongeldig: \"{regels[i]}\"");
+                    }
+                }
+                if (aantal > 0) {
+                    double gemiddelde = som / aantal;
+                    Console.WriteLine($"{aantal} geldige metingen, gemiddelde {gemiddelde:f2}");
+                } else {
+                    Console.WriteLine("Geen geldige metingen.");
+                }
+            } catch (FileNotFoundException) {
+                Console.WriteLine("Geen metingen gevonden.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De binnenste try/catch zorgt dat één beschadigde regel niet de hele verwerking stopt.
+- De buitenste try/catch vangt het ontbrekende bestand op.
+- Een lege regel geeft ook een FormatException (double.Parse("")).
+
+#! regel type=statement doel=catch aantal=2 bericht="Gebruik twee catch-blokken"
+#! regel type=regex doel="catch\s*\(\s*FormatException" bericht="Vang FormatException op"
+#! regel type=regex doel="catch\s*\(\s*FileNotFoundException" bericht="Vang FileNotFoundException op"
+
+#! test naam="Met beschadigde regels"
+#! verwacht
+Regel 3 is ongeldig: "kapot"
+Regel 5 is ongeldig: ""
+4 geldige metingen, gemiddelde 19,05
+
+#! test naam="Bestand ontbreekt" referentie=ja
+#! zonder-bestand naam=metingen.txt

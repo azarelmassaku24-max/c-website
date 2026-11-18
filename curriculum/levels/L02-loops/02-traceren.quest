@@ -1,0 +1,317 @@
+#! lesson
+id: L02-02
+titel: Iteraties traceren en loops combineren
+samenvatting: Loops stap voor stap volgen met een traceertabel en een loop combineren met if-structuren.
+skills: for, traceren
+bron: Deel 06 – Herhalingen (traceren of voorspellen), D06traceersom1tem5, D06traceerk100
+duur: 30
+
+#! begrijpen
+## Traceertabellen voor loops (Deel 06)
+
+Voor loops maken we de traceertabel iets uitgebreider:
+
+- Neem ook de regels op die **geen** variabele veranderen. Zo is duidelijk hoe de regels van de loop body herhaald worden.
+- Voorzie een extra kolom **Hoeveelste iteratie** (eerste, tweede, derde, …).
+- Voorzie een kolom **Output** met wat elke regel op de console zet.
+
+De traceertabel van deze code:
+
+```csharp norun
+1 : for (int i = 3; i < 6; i++) {
+2 :     Console.WriteLine(i);
+3 : }
+4 : Console.WriteLine("Klaar!");
+```
+
+| Regel | Waarde van i | Hoeveelste iteratie | Output |
+|---|---|---|---|
+| 1 | 3 | | |
+| 2 | 3 | eerste | 3 |
+| 3 → 1 | 4 | | |
+| 2 | 4 | tweede | 4 |
+| 3 → 1 | 5 | | |
+| 2 | 5 | derde | 5 |
+| 3 → 1 | 6 | (voorwaarde false) | |
+| 4 | / | | Klaar! |
+
+Na de loop is `i` out of scope (`/`).
+
+> [!TIP]
+> In C# Quest stelt de **Debugger** deze tabel automatisch op (tabblad *Traceertabel*). Maak hem eerst zelf op papier en vergelijk daarna — zo train je je "programmeursblik".
+
+## Loops en if's combineren
+
+Een loop body kan zelf if-structuren (en andere loops) bevatten. Zo kan je in één doorloop verschillende dingen tellen:
+
+```csharp norun
+for (int i = 1; i <= 20; i++) {
+    if (i % 3 == 0) {
+        aantalDrievouden++;
+    }
+}
+```
+
+#! voorbeeld
+## Traceer D06traceerk100
+
+Maak eerst zelf de traceertabel, klik dan op **Stap voor stap** en open de **Traceertabel**.
+
+```csharp
+int k = 100;
+for (int i = 3; i < 8; i++) {
+    k += i;
+}
+Console.WriteLine(k);
+```
+
+`k` wordt achtereenvolgens 103, 107, 112, 118 en 125.
+
+## Even en oneven tellen
+
+```csharp
+int aantalEven = 0;
+int aantalOneven = 0;
+for (int getal = 1; getal <= 7; getal++) {
+    if (getal % 2 == 0) {
+        aantalEven++;
+    } else {
+        aantalOneven++;
+    }
+}
+Console.WriteLine($"{aantalEven} even, {aantalOneven} oneven");
+```
+
+#! voorspel id=v1 type=text antwoord=125
+Wat is de waarde van `k` na de loop in D06traceerk100 (zie het voorbeeld)?
+? 100 + 3 + 4 + 5 + 6 + 7 = 125. De loop stopt als i = 8.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af? (D06traceersom1tem5)
+```csharp
+int som = 0;
+for (int i = 1; i <= 4; i++) {
+    som += i;
+    Console.WriteLine(som);
+}
+```
+? Na elke iteratie wordt de tussentijdse som getoond: 1, 3, 6, 10.
+
+#! voorspel id=v3 type=choice
+Je wil de getallen TUSSEN 20 en 30 tonen (21 t.e.m. 29). Welke hoofding is correct?
+- for (int i = 20; i <= 30; i++)
++ for (int i = 21; i < 30; i++)
+- for (int i = 21; i <= 30; i++)
+- for (int i = 20; i < 29; i++)
+? Begin bij 21 en stop vóór 30. De andere varianten zijn off-by-one-fouten: ze tonen 20 of 30 te veel, of 29 te weinig.
+
+#! oefening id=L02-02-a rol=oefenen moeilijkheid=2 xp=60 titel="Som van 3- en 5-vouden" bron="D06somveelvouden"
+Schrijf een programma dat de gebruiker om 2 gehele getallen vraagt. Je mag ervan uitgaan dat het eerste getal kleiner (of gelijk) is aan het tweede getal.
+
+Het programma toont de som van alle **drievouden en vijfvouden** vanaf het eerste t.e.m. het tweede getal.
+
+```text
+Geef een getal : 6
+Geef een getal : 30
+De som van tussenliggende 3-vouden en 5-vouden is 217
+```
+
+(6+9+10+12+15+18+20+21+24+25+27+30 = 217 — let op: 15 en 30 tellen maar één keer!)
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Overloop alle getallen van het eerste t.e.m. het tweede getal. Voor elk getal beslis je of het meetelt.
+
+#! hint
+Een getal is een drievoud als `getal % 3 == 0`. Wanneer telt een getal mee: als het een drievoud is **en** een vijfvoud, of als het een drievoud is **of** een vijfvoud?
+
+#! hint
+`if (i % 3 == 0 || i % 5 == 0) { som += i; }` — met `||` telt 15 maar één keer mee, omdat de body maar één keer uitgevoerd wordt.
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een getal : ");
+            int van = int.Parse(Console.ReadLine());
+            Console.Write("Geef een getal : ");
+            int tot = int.Parse(Console.ReadLine());
+
+            int som = 0;
+            for (int i = van; i <= tot; i++) {
+                if (i % 3 == 0 || i % 5 == 0) {
+                    som += i;
+                }
+            }
+            Console.WriteLine($"De som van tussenliggende 3-vouden en 5-vouden is {som}");
+        }
+    }
+}
+
+#! uitleg
+- De for loop overloopt álle kandidaten; de if filtert wie meetelt.
+- Met `||` wordt een getal dat zowel drievoud als vijfvoud is (15, 30) maar één keer opgeteld. Twee aparte if's na elkaar zouden het twee keer optellen — een logische fout!
+- `t.e.m.` het tweede getal → `<=` in de voorwaarde.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop"
+
+#! test naam="6 en 30"
+#! invoer
+6
+30
+#! verwacht
+Geef een getal : 6
+Geef een getal : 30
+De som van tussenliggende 3-vouden en 5-vouden is 217
+
+#! test naam="1 en 15" referentie=ja
+#! invoer
+1
+15
+
+#! test naam="Geen veelvouden" referentie=ja verborgen=ja
+#! invoer
+7
+8
+
+#! oefening id=L02-02-m rol=meesterschap moeilijkheid=4 xp=110 titel="Even en oneven" bron="D06somevenoneven"
+Schrijf een programma dat de gebruiker om getallen vraagt totdat deze een **negatief** getal ingeeft. Andere invoer (geen geheel getal) wordt **genegeerd**.
+
+Het programma toont vervolgens:
+
+- het aantal even getallen
+- het aantal oneven getallen
+- de som van de even getallen
+- de som van de oneven getallen
+
+Het negatieve getal dat gebruikt werd om te stoppen telt niet mee.
+
+```text
+Geef een getal (negatief om te stoppen) : 2
+Geef een getal (negatief om te stoppen) : 7
+Geef een getal (negatief om te stoppen) : hallo
+Geef een getal (negatief om te stoppen) : 4
+Geef een getal (negatief om te stoppen) : 6
+Geef een getal (negatief om te stoppen) : 0
+Geef een getal (negatief om te stoppen) : 6
+Geef een getal (negatief om te stoppen) : 9
+Geef een getal (negatief om te stoppen) : -3
+5 even getallen
+2 oneven getallen
+som van de even getallen is 18
+som van de oneven getallen is 16
+```
+
+#! starter
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Je weet niet hoeveel getallen er komen, dus een for loop past hier niet goed. Welke loop wel? Je hebt vier variabelen nodig die over de herhalingen heen leven.
+
+#! hint
+Gebruik `int.TryParse`. Is de invoer ongeldig: doe niets (de loop vraagt gewoon opnieuw). Is het getal negatief: stop. Anders: even of oneven verwerken.
+
+#! hint
+Een aanpak: `bool stoppen = false; while (!stoppen) { … if (int.TryParse(…, out getal)) { if (getal < 0) stoppen = true; else if (getal % 2 == 0) { aantalEven++; somEven += getal; } else { … } } }`.
+
+#! oplossing
+using System;
+
+namespace L02 {
+    class Program {
+        static void Main(string[] args) {
+            int aantalEven = 0;
+            int aantalOneven = 0;
+            int somEven = 0;
+            int somOneven = 0;
+            bool stoppen = false;
+
+            while (!stoppen) {
+                Console.Write("Geef een getal (negatief om te stoppen) : ");
+                int getal;
+                if (int.TryParse(Console.ReadLine(), out getal)) {
+                    if (getal < 0) {
+                        stoppen = true;
+                    } else if (getal % 2 == 0) {
+                        aantalEven++;
+                        somEven += getal;
+                    } else {
+                        aantalOneven++;
+                        somOneven += getal;
+                    }
+                }
+            }
+
+            Console.WriteLine($"{aantalEven} even getallen");
+            Console.WriteLine($"{aantalOneven} oneven getallen");
+            Console.WriteLine($"som van de even getallen is {somEven}");
+            Console.WriteLine($"som van de oneven getallen is {somOneven}");
+        }
+    }
+}
+
+#! uitleg
+- **Kiezen tussen loops**: het aantal herhalingen ligt niet vast → while (met een bool), geen for.
+- Ongeldige invoer wordt genegeerd door simpelweg niets te doen als TryParse false geeft.
+- 0 is even (`0 % 2 == 0`) en telt mee.
+- Het negatieve getal zet `stoppen` op true en wordt niet verwerkt.
+
+#! regel type=uses doel=TryParse bericht="Gebruik TryParse zodat andere invoer genegeerd wordt"
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+2
+7
+hallo
+4
+6
+0
+6
+9
+-3
+#! verwacht
+Geef een getal (negatief om te stoppen) : 2
+Geef een getal (negatief om te stoppen) : 7
+Geef een getal (negatief om te stoppen) : hallo
+Geef een getal (negatief om te stoppen) : 4
+Geef een getal (negatief om te stoppen) : 6
+Geef een getal (negatief om te stoppen) : 0
+Geef een getal (negatief om te stoppen) : 6
+Geef een getal (negatief om te stoppen) : 9
+Geef een getal (negatief om te stoppen) : -3
+5 even getallen
+2 oneven getallen
+som van de even getallen is 18
+som van de oneven getallen is 16
+
+#! test naam="Meteen negatief" referentie=ja
+#! invoer
+-1
+
+#! test naam="Enkel oneven en rommel" referentie=ja verborgen=ja
+#! invoer
+1
+x
+3,5
+5
+-10

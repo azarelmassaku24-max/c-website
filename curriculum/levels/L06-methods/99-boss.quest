@@ -1,0 +1,308 @@
+#! boss
+id: L06-BOSS
+titel: De Rekenmachine-app
+samenvatting: Bouw een menu-gestuurde rekenmachine, volledig opgedeeld in kleine methods.
+skills: methods, parameters, call-stack, robuust, while
+bron: Deel 10 – methods, parameters, return values, command/query en DRY
+verhaal: De boekhouding van een start-up werkt nog met een rekenmachine uit 1987. Jij bouwt een console-app die ze vervangt — maar de CTO eist nette code: één taak per method, geen herhaalde code.
+duur: 50
+
+#! begrijpen
+## Briefing
+
+In deze boss staat niet alleen de **werking** centraal, maar vooral de **structuur**. Elke method heeft één duidelijke taak:
+
+| Method | Soort | Taak |
+|---|---|---|
+| `PrintMenu()` | command | toont het menu |
+| `VraagGetal(string vraag)` | invoer → `double` | vraagt een kommagetal tot het geldig is |
+| `VraagKeuze()` | invoer → `int` | vraagt een menukeuze tot ze geldig is |
+| `Bereken(int keuze, double a, double b)` | query → `double` | berekent het resultaat, toont niets |
+
+De tests roepen jouw methods ook **rechtstreeks** op. Houd je dus aan de gevraagde namen en parameters.
+
+#! oefening id=L06-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="Eén berekening"
+Bouw de eerste versie: het programma toont het menu, vraagt een keuze (1–4), twee getallen en toont het resultaat.
+
+```text
+=== Rekenmachine ===
+1. Optellen
+2. Aftrekken
+3. Vermenigvuldigen
+4. Delen
+Keuze: 1
+Eerste getal: 3
+Tweede getal: 4,5
+Resultaat: 7,5
+```
+
+- `VraagKeuze()` herhaalt `Keuze: ` tot de gebruiker een geheel getal van 1 t.e.m. 4 intypt.
+- `VraagGetal(string vraag)` herhaalt de vraag tot de gebruiker een geldig kommagetal intypt.
+- `Bereken(int keuze, double a, double b)` geeft het resultaat terug (deling door 0 mag je in deze fase negeren).
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Schrijf de methods één voor één en test elk apart met de **Uitvoeren**-knop. Begin met `PrintMenu` en `Bereken`.
+
+#! hint
+`Bereken` kan met een `if … else if` op de keuze: 1 → `a + b`, 2 → `a - b`, 3 → `a * b`, anders `a / b`. VraagGetal en VraagKeuze gebruiken het do-while + TryParse-patroon.
+
+#! hint
+Main: `PrintMenu(); int keuze = VraagKeuze(); double a = VraagGetal("Eerste getal: "); double b = VraagGetal("Tweede getal: "); Console.WriteLine($"Resultaat: {Bereken(keuze, a, b)}");`
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            PrintMenu();
+            int keuze = VraagKeuze();
+            double getal1 = VraagGetal("Eerste getal: ");
+            double getal2 = VraagGetal("Tweede getal: ");
+            double resultaat = Bereken(keuze, getal1, getal2);
+            Console.WriteLine($"Resultaat: {resultaat}");
+        }
+
+        static void PrintMenu() {
+            Console.WriteLine("=== Rekenmachine ===");
+            Console.WriteLine("1. Optellen");
+            Console.WriteLine("2. Aftrekken");
+            Console.WriteLine("3. Vermenigvuldigen");
+            Console.WriteLine("4. Delen");
+        }
+
+        static int VraagKeuze() {
+            int keuze;
+            bool ok;
+            do {
+                Console.Write("Keuze: ");
+                ok = int.TryParse(Console.ReadLine(), out keuze) && keuze >= 1 && keuze <= 4;
+            } while (!ok);
+            return keuze;
+        }
+
+        static double VraagGetal(string vraag) {
+            double getal;
+            bool ok;
+            do {
+                Console.Write(vraag);
+                ok = double.TryParse(Console.ReadLine(), out getal);
+            } while (!ok);
+            return getal;
+        }
+
+        static double Bereken(int keuze, double a, double b) {
+            if (keuze == 1) {
+                return a + b;
+            } else if (keuze == 2) {
+                return a - b;
+            } else if (keuze == 3) {
+                return a * b;
+            }
+            return a / b;
+        }
+    }
+}
+
+#! uitleg
+- Main leest als een stappenplan; de details zitten in methods met een duidelijke naam.
+- `Bereken` is een zuivere **query**: geen invoer, geen output. Daardoor kunnen de tests ze rechtstreeks controleren.
+- `VraagGetal` wordt twee keer gebruikt met een andere vraag: DRY.
+
+#! regel type=method doel=PrintMenu geeft=void parameters=0 bericht="Maak een method static void PrintMenu()"
+#! regel type=method doel=VraagKeuze geeft=int parameters=0 bericht="Maak een method static int VraagKeuze()"
+#! regel type=method doel=VraagGetal geeft=double parameters=1 bericht="Maak een method static double VraagGetal(string vraag)"
+#! regel type=method doel=Bereken geeft=double parameters=3 bericht="Maak een method static double Bereken(int keuze, double a, double b)"
+
+#! test naam="Optellen"
+#! invoer
+1
+3
+4,5
+#! verwacht
+=== Rekenmachine ===
+1. Optellen
+2. Aftrekken
+3. Vermenigvuldigen
+4. Delen
+Keuze: 1
+Eerste getal: 3
+Tweede getal: 4,5
+Resultaat: 7,5
+
+#! test naam="Ongeldige keuze en invoer" referentie=ja
+#! invoer
+9
+x
+4
+tien
+10
+4
+
+#! test naam="Bereken is een correcte query" soort=code
+Check.Equal(7.5, Program.Bereken(1, 3, 4.5), "Bereken(1, 3, 4.5)");
+Check.Equal(-1.5, Program.Bereken(2, 3, 4.5), "Bereken(2, 3, 4.5)");
+Check.Equal(13.5, Program.Bereken(3, 3, 4.5), "Bereken(3, 3, 4.5)");
+Check.Equal(2.5, Program.Bereken(4, 10, 4), "Bereken(4, 10, 4)");
+string output = Check.Output(() => Program.Bereken(1, 1, 1));
+Check.True(output == "", "Bereken toont zelf niets");
+
+#! oefening id=L06-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=200 titel="Doorrekenen tot stoppen"
+Breid de app uit:
+
+1. Het menu krijgt een optie `0. Stoppen`. `VraagKeuze()` aanvaardt nu 0 t.e.m. 4.
+2. Het programma blijft berekeningen doen tot de gebruiker 0 kiest. Het menu wordt telkens opnieuw getoond.
+3. Bij delen door 0 toont het programma `Delen door nul kan niet.` in plaats van een resultaat. Maak daarvoor een query `static bool IsGeldig(int keuze, double b)`.
+4. Bij het stoppen toont het programma het aantal geslaagde berekeningen: `Tot ziens! Je deed 2 berekening(en).`
+
+```text
+=== Rekenmachine ===
+1. Optellen
+2. Aftrekken
+3. Vermenigvuldigen
+4. Delen
+0. Stoppen
+Keuze: 4
+Eerste getal: 5
+Tweede getal: 0
+Delen door nul kan niet.
+=== Rekenmachine ===
+...
+Keuze: 0
+Tot ziens! Je deed 0 berekening(en).
+```
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Main krijgt een loop rond de bestaande stappen. Welke loop past als het menu minstens één keer getoond moet worden?
+
+#! hint
+In de loop: menu tonen, keuze vragen; bij keuze 0 stop je (bv. met een bool `stoppen`), anders getallen vragen en `IsGeldig` controleren. Hou een teller `aantalBerekeningen` bij.
+
+#! hint
+`static bool IsGeldig(int keuze, double b) { return !(keuze == 4 && b == 0); }` — een deling door nul is de enige ongeldige combinatie.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            int aantalBerekeningen = 0;
+            bool stoppen = false;
+            while (!stoppen) {
+                PrintMenu();
+                int keuze = VraagKeuze();
+                if (keuze == 0) {
+                    stoppen = true;
+                } else {
+                    double getal1 = VraagGetal("Eerste getal: ");
+                    double getal2 = VraagGetal("Tweede getal: ");
+                    if (IsGeldig(keuze, getal2)) {
+                        Console.WriteLine($"Resultaat: {Bereken(keuze, getal1, getal2)}");
+                        aantalBerekeningen++;
+                    } else {
+                        Console.WriteLine("Delen door nul kan niet.");
+                    }
+                }
+            }
+            Console.WriteLine($"Tot ziens! Je deed {aantalBerekeningen} berekening(en).");
+        }
+
+        static void PrintMenu() {
+            Console.WriteLine("=== Rekenmachine ===");
+            Console.WriteLine("1. Optellen");
+            Console.WriteLine("2. Aftrekken");
+            Console.WriteLine("3. Vermenigvuldigen");
+            Console.WriteLine("4. Delen");
+            Console.WriteLine("0. Stoppen");
+        }
+
+        static int VraagKeuze() {
+            int keuze;
+            bool ok;
+            do {
+                Console.Write("Keuze: ");
+                ok = int.TryParse(Console.ReadLine(), out keuze) && keuze >= 0 && keuze <= 4;
+            } while (!ok);
+            return keuze;
+        }
+
+        static double VraagGetal(string vraag) {
+            double getal;
+            bool ok;
+            do {
+                Console.Write(vraag);
+                ok = double.TryParse(Console.ReadLine(), out getal);
+            } while (!ok);
+            return getal;
+        }
+
+        static bool IsGeldig(int keuze, double b) {
+            return !(keuze == 4 && b == 0);
+        }
+
+        static double Bereken(int keuze, double a, double b) {
+            if (keuze == 1) {
+                return a + b;
+            } else if (keuze == 2) {
+                return a - b;
+            } else if (keuze == 3) {
+                return a * b;
+            }
+            return a / b;
+        }
+    }
+}
+
+#! uitleg
+- Dankzij de methods uit fase 1 hoefde je nauwelijks bestaande code aan te passen: je bouwde er een loop rond. Dat is de winst van goede structuur.
+- `IsGeldig` is een kleine query die één beslissing een naam geeft — de if in Main leest daardoor als een zin.
+- Proficiat! In Level 7 leer je wat er **echt** gebeurt met parameters (value versus reference types), enums en de console-cursor.
+
+#! regel type=method doel=IsGeldig geeft=bool parameters=2 bericht="Maak een query static bool IsGeldig(int keuze, double b)"
+#! regel type=method doel=Bereken geeft=double parameters=3 bericht="Behoud de query Bereken(int keuze, double a, double b)"
+#! regel type=loop bericht="Gebruik een loop zodat je kan blijven rekenen"
+
+#! test naam="Twee berekeningen en een deling door nul" referentie=ja
+#! invoer
+1
+2
+3
+4
+5
+0
+3
+2
+2,5
+0
+
+#! test naam="Meteen stoppen" referentie=ja
+#! invoer
+0
+
+#! test naam="IsGeldig" soort=code
+Check.Equal(false, Program.IsGeldig(4, 0), "IsGeldig(4, 0): deling door nul");
+Check.Equal(true, Program.IsGeldig(4, 2), "IsGeldig(4, 2)");
+Check.Equal(true, Program.IsGeldig(1, 0), "IsGeldig(1, 0): optellen met 0 mag");

@@ -1,0 +1,311 @@
+#! boss
+id: L05-BOSS
+titel: De Telegraafkamer
+samenvatting: Scrabble-scores, een morsedecoder en een morse-encoder met parallelle arrays, Split en Join.
+skills: parallelle-arrays, split-join, break
+bron: Deel 09 – D09scrabble, D09morse
+verhaal: 1910, de telegraafkamer van het station van Gent. Berichten komen binnen in morse, het personeel speelt 's avonds Scrabble. Bouw de machines die hen helpen — en ontcijfer de geheime boodschap.
+duur: 55
+
+#! begrijpen
+## Briefing
+
+Toen communicatie over lange afstanden nog per telegraaf verliep, gebruikte men **morsecode**: lange en korte signalen, genoteerd met `-` en `.`. De letter B is bv. `-...` (lang kort kort kort).
+
+In deze boss gebruik je **parallelle arrays**:
+
+```csharp norun
+string[] morse = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+```
+
+Vind je een letter op positie `i` in `letters`, dan staat de morsecode op dezelfde positie `i` in `morse` — en omgekeerd.
+
+Fases: 1) **Scrabble-scores**, 2) **morsedecoder**, 3) **morse-encoder** voor hele zinnen.
+
+#! oefening id=L05-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=3 xp=120 titel="Scrabble" bron="D09scrabble"
+Schrijf een programma dat de gebruiker vraagt om een woord in te typen en de **Scrabble-woordscore** toont. Je mag ervan uitgaan dat het woord enkel letters bevat. Hoofdletters en kleine letters krijgen dezelfde score.
+
+De scores (Nederlandstalige Scrabble), letter A t.e.m. Z:
+
+```csharp norun
+int[] punten = { 1, 3, 5, 2, 1, 4, 3, 4, 1, 4, 3, 3, 3, 1, 1, 3, 10, 2, 2, 2, 4, 4, 5, 8, 8, 4 };
+```
+
+```text
+Geef een woord : HoNd
+Dat woord is 4+1+1+2=8 punten waard.
+```
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            int[] punten = { 1, 3, 5, 2, 1, 4, 3, 4, 1, 4, 3, 3, 3, 1, 1, 3, 10, 2, 2, 2, 4, 4, 5, 8, 8, 4 };
+
+        }
+    }
+}
+
+#! hint
+Hoe vind je voor een letter de juiste index in `punten`? 'a' hoort bij index 0, 'b' bij index 1, … Een char is intern een getal.
+
+#! hint
+`int index = char.ToLower(letter) - 'a';` geeft 0 voor 'a', 1 voor 'b', … Zo hoef je zelfs geen tweede array te doorzoeken.
+
+#! hint
+Hou de score bij en bouw een string met de deelscores op. Met `String.Join("+", …)` of door telkens `+` toe te voegen behalve vóór de eerste.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            int[] punten = { 1, 3, 5, 2, 1, 4, 3, 4, 1, 4, 3, 3, 3, 1, 1, 3, 10, 2, 2, 2, 4, 4, 5, 8, 8, 4 };
+            Console.Write("Geef een woord : ");
+            string woord = Console.ReadLine().Trim();
+            int[] deelscores = new int[woord.Length];
+            int totaal = 0;
+            for (int i = 0; i < woord.Length; i++) {
+                int index = char.ToLower(woord[i]) - 'a';
+                deelscores[i] = punten[index];
+                totaal += deelscores[i];
+            }
+            Console.WriteLine($"Dat woord is {String.Join("+", deelscores)}={totaal} punten waard.");
+        }
+    }
+}
+
+#! uitleg
+- Een `char` is intern een getal (Unicode). De kleine letters staan na elkaar, dus `letter - 'a'` geeft de positie in het alfabet.
+- De deelscores komen in een array, zodat `String.Join("+", …)` de optelling netjes kan opbouwen.
+
+#! test naam="HoNd"
+#! invoer
+HoNd
+#! verwacht
+Geef een woord : HoNd
+Dat woord is 4+1+1+2=8 punten waard.
+
+#! test naam="Quiz" referentie=ja
+#! invoer
+quiz
+
+#! test naam="Lang woord" referentie=ja verborgen=ja
+#! invoer
+Programmeren
+
+#! oefening id=L05-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=4 xp=150 titel="Morsedecoder" bron="D09morse"
+Schrijf een programma dat de gebruiker telkens om de morsecode voor een letter vraagt en zo gaandeweg een tekstbericht opbouwt. Gebruik de parallelle arrays uit de briefing. Is een code ongeldig (niet gevonden in `morse`), dan wordt ze genegeerd.
+
+In de cursus eindigt het programma nooit. Onze versie stopt wanneer de gebruiker `stop` intypt en toont dan het volledige bericht.
+
+```text
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: -...
+Opgebouwde tekst tot nu toe : b
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: .-
+Opgebouwde tekst tot nu toe : ba
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: -..--.
+Ongeldige morse code!
+Opgebouwde tekst tot nu toe : ba
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: .-..
+Opgebouwde tekst tot nu toe : bal
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: stop
+Bericht: bal
+```
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] morse = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+            char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+
+        }
+    }
+}
+
+#! hint
+Herhaal: vraag een code, stop bij "stop", zoek de code anders in `morse`.
+
+#! hint
+Zoek de index van de code in `morse` (met `break` bij een treffer). Gevonden → voeg `letters[index]` toe aan het bericht. Niet gevonden → "Ongeldige morse code!".
+
+#! hint
+Na elke (geldige of ongeldige) code toon je `Opgebouwde tekst tot nu toe : …`. Na "stop" toon je `Bericht: …`.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] morse = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+            char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+            string bericht = "";
+            bool stoppen = false;
+            while (!stoppen) {
+                Console.Write("Morse code voor de volgende letter (. voor kort, - voor lang) ?: ");
+                string code = Console.ReadLine().Trim();
+                if (code.ToLower() == "stop") {
+                    stoppen = true;
+                } else {
+                    int index = -1;
+                    for (int i = 0; i < morse.Length; i++) {
+                        if (morse[i] == code) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index == -1) {
+                        Console.WriteLine("Ongeldige morse code!");
+                    } else {
+                        bericht += letters[index];
+                    }
+                    Console.WriteLine($"Opgebouwde tekst tot nu toe : {bericht}");
+                }
+            }
+            Console.WriteLine($"Bericht: {bericht}");
+        }
+    }
+}
+
+#! uitleg
+- De code wordt gezocht in `morse`; de letter komt uit `letters` op **dezelfde index**: de kern van parallelle arrays.
+- Ongeldige codes laten `index` op -1 en worden genegeerd.
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+-...
+.-
+-..--.
+.-..
+stop
+#! verwacht
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: -...
+Opgebouwde tekst tot nu toe : b
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: .-
+Opgebouwde tekst tot nu toe : ba
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: -..--.
+Ongeldige morse code!
+Opgebouwde tekst tot nu toe : ba
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: .-..
+Opgebouwde tekst tot nu toe : bal
+Morse code voor de volgende letter (. voor kort, - voor lang) ?: stop
+Bericht: bal
+
+#! test naam="SOS" referentie=ja
+#! invoer
+...
+---
+...
+STOP
+
+#! oefening id=L05-BOSS-3 rol=boss fase="Fase 3" moeilijkheid=5 xp=190 titel="Morse-encoder"
+De telegrafist wil hele zinnen kunnen versturen. Schrijf een programma dat een zin omzet naar morse:
+
+- de letters van een woord worden gescheiden door een **spatie**;
+- woorden worden gescheiden door ` / `;
+- tekens die geen letter a–z zijn (cijfers, leestekens) worden weggelaten;
+- hoofdletters worden als kleine letters behandeld.
+
+```text
+Geef een zin : Hallo Gent!
+.... .- .-.. .-.. --- / --. . -. -
+```
+
+Gebruik `Split` om de woorden te bekomen en `String.Join` om de codes samen te voegen.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] morse = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+            char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+
+        }
+    }
+}
+
+#! hint
+Splits de zin op spaties. Per woord bouw je een `string[]` met de morsecode van elke letter; die voeg je samen met `String.Join(" ", …)`.
+
+#! hint
+Per letter zoek je de index in `letters` (of bereken je `c - 'a'`). Omdat niet-letters wegvallen, weet je vooraf niet hoeveel codes een woord heeft: maak een array zo groot als het woord en hou een teller bij — of bouw meteen een string op.
+
+#! hint
+Verzamel de gecodeerde woorden in een array (lege woorden overslaan) en voeg die samen met `String.Join(" / ", …)`. Let op: een "woord" dat enkel uit leestekens bestaat, levert niets op.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] morse = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+            char[] letters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+            Console.Write("Geef een zin : ");
+            string[] woorden = Console.ReadLine().ToLower().Split(' ');
+
+            string[] gecodeerd = new string[woorden.Length];
+            int aantalWoorden = 0;
+            foreach (string woord in woorden) {
+                string[] codes = new string[woord.Length];
+                int aantalCodes = 0;
+                foreach (char c in woord) {
+                    for (int i = 0; i < letters.Length; i++) {
+                        if (letters[i] == c) {
+                            codes[aantalCodes] = morse[i];
+                            aantalCodes++;
+                            break;
+                        }
+                    }
+                }
+                if (aantalCodes > 0) {
+                    string[] gevuld = new string[aantalCodes];
+                    for (int i = 0; i < aantalCodes; i++) {
+                        gevuld[i] = codes[i];
+                    }
+                    gecodeerd[aantalWoorden] = String.Join(" ", gevuld);
+                    aantalWoorden++;
+                }
+            }
+
+            string[] resultaat = new string[aantalWoorden];
+            for (int i = 0; i < aantalWoorden; i++) {
+                resultaat[i] = gecodeerd[i];
+            }
+            Console.WriteLine(String.Join(" / ", resultaat));
+        }
+    }
+}
+
+#! uitleg
+- Omdat leestekens wegvallen, weet je pas achteraf hoeveel codes er zijn. Daarom: een array van de **maximale** grootte + een teller, en op het einde een nieuwe array met precies de gevulde elementen (de techniek uit Level 4).
+- Dit is nogal wat "boekhouding". In **Level 12** leer je `List<T>`, die vanzelf groeit — dan wordt deze code de helft korter.
+- Gefeliciteerd, de telegraafkamer draait! Level 6 leert je **methods**: je zal zien hoeveel herhaalde code je dan kan opruimen.
+
+#! regel type=uses doel=Split bericht="Gebruik Split om de zin in woorden te verdelen"
+#! regel type=uses doel=Join bericht="Gebruik String.Join om de codes samen te voegen"
+
+#! test naam="Hallo Gent!"
+#! invoer
+Hallo Gent!
+#! verwacht
+Geef een zin : Hallo Gent!
+.... .- .-.. .-.. --- / --. . -. -
+
+#! test naam="SOS" referentie=ja
+#! invoer
+SOS
+
+#! test naam="Leestekens en cijfers" referentie=ja verborgen=ja
+#! invoer
+Om 9 uur: kom snel !!

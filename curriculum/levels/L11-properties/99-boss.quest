@@ -1,0 +1,340 @@
+#! boss
+id: L11-BOSS
+titel: Het Rekeningkantoor
+samenvatting: Een kantoor dat meerdere bankrekeningen beheert, met properties, constructors en compositie.
+skills: properties, constructors, compositie
+bron: Deel 15 – D15rekeningkantoor
+verhaal: De bank opent een kantoor in het stadscentrum. Het kantoor moet zijn rekeningen kennen, ze kunnen opzoeken en weten hoeveel geld er in totaal in bewaard wordt. Jij ontwerpt de klassen.
+duur: 55
+
+#! begrijpen
+## Briefing
+
+Twee klassen werken samen:
+
+- `Bankrekening`: **immutable rekeningnummer** (constructor-parameter, enkel get), `Saldo` (enkel lezen van buiten), methods `Storten` en `Afhalen` (bool).
+- `Rekeningkantoor`: *heeft* een aantal rekeningen (compositie). Het beheert ze in een array van vaste grootte.
+
+Houd je aan de gevraagde namen: de tests roepen ze rechtstreeks aan.
+
+#! oefening id=L11-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="Bankrekening met constructor"
+Schrijf `Bankrekening`:
+
+- constructor `Bankrekening(string rekeningnummer)` — het nummer is verplicht en kan niet meer veranderen (`Rekeningnummer`, enkel get);
+- constructor `Bankrekening(string rekeningnummer, decimal beginsaldo)` — die de eerste constructor oproept (chaining); een negatief beginsaldo wordt 0;
+- `Saldo` met `private set`;
+- `Storten(decimal)` en `Afhalen(decimal)`: bool, enkel positieve bedragen, saldo nooit negatief.
+
+```text
+BE01: 100,00
+BE02: 0,00
+Afhalen mislukt.
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Bankrekening a = new Bankrekening("BE01", 100M);
+            Bankrekening b = new Bankrekening("BE02");
+            Console.WriteLine($"{a.Rekeningnummer}: {a.Saldo:f2}");
+            Console.WriteLine($"{b.Rekeningnummer}: {b.Saldo:f2}");
+            if (!b.Afhalen(10M)) {
+                Console.WriteLine("Afhalen mislukt.");
+            }
+        }
+    }
+}
+
+#! starter bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+
+    }
+}
+
+#! hint
+`public string Rekeningnummer { get; }` en `public decimal Saldo { get; private set; }`.
+
+#! hint
+`public Bankrekening(string rekeningnummer) : this(rekeningnummer, 0) { }` en de tweede constructor stelt de waarden in (negatief beginsaldo → 0).
+
+#! hint
+Storten en Afhalen zoals in Level 10/11, maar nu met de property `Saldo`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Bankrekening a = new Bankrekening("BE01", 100M);
+            Bankrekening b = new Bankrekening("BE02");
+            Console.WriteLine($"{a.Rekeningnummer}: {a.Saldo:f2}");
+            Console.WriteLine($"{b.Rekeningnummer}: {b.Saldo:f2}");
+            if (!b.Afhalen(10M)) {
+                Console.WriteLine("Afhalen mislukt.");
+            }
+        }
+    }
+}
+
+#! oplossing bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+        public string Rekeningnummer { get; }
+        public decimal Saldo { get; private set; }
+
+        public Bankrekening(string rekeningnummer) : this(rekeningnummer, 0) {
+        }
+
+        public Bankrekening(string rekeningnummer, decimal beginsaldo) {
+            Rekeningnummer = rekeningnummer;
+            if (beginsaldo > 0) {
+                Saldo = beginsaldo;
+            }
+        }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) {
+                Saldo += bedrag;
+                return true;
+            }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= Saldo) {
+                Saldo -= bedrag;
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+#! uitleg
+- Het rekeningnummer is immutable (geen set); het saldo kan enkel via Storten/Afhalen wijzigen: de rekening is altijd geldig.
+- De constructor met één parameter roept de andere op: één plaats met de initialisatielogica.
+
+#! regel type=constructor doel=Bankrekening parameters=1 bericht="Maak een constructor Bankrekening(string rekeningnummer)"
+#! regel type=constructor doel=Bankrekening parameters=2 bericht="Maak een constructor Bankrekening(string rekeningnummer, decimal beginsaldo)"
+#! regel type=constructor-chain doel=Bankrekening bericht="Laat de ene constructor de andere oproepen met : this(...)"
+#! regel type=readonly-property doel=Bankrekening.Rekeningnummer bericht="Het rekeningnummer is enkel uitleesbaar"
+#! regel type=regex doel="private\s+set" bericht="Het saldo heeft een private set"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+BE01: 100,00
+BE02: 0,00
+Afhalen mislukt.
+
+#! test naam="Negatief beginsaldo en regels" soort=code
+Bankrekening r = new Bankrekening("X", -50M);
+Check.Equal(0M, r.Saldo, "negatief beginsaldo wordt 0");
+Check.Equal(true, r.Storten(20M), "Storten(20)");
+Check.Equal(false, r.Afhalen(30M), "Afhalen(30) bij saldo 20");
+Check.Equal(20M, r.Saldo, "saldo ongewijzigd");
+
+#! oefening id=L11-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=220 titel="Het kantoor"
+Schrijf `Rekeningkantoor` (compositie):
+
+- constructor `Rekeningkantoor(int capaciteit)` — het kantoor kan maximaal zoveel rekeningen bevatten;
+- property `AantalRekeningen` (enkel lezen);
+- `bool Openen(string rekeningnummer, decimal beginsaldo)` — maakt een rekening aan; `false` als het kantoor vol is of het nummer al bestaat;
+- `Bankrekening Zoek(string rekeningnummer)` — of `null`;
+- `decimal GetTotaalSaldo()` — som van alle saldi;
+- `bool Overschrijven(string van, string naar, decimal bedrag)` — `false` als een rekening niet bestaat of het afhalen mislukt (dan blijft alles ongewijzigd).
+
+```text
+2 rekeningen, totaal 350,00
+Overschrijving gelukt: True
+BE01: 100,00 | BE02: 250,00
+Dubbel nummer: False
+Onbekend: False
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rekeningkantoor kantoor = new Rekeningkantoor(3);
+            kantoor.Openen("BE01", 200M);
+            kantoor.Openen("BE02", 150M);
+            Console.WriteLine($"{kantoor.AantalRekeningen} rekeningen, totaal {kantoor.GetTotaalSaldo():f2}");
+            Console.WriteLine($"Overschrijving gelukt: {kantoor.Overschrijven("BE01", "BE02", 100M)}");
+            Console.WriteLine($"BE01: {kantoor.Zoek("BE01").Saldo:f2} | BE02: {kantoor.Zoek("BE02").Saldo:f2}");
+            Console.WriteLine($"Dubbel nummer: {kantoor.Openen("BE01", 5M)}");
+            Console.WriteLine($"Onbekend: {kantoor.Overschrijven("BE01", "XX", 1M)}");
+        }
+    }
+}
+
+#! starter bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+        public string Rekeningnummer { get; }
+        public decimal Saldo { get; private set; }
+
+        public Bankrekening(string rekeningnummer) : this(rekeningnummer, 0) { }
+
+        public Bankrekening(string rekeningnummer, decimal beginsaldo) {
+            Rekeningnummer = rekeningnummer;
+            if (beginsaldo > 0) {
+                Saldo = beginsaldo;
+            }
+        }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) { Saldo += bedrag; return true; }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= Saldo) { Saldo -= bedrag; return true; }
+            return false;
+        }
+    }
+}
+
+#! starter bestand=Rekeningkantoor.cs
+namespace D15 {
+    class Rekeningkantoor {
+
+    }
+}
+
+#! hint
+Een private `Bankrekening[] _rekeningen` (grootte = capaciteit) en `AantalRekeningen { get; private set; }`. De eerste `AantalRekeningen` elementen zijn gevuld, de rest is null.
+
+#! hint
+`Zoek`: loop tot `AantalRekeningen` en vergelijk `_rekeningen[i].Rekeningnummer`. `Openen` gebruikt `Zoek` om dubbels te vermijden.
+
+#! hint
+`Overschrijven`: `Bankrekening a = Zoek(van); Bankrekening b = Zoek(naar); if (a == null || b == null || !a.Afhalen(bedrag)) return false; b.Storten(bedrag); return true;`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rekeningkantoor kantoor = new Rekeningkantoor(3);
+            kantoor.Openen("BE01", 200M);
+            kantoor.Openen("BE02", 150M);
+            Console.WriteLine($"{kantoor.AantalRekeningen} rekeningen, totaal {kantoor.GetTotaalSaldo():f2}");
+            Console.WriteLine($"Overschrijving gelukt: {kantoor.Overschrijven("BE01", "BE02", 100M)}");
+            Console.WriteLine($"BE01: {kantoor.Zoek("BE01").Saldo:f2} | BE02: {kantoor.Zoek("BE02").Saldo:f2}");
+            Console.WriteLine($"Dubbel nummer: {kantoor.Openen("BE01", 5M)}");
+            Console.WriteLine($"Onbekend: {kantoor.Overschrijven("BE01", "XX", 1M)}");
+        }
+    }
+}
+
+#! oplossing bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+        public string Rekeningnummer { get; }
+        public decimal Saldo { get; private set; }
+
+        public Bankrekening(string rekeningnummer) : this(rekeningnummer, 0) { }
+
+        public Bankrekening(string rekeningnummer, decimal beginsaldo) {
+            Rekeningnummer = rekeningnummer;
+            if (beginsaldo > 0) {
+                Saldo = beginsaldo;
+            }
+        }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) { Saldo += bedrag; return true; }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= Saldo) { Saldo -= bedrag; return true; }
+            return false;
+        }
+    }
+}
+
+#! oplossing bestand=Rekeningkantoor.cs
+namespace D15 {
+    class Rekeningkantoor {
+        private Bankrekening[] _rekeningen;
+
+        public int AantalRekeningen { get; private set; }
+
+        public Rekeningkantoor(int capaciteit) {
+            _rekeningen = new Bankrekening[capaciteit];
+        }
+
+        public bool Openen(string rekeningnummer, decimal beginsaldo) {
+            if (AantalRekeningen == _rekeningen.Length || Zoek(rekeningnummer) != null) {
+                return false;
+            }
+            _rekeningen[AantalRekeningen] = new Bankrekening(rekeningnummer, beginsaldo);
+            AantalRekeningen++;
+            return true;
+        }
+
+        public Bankrekening Zoek(string rekeningnummer) {
+            for (int i = 0; i < AantalRekeningen; i++) {
+                if (_rekeningen[i].Rekeningnummer == rekeningnummer) {
+                    return _rekeningen[i];
+                }
+            }
+            return null;
+        }
+
+        public decimal GetTotaalSaldo() {
+            decimal totaal = 0;
+            for (int i = 0; i < AantalRekeningen; i++) {
+                totaal += _rekeningen[i].Saldo;
+            }
+            return totaal;
+        }
+
+        public bool Overschrijven(string van, string naar, decimal bedrag) {
+            Bankrekening bron = Zoek(van);
+            Bankrekening doel = Zoek(naar);
+            if (bron == null || doel == null || !bron.Afhalen(bedrag)) {
+                return false;
+            }
+            doel.Storten(bedrag);
+            return true;
+        }
+    }
+}
+
+#! uitleg
+- Het kantoor *heeft* een array van rekeningen (compositie) en beheert die zelf: de buitenwereld ziet alleen methods en `AantalRekeningen`.
+- `Openen` hergebruikt `Zoek` om dubbele nummers te weigeren; `Overschrijven` hergebruikt `Zoek`, `Afhalen` en `Storten`: elke klasse doet zijn eigen taak.
+- Kortsluitevaluatie in `bron == null || … || !bron.Afhalen(...)`: Afhalen wordt enkel opgeroepen als bron niet null is, en enkel dan wordt er effectief afgehaald.
+- Level 11 is af! In Level 12 vervangt `List<T>` de array en het teller-gedoe.
+
+#! regel type=constructor doel=Rekeningkantoor parameters=1 bericht="Maak een constructor Rekeningkantoor(int capaciteit)"
+#! regel type=readonly-property doel=Rekeningkantoor.AantalRekeningen bericht="AantalRekeningen is enkel uitleesbaar van buiten"
+#! regel type=private-fields bericht="Datavelden zijn private"
+#! regel type=method doel=Overschrijven geeft=bool parameters=3 bericht="Maak een method public bool Overschrijven(string van, string naar, decimal bedrag)"
+
+#! test naam="Main"
+#! verwacht
+2 rekeningen, totaal 350,00
+Overschrijving gelukt: True
+BE01: 100,00 | BE02: 250,00
+Dubbel nummer: False
+Onbekend: False
+
+#! test naam="Capaciteit en mislukte overschrijving" soort=code
+Rekeningkantoor k = new Rekeningkantoor(1);
+Check.Equal(true, k.Openen("A", 10M), "eerste rekening");
+Check.Equal(false, k.Openen("B", 10M), "kantoor is vol");
+Check.Equal(1, k.AantalRekeningen, "AantalRekeningen");
+Check.Equal(false, k.Overschrijven("A", "B", 5M), "naar onbekende rekening");
+Check.Equal(10M, k.Zoek("A").Saldo, "saldo A ongewijzigd");
+Check.True(k.Zoek("B") == null, "B bestaat niet");

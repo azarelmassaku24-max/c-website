@@ -1,0 +1,318 @@
+#! lesson
+id: L01-09
+titel: Robuuste invoer: ToLower, Trim en TryParse
+samenvatting: Invoer van de gebruiker veilig verwerken zonder dat je programma crasht.
+skills: robuust, invoer
+bron: Deel 04 – 6. Invoer robuust opvangen · Deel 05 – 1. Numerieke invoer robuust opvangen
+duur: 30
+
+#! begrijpen
+## Strings vergelijken en "opkuisen" (Deel 04)
+
+Strings kan je vergelijken met `==` en `!=`. Maar gebruikers typen niet altijd netjes: `Ja`, `JA`, ` ja ` … Voor C# zijn dat allemaal **andere** strings dan `"ja"`.
+
+| Code | Resultaat |
+|---|---|
+| `"Ja".ToLower()` | `"ja"` |
+| `"world".ToUpper()` | `"WORLD"` |
+| `"  Hello World!  ".Trim()` | `"Hello World!"` (spaties vooraan en achteraan weg) |
+
+Voor de punt (*dot*) staat de tekst waarop je de bewerking uitvoert. Je kan ze ook combineren:
+
+```csharp norun
+string antwoord = Console.ReadLine().Trim().ToLower();
+if (antwoord == "ja") { ... }
+```
+
+> [!NOTE]
+> `ToLower()` en `Trim()` veranderen de originele string niet: ze geven een **nieuwe** string terug. Daarom bewaar je het resultaat in een variabele.
+
+## Parse kan crashen (Deel 05)
+
+`int.Parse("abc")` levert een **runtimefout** op: een *FormatException*. Je programma stopt meteen. Dat wil je niet bij invoer van een gebruiker.
+
+## TryParse: veilig omzetten
+
+`int.TryParse()` en `double.TryParse()` geven **geen exceptions**, maar signaleren of de conversie lukt. Je geeft mee:
+
+- de om te zetten string;
+- de variabele waaraan het resultaat wordt toegekend — met het woord `out` ervoor.
+
+TryParse levert een `bool` op: `true` als de omzetting slaagt, `false` als ze faalt.
+
+```csharp norun
+Console.Write("Getal?: ");
+string invoer = Console.ReadLine();
+int getal;
+bool invoerOk = int.TryParse(invoer, out getal);
+if (invoerOk) {
+    Console.WriteLine($"Het dubbel is {getal * 2}");
+} else {
+    Console.WriteLine("Dat is geen geldig getal.");
+}
+```
+
+Faalt de omzetting, dan krijgt `getal` de waarde 0 — maar die gebruik je dan niet.
+
+#! voorbeeld
+## TryParse in actie
+
+Voer dit uit en typ eens een getal, en eens tekst zoals `hallo`. Het programma crasht niet.
+
+```csharp invoer="hallo"
+Console.Write("Hoe oud ben je? ");
+string invoer = Console.ReadLine();
+int leeftijd;
+if (int.TryParse(invoer, out leeftijd)) {
+    Console.WriteLine($"Volgend jaar word je {leeftijd + 1}.");
+} else {
+    Console.WriteLine($"'{invoer}' is geen geldige leeftijd.");
+}
+```
+
+## Een antwoord opkuisen
+
+```csharp invoer="  JA "
+Console.Write("Wil je doorgaan (ja/nee)? ");
+string antwoord = Console.ReadLine().Trim().ToLower();
+Console.WriteLine($"[{antwoord}]");
+Console.WriteLine(antwoord == "ja");
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string tekst = "  Hallo  ";
+Console.WriteLine($"[{tekst.Trim().ToUpper()}]");
+```
+? Trim verwijdert de spaties vooraan en achteraan, ToUpper zet alles in hoofdletters: `[HALLO]`.
+
+#! voorspel id=v2 type=choice
+Wat gebeurt er bij `int getal = int.Parse("12a");`?
+- getal wordt 12
+- getal wordt 0
++ Een runtimefout (FormatException)
+- Een compileerfout
+? De compiler kan niet weten wat er in de string staat, dus het programma compileert. Tijdens de uitvoering kan "12a" niet omgezet worden: FormatException.
+
+#! voorspel id=v3 type=output
+Wat drukt deze code af?
+```csharp
+int getal;
+bool ok = int.TryParse("12a", out getal);
+Console.WriteLine(ok);
+Console.WriteLine(getal);
+```
+? TryParse crasht niet maar geeft `False` terug. De out-variabele krijgt dan de waarde 0.
+
+#! oefening id=L01-09-a rol=oefenen moeilijkheid=2 xp=60 titel="Weerbericht met robuuste invoer" bron="D04weermetrobuusteinvoer"
+Maak een programma dat een weerbeeld afdrukt. Er zijn vier mogelijkheden:
+
+- `Regenboog.` (indien het regent en de zon schijnt)
+- `Slecht weer.` (indien het regent en de zon niet schijnt)
+- `Mooi weer.` (indien het niet regent en de zon schijnt)
+- `Saaie dag.` (indien het niet regent en de zon niet schijnt)
+
+```text
+Schijnt de zon (ja/nee)?: ja
+Regent het (ja/nee)?: nee
+Mooi weer.
+```
+
+Maak de invoer **robuust**: ook ` JA`, `Ja ` of `NEE` moeten correct werken.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Schijnt de zon (ja/nee)?: ");
+            string zon = Console.ReadLine();
+            bool deZonSchijnt = (zon == "ja");
+            Console.Write("Regent het (ja/nee)?: ");
+            string regen = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+De startcode vergelijkt `zon == "ja"`. Wat gebeurt er als de gebruiker ` JA` typt? Hoe maak je van de invoer eerst een "nette" versie?
+
+#! hint
+Gebruik `.Trim().ToLower()` op de invoer. Maak een tweede bool `hetRegent` en combineer de twee bools met `&&` en `!` in een `if … else if … else`.
+
+#! hint
+`if (hetRegent && deZonSchijnt) → Regenboog.`, `else if (hetRegent) → Slecht weer.`, `else if (deZonSchijnt) → Mooi weer.`, `else → Saaie dag.`
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Schijnt de zon (ja/nee)?: ");
+            string zon = Console.ReadLine().Trim().ToLower();
+            bool deZonSchijnt = (zon == "ja");
+            Console.Write("Regent het (ja/nee)?: ");
+            string regen = Console.ReadLine().Trim().ToLower();
+            bool hetRegent = (regen == "ja");
+
+            if (hetRegent && deZonSchijnt) {
+                Console.WriteLine("Regenboog.");
+            } else if (hetRegent) {
+                Console.WriteLine("Slecht weer.");
+            } else if (deZonSchijnt) {
+                Console.WriteLine("Mooi weer.");
+            } else {
+                Console.WriteLine("Saaie dag.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- `Trim()` haalt de spaties rond de invoer weg, `ToLower()` maakt er kleine letters van. Daarna kan je veilig met `"ja"` vergelijken.
+- Twee bools met een duidelijke naam maken de voorwaarden in de if leesbaar.
+- Door de volgorde van de `else if`'s hoef je in het tweede block niet meer `!deZonSchijnt` te testen: als het regent én de zon scheen, zat je al in het eerste block.
+
+#! regel type=uses doel=ToLower bericht="Gebruik ToLower() (of ToUpper()) zodat hoofdletters geen verschil maken"
+#! regel type=uses doel=Trim bericht="Gebruik Trim() om spaties rond de invoer weg te knippen"
+
+#! test naam="Mooi weer"
+#! invoer
+ja
+nee
+#! verwacht
+Schijnt de zon (ja/nee)?: ja
+Regent het (ja/nee)?: nee
+Mooi weer.
+
+#! test naam="Regenboog met slordige invoer"
+#! invoer
+ JA
+Ja
+#! verwacht
+Schijnt de zon (ja/nee)?:  JA
+Regent het (ja/nee)?: Ja
+Regenboog.
+
+#! test naam="Slecht weer" referentie=ja
+#! invoer
+nee
+ja
+
+#! test naam="Saaie dag" referentie=ja verborgen=ja
+#! invoer
+NEE
+ nee
+
+#! oefening id=L01-09-m rol=meesterschap moeilijkheid=3 xp=90 titel="Veilige deling"
+Schrijf een programma dat een deeltal en een deler inleest en het quotiënt toont. Het programma mag **nooit crashen**:
+
+- Is een van beide invoeren geen geldig getal: toon `Ongeldige invoer.`
+- Is de deler 0: toon `Deling door nul wordt niet toegelaten.`
+- Anders: toon het quotiënt (een kommagetal).
+
+```text
+Deeltal?: 10
+Deler?: 4
+Quotient: 2,5
+```
+
+```text
+Deeltal?: tien
+Deler?: 4
+Ongeldige invoer.
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Lees eerst beide invoeren in als string. Probeer ze daarna om te zetten met `double.TryParse`. Wanneer is de invoer geldig?
+
+#! hint
+Bewaar het resultaat van elke TryParse in een bool. De invoer is geldig als beide bools true zijn (`&&`).
+
+#! hint
+Volgorde van de beslissingen: eerst `if (!deeltalOk || !delerOk)` → ongeldig, dan `else if (deler == 0)` → deling door nul, anders bereken en toon `deeltal / deler`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Deeltal?: ");
+            string deeltalAlsTekst = Console.ReadLine();
+            Console.Write("Deler?: ");
+            string delerAlsTekst = Console.ReadLine();
+
+            double deeltal;
+            double deler;
+            bool deeltalOk = double.TryParse(deeltalAlsTekst, out deeltal);
+            bool delerOk = double.TryParse(delerAlsTekst, out deler);
+
+            if (!deeltalOk || !delerOk) {
+                Console.WriteLine("Ongeldige invoer.");
+            } else if (deler == 0) {
+                Console.WriteLine("Deling door nul wordt niet toegelaten.");
+            } else {
+                double quotient = deeltal / deler;
+                Console.WriteLine($"Quotient: {quotient}");
+            }
+        }
+    }
+}
+
+#! uitleg
+- `double.TryParse` crasht nooit; het geeft aan of de omzetting lukte.
+- De voorwaarde `!deeltalOk || !delerOk` is true zodra minstens één invoer ongeldig is.
+- De variabele `quotient` wordt pas in het laatste block gedeclareerd: daar is hij nodig (kleinst mogelijke scope).
+- Wist je dat een double-deling door 0 niet crasht maar `∞` geeft? Daarom moet je zelf controleren op 0.
+
+#! regel type=uses doel=TryParse aantal=2 bericht="Gebruik TryParse voor beide invoeren"
+#! regel type=forbids doel=double.Parse bericht="Gebruik geen double.Parse: dat kan crashen"
+
+#! test naam="Geldige deling"
+#! invoer
+10
+4
+#! verwacht
+Deeltal?: 10
+Deler?: 4
+Quotient: 2,5
+
+#! test naam="Ongeldig deeltal"
+#! invoer
+tien
+4
+#! verwacht
+Deeltal?: tien
+Deler?: 4
+Ongeldige invoer.
+
+#! test naam="Deler is 0" referentie=ja
+#! invoer
+10
+0
+
+#! test naam="Ongeldige deler" referentie=ja verborgen=ja
+#! invoer
+5
+abc
+
+#! test naam="Kommagetallen" referentie=ja verborgen=ja
+#! invoer
+7,5
+2,5

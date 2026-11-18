@@ -1,0 +1,283 @@
+#! lesson
+id: L11-02
+titel: Enkel uitleesbare properties
+samenvatting: Properties zonder set of met private set, en berekende properties.
+skills: properties
+bron: Deel 15 – Enkel uitleesbare properties (D15bankrekening) · verdieping 15 §2 (readonly berekende properties)
+aanvulling: Opgebouwd vanuit de oefeningen en het verdiepingsdocument van Deel 15; aanvullend geschreven waar nodig.
+duur: 30
+
+#! begrijpen
+## Enkel lezen, niet schrijven
+
+Het saldo van een rekening mag je **opvragen**, maar niet rechtstreeks **instellen**. Daarvoor laat je de `set` weg, of maak je hem private:
+
+```csharp norun
+public decimal Saldo { get; private set; }
+```
+
+- Van buiten de klasse kan je enkel `rekening.Saldo` **lezen**;
+- binnen de klasse (bv. in `Storten`) mag je `Saldo += bedrag;` wel schrijven.
+
+`rekening.Saldo = 1000000;` geeft van buiten de klasse compileerfout **CS0272** (de set is niet toegankelijk).
+
+## Berekende properties (verdieping)
+
+Een property hoeft geen dataveld te hebben: ze kan een waarde **berekenen**. Met enkel een `get` (of de korte pijl-vorm `=>`):
+
+```csharp norun
+public double Oppervlakte { get { return Hoogte * Breedte; } }
+public double Omtrek => 2 * (Hoogte + Breedte);
+```
+
+Wanneer methode, wanneer property? Een property voelt aan als een **eigenschap** (goedkoop, geen zichtbare actie: `Oppervlakte`); een method als een **handeling** of een zwaardere berekening (`Verplaats()`, `BerekenIntrest()`). In de cursus blijven `Oppervlakte()` en `Omtrek()` methods; een readonly property is een geldig alternatief.
+
+#! voorbeeld
+## Een saldo dat enkel via methods verandert
+
+```csharp
+using System;
+
+class Bankrekening {
+    public decimal Saldo { get; private set; }
+
+    public bool Storten(decimal bedrag) {
+        if (bedrag <= 0) return false;
+        Saldo += bedrag;
+        return true;
+    }
+}
+
+class Program {
+    static void Main() {
+        Bankrekening r = new Bankrekening();
+        r.Storten(100M);
+        Console.WriteLine(r.Saldo);
+        // r.Saldo = 5000M;   // compileerfout CS0272
+    }
+}
+```
+
+Haal de commentaar eens weg in het Code Lab en lees de uitleg bij de fout.
+
+#! voorspel id=v1 type=choice
+Welke declaratie maakt een property die van buiten de klasse enkel gelezen kan worden?
+- public decimal Saldo;
++ public decimal Saldo { get; private set; }
+- private decimal Saldo { get; set; }
+- public decimal Saldo { set; }
+? Met `private set` kan enkel de klasse zelf het saldo wijzigen; iedereen mag het lezen.
+
+#! voorspel id=v2 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Doos {
+    public double Lengte { get; set; }
+    public double Breedte { get; set; }
+    public double Hoogte { get; set; }
+    public double Volume => Lengte * Breedte * Hoogte;
+}
+class Program {
+    static void Main() {
+        Doos d = new Doos();
+        d.Lengte = 2; d.Breedte = 3; d.Hoogte = 4;
+        Console.WriteLine(d.Volume);
+        d.Hoogte = 1;
+        Console.WriteLine(d.Volume);
+    }
+}
+```
+? Een berekende property rekent telkens opnieuw: 24, daarna 6. Er is geen apart dataveld dat "uit de pas" kan lopen.
+
+#! oefening id=L11-02-a rol=oefenen moeilijkheid=2 xp=80 titel="Bankrekening met readonly Saldo" bron="D15bankrekening"
+Pas de klasse `Bankrekening` aan: werk met een property `Saldo` die van buiten **enkel gelezen** kan worden. `Storten(decimal)` en `Afhalen(decimal)` (beide met `bool` als resultaat, enkel positieve bedragen, saldo nooit negatief) wijzigen het saldo.
+
+```text
+Saldo: 150,00
+Afhalen mislukt.
+Saldo: 100,00
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Bankrekening r = new Bankrekening();
+            r.Storten(150M);
+            Console.WriteLine($"Saldo: {r.Saldo:f2}");
+            if (!r.Afhalen(200M)) {
+                Console.WriteLine("Afhalen mislukt.");
+            }
+            r.Afhalen(50M);
+            Console.WriteLine($"Saldo: {r.Saldo:f2}");
+        }
+    }
+}
+
+#! starter bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+
+    }
+}
+
+#! hint
+`public decimal Saldo { get; private set; }` — geen apart `_saldo` en geen `GetSaldo()` meer.
+
+#! hint
+`Storten`: `if (bedrag > 0) { Saldo += bedrag; return true; } return false;`.
+
+#! hint
+`Afhalen`: de voorwaarde is `bedrag > 0 && bedrag <= Saldo`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Bankrekening r = new Bankrekening();
+            r.Storten(150M);
+            Console.WriteLine($"Saldo: {r.Saldo:f2}");
+            if (!r.Afhalen(200M)) {
+                Console.WriteLine("Afhalen mislukt.");
+            }
+            r.Afhalen(50M);
+            Console.WriteLine($"Saldo: {r.Saldo:f2}");
+        }
+    }
+}
+
+#! oplossing bestand=Bankrekening.cs
+namespace D15 {
+    class Bankrekening {
+        public decimal Saldo { get; private set; }
+
+        public bool Storten(decimal bedrag) {
+            if (bedrag > 0) {
+                Saldo += bedrag;
+                return true;
+            }
+            return false;
+        }
+
+        public bool Afhalen(decimal bedrag) {
+            if (bedrag > 0 && bedrag <= Saldo) {
+                Saldo -= bedrag;
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+#! uitleg
+- `private set` laat enkel de klasse zelf het saldo wijzigen: de regels (geen negatief saldo) kunnen niet omzeild worden.
+- Vergelijk met Level 10: één property vervangt een dataveld én een GetSaldo-method.
+
+#! regel type=property doel=Bankrekening.Saldo bericht="Maak een property Saldo"
+#! regel type=regex doel="private\s+set" bericht="Gebruik private set zodat het saldo van buiten enkel gelezen kan worden"
+
+#! test naam="Uitvoer"
+#! verwacht
+Saldo: 150,00
+Afhalen mislukt.
+Saldo: 100,00
+
+#! test naam="Saldo-regels" soort=code
+Bankrekening r = new Bankrekening();
+r.Storten(10M);
+Check.Equal(false, r.Afhalen(11M), "te veel afhalen");
+Check.Equal(10M, r.Saldo, "saldo ongewijzigd");
+Check.Equal(false, r.Storten(-1M), "negatief storten");
+
+#! oefening id=L11-02-m rol=meesterschap moeilijkheid=3 xp=110 titel="Berekende properties"
+Maak een klasse `Rechthoek` met auto-implemented properties `Hoogte` en `Breedte` en **berekende readonly properties** `Oppervlakte`, `Omtrek` en `IsVierkant` (true als hoogte en breedte gelijk zijn).
+
+```text
+2 x 3: oppervlakte 6, omtrek 10, vierkant: False
+4 x 4: oppervlakte 16, omtrek 16, vierkant: True
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rechthoek a = new Rechthoek();
+            a.Hoogte = 2; a.Breedte = 3;
+            Rechthoek b = new Rechthoek();
+            b.Hoogte = 4; b.Breedte = 4;
+            Toon(a);
+            Toon(b);
+        }
+
+        static void Toon(Rechthoek r) {
+            Console.WriteLine($"{r.Hoogte} x {r.Breedte}: oppervlakte {r.Oppervlakte}, omtrek {r.Omtrek}, vierkant: {r.IsVierkant}");
+        }
+    }
+}
+
+#! starter bestand=Rechthoek.cs
+namespace D15 {
+    class Rechthoek {
+
+    }
+}
+
+#! hint
+Een berekende property heeft enkel een get: `public double Oppervlakte { get { return Hoogte * Breedte; } }`.
+
+#! hint
+Korter met een expressie: `public double Omtrek => 2 * (Hoogte + Breedte);`.
+
+#! hint
+`public bool IsVierkant => Hoogte == Breedte;`
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rechthoek a = new Rechthoek();
+            a.Hoogte = 2; a.Breedte = 3;
+            Rechthoek b = new Rechthoek();
+            b.Hoogte = 4; b.Breedte = 4;
+            Toon(a);
+            Toon(b);
+        }
+
+        static void Toon(Rechthoek r) {
+            Console.WriteLine($"{r.Hoogte} x {r.Breedte}: oppervlakte {r.Oppervlakte}, omtrek {r.Omtrek}, vierkant: {r.IsVierkant}");
+        }
+    }
+}
+
+#! oplossing bestand=Rechthoek.cs
+namespace D15 {
+    class Rechthoek {
+        public double Hoogte { get; set; }
+        public double Breedte { get; set; }
+
+        public double Oppervlakte => Hoogte * Breedte;
+        public double Omtrek => 2 * (Hoogte + Breedte);
+        public bool IsVierkant => Hoogte == Breedte;
+    }
+}
+
+#! uitleg
+- Berekende properties hebben geen eigen opslag: ze zijn altijd in lijn met Hoogte en Breedte.
+- `IsVierkant` leest als een zin; dat is het voordeel van een property met een goede naam.
+
+#! regel type=readonly-property doel=Rechthoek.Oppervlakte bericht="Oppervlakte is een readonly property"
+#! regel type=readonly-property doel=Rechthoek.IsVierkant bericht="IsVierkant is een readonly property"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+2 x 3: oppervlakte 6, omtrek 10, vierkant: False
+4 x 4: oppervlakte 16, omtrek 16, vierkant: True

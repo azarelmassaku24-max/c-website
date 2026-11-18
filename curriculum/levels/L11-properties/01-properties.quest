@@ -1,0 +1,319 @@
+#! lesson
+id: L11-01
+titel: Properties met get en set
+samenvatting: Get- en Set-methods vervangen door properties, met backing field of auto-implemented.
+skills: properties
+bron: Deel 15 – Visibility / Properties (D15persoon, D15rechthoek, D15cirkel)
+aanvulling: Er zat geen afzonderlijk uitlegdocument voor Deel 15 in je materiaal; deze uitleg is opgebouwd vanuit de oefeningen en oplossingen van Deel 15 en aanvullend geschreven.
+duur: 30
+
+#! begrijpen
+## Van Get/Set-methods naar properties
+
+In Level 10 schreef je voor elk dataveld een `GetX()` en `SetX()`. Dat is veel herhaling. C# kent daarvoor **properties**: een member die aanvoelt als een dataveld maar achter de schermen code uitvoert.
+
+```csharp norun
+class Rechthoek {
+    private double _hoogte;               // backing field
+
+    public double Hoogte {                // property
+        get { return _hoogte; }
+        set { _hoogte = value; }
+    }
+}
+```
+
+- `get` wordt uitgevoerd bij **lezen**: `double h = r.Hoogte;`
+- `set` wordt uitgevoerd bij **schrijven**: `r.Hoogte = 4.1;` — het toegekende getal zit in het speciale woord `value`.
+- Namen van properties beginnen met een **hoofdletter** (PascalCasing); het backing field met een underscore.
+
+## Auto-implemented properties
+
+Doet je property niets anders dan een dataveld doorgeven, dan schrijf je het korter. De compiler maakt het (verborgen) backing field zelf:
+
+```csharp norun
+public double Hoogte { get; set; }
+public string Naam { get; set; }
+```
+
+## Validatie in de setter
+
+Het voordeel van een property boven een publiek dataveld: je kan **controleren**.
+
+```csharp norun
+public double Straal {
+    get { return _straal; }
+    set {
+        if (value >= 0) {
+            _straal = value;
+        }
+    }
+}
+```
+
+## Gebruiken
+
+```csharp norun
+Rechthoek r = new Rechthoek();
+r.Hoogte = 4.1;
+r.Breedte = 8;
+Console.WriteLine(r.Oppervlakte());
+r.Hoogte += 1;       // lezen én schrijven in één keer
+```
+
+> [!NOTE]
+> In de oplossingen van de cursus staan properties gewoonlijk gewoon bovenaan de klasse, vóór de methods.
+
+#! voorbeeld
+## Rechthoek met properties
+
+```csharp
+using System;
+
+class Rechthoek {
+    public double Hoogte { get; set; }
+    public double Breedte { get; set; }
+
+    public double Oppervlakte() {
+        return Hoogte * Breedte;
+    }
+}
+
+class Program {
+    static void Main() {
+        Rechthoek r = new Rechthoek();
+        r.Hoogte = 4.1;
+        r.Breedte = 8;
+        Console.WriteLine(r.Oppervlakte());
+        r.Breedte += 2;
+        Console.WriteLine(r.Oppervlakte());
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Teller {
+    private int _waarde;
+    public int Waarde {
+        get { return _waarde; }
+        set { if (value >= 0) _waarde = value; }
+    }
+}
+class Program {
+    static void Main() {
+        Teller t = new Teller();
+        t.Waarde = 5;
+        t.Waarde = -3;
+        t.Waarde += 2;
+        Console.WriteLine(t.Waarde);
+    }
+}
+```
+? 5, daarna wordt -3 geweigerd (blijft 5), daarna `+= 2` → 7.
+
+#! voorspel id=v2 type=choice
+Waarvoor dient het woord `value` in een setter?
+- Het is de returnwaarde van de property
++ Het bevat de waarde die aan de property toegekend wordt
+- Het is de naam van het backing field
+- Het is een parameter die je zelf moet declareren
+? Bij `r.Hoogte = 4.1;` krijgt `value` in de set-code de waarde 4,1.
+
+#! oefening id=L11-01-a rol=oefenen moeilijkheid=2 xp=80 titel="Rechthoek met properties" bron="D15rechthoek"
+Pas de klasse `Rechthoek` uit D14rechthoek aan: werk met **auto-implemented properties** `Hoogte` en `Breedte` (get én set). Pas `Oppervlakte()` aan, en herschrijf ook `Program`.
+
+```text
+Rechthoek met hoogte 4,1, breedte 8 en oppervlakte 32,8.
+Rechthoek met hoogte 5, breedte 10,2 en oppervlakte 51.
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rechthoek rechthoek1 = new Rechthoek();
+
+            PrintRechthoek(rechthoek1);
+        }
+
+        static void PrintRechthoek(Rechthoek r) {
+
+        }
+    }
+}
+
+#! starter bestand=Rechthoek.cs
+namespace D15 {
+    class Rechthoek {
+
+    }
+}
+
+#! hint
+Een auto-implemented property: `public double Hoogte { get; set; }`. Geen dataveld meer nodig.
+
+#! hint
+`Oppervlakte()` gebruikt nu de properties: `return Hoogte * Breedte;`.
+
+#! hint
+In Main: `rechthoek1.Hoogte = 4.1;` enz. In PrintRechthoek: `{r.Hoogte}` in plaats van `{r.GetHoogte()}`. Maak ook `rechthoek2` (5 bij 10,2).
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Rechthoek rechthoek1 = new Rechthoek();
+            rechthoek1.Hoogte = 4.1;
+            rechthoek1.Breedte = 8;
+            Rechthoek rechthoek2 = new Rechthoek();
+            rechthoek2.Hoogte = 5;
+            rechthoek2.Breedte = 10.2;
+            PrintRechthoek(rechthoek1);
+            PrintRechthoek(rechthoek2);
+        }
+
+        static void PrintRechthoek(Rechthoek r) {
+            Console.WriteLine($"Rechthoek met hoogte {r.Hoogte}, breedte {r.Breedte} en oppervlakte {r.Oppervlakte()}.");
+        }
+    }
+}
+
+#! oplossing bestand=Rechthoek.cs
+namespace D15 {
+    class Rechthoek {
+        public double Hoogte { get; set; }
+        public double Breedte { get; set; }
+
+        public double Oppervlakte() {
+            return Hoogte * Breedte;
+        }
+    }
+}
+
+#! uitleg
+- Acht regels Get/Set-methods worden twee regels. De klant leest en schrijft nu `r.Hoogte`, alsof het een dataveld was.
+- Er is nog steeds een (verborgen) private dataveld; de property is de enige toegang ertoe.
+
+#! regel type=property doel=Rechthoek.Hoogte bericht="Maak een property Hoogte"
+#! regel type=property doel=Rechthoek.Breedte bericht="Maak een property Breedte"
+#! regel type=no-regex doel="GetHoogte|SetHoogte" bericht="Gebruik geen Get/Set-methods meer"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+Rechthoek met hoogte 4,1, breedte 8 en oppervlakte 32,8.
+Rechthoek met hoogte 5, breedte 10,2 en oppervlakte 51.
+
+#! oefening id=L11-01-m rol=meesterschap moeilijkheid=3 xp=110 titel="Cirkel met gecontroleerde property" bron="D15cirkel"
+Pas de klasse `Cirkel` aan met een property `Straal` die een **negatieve straal weigert** (de straal blijft dan ongewijzigd). Hiervoor heb je een **backing field** `_straal` en een eigen get/set nodig. `Oppervlakte()` en `Omtrek()` blijven methods.
+
+Main maakt een cirkel, stelt de straal in op 3,45, probeert -2 en toont:
+
+```text
+Straal: 3,45
+Omtrek: 21,68
+Oppervlakte: 37,39
+```
+
+#! starter bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel cirkel = new Cirkel();
+            cirkel.Straal = 3.45;
+            cirkel.Straal = -2;
+            Console.WriteLine($"Straal: {cirkel.Straal:f2}");
+            Console.WriteLine($"Omtrek: {cirkel.Omtrek():f2}");
+            Console.WriteLine($"Oppervlakte: {cirkel.Oppervlakte():f2}");
+        }
+    }
+}
+
+#! starter bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+
+    }
+}
+
+#! hint
+Een property met validatie kan niet auto-implemented zijn: je hebt zelf een backing field nodig.
+
+#! hint
+`private double _straal;` en `public double Straal { get { return _straal; } set { if (value >= 0) { _straal = value; } } }`.
+
+#! hint
+`Omtrek()` en `Oppervlakte()` gebruiken `Straal` (of `_straal`) en `Math.PI`.
+
+#! oplossing bestand=Program.cs
+using System;
+
+namespace D15 {
+    class Program {
+        static void Main() {
+            Cirkel cirkel = new Cirkel();
+            cirkel.Straal = 3.45;
+            cirkel.Straal = -2;
+            Console.WriteLine($"Straal: {cirkel.Straal:f2}");
+            Console.WriteLine($"Omtrek: {cirkel.Omtrek():f2}");
+            Console.WriteLine($"Oppervlakte: {cirkel.Oppervlakte():f2}");
+        }
+    }
+}
+
+#! oplossing bestand=Cirkel.cs
+using System;
+
+namespace D15 {
+    class Cirkel {
+        private double _straal;
+
+        public double Straal {
+            get { return _straal; }
+            set {
+                if (value >= 0) {
+                    _straal = value;
+                }
+            }
+        }
+
+        public double Omtrek() {
+            return 2 * Math.PI * Straal;
+        }
+
+        public double Oppervlakte() {
+            return Math.PI * Straal * Straal;
+        }
+    }
+}
+
+#! uitleg
+- Een property met logica in de setter heeft een **backing field** nodig; de auto-implemented vorm kan dat niet.
+- De klant merkt niets van de validatie: `cirkel.Straal = -2;` compileert en doet gewoon niets.
+
+#! regel type=property doel=Cirkel.Straal bericht="Maak een property Straal"
+#! regel type=private-fields bericht="Het backing field is private"
+
+#! test naam="Main"
+#! verwacht
+Straal: 3,45
+Omtrek: 21,68
+Oppervlakte: 37,39
+
+#! test naam="Validatie" soort=code
+Cirkel c = new Cirkel();
+c.Straal = 2;
+c.Straal = -1;
+Check.Equal(2.0, c.Straal, "negatieve straal geweigerd");
+c.Straal = 0;
+Check.Equal(0.0, c.Straal, "0 is toegelaten");

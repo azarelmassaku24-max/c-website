@@ -1,0 +1,271 @@
+#! lesson
+id: L06-02
+titel: Parameters
+samenvatting: Een method gegevens meegeven via één of meerdere parameters.
+skills: parameters, methods
+bron: Deel 10 – 2.7. Parameters · D10toonvierkantparameters, D10toonrechthoek, D10printreeks
+duur: 30
+
+#! begrijpen
+## Een method die zich aanpast (§2.7)
+
+`ToonVierkant()` toont altijd een vierkant van 5 op 5. Wil je een vierkant van een andere grootte, dan geef je die grootte mee als **parameter**:
+
+```csharp norun
+static void ToonVierkant(int zijde) {
+    for (int rij = 0; rij < zijde; rij++) {
+        ...
+    }
+}
+```
+
+- In de **definitie** staat tussen de haakjes een **parameter**: een datatype en een naam (`int zijde`). De parameter gedraagt zich in de method body als een lokale variabele.
+- Bij de **oproep** geef je een **argument** mee: een waarde voor de parameter.
+
+```csharp norun
+ToonVierkant(3);              // zijde krijgt de waarde 3
+int grootte = 7;
+ToonVierkant(grootte);        // zijde krijgt de waarde 7 (een kopie!)
+ToonVierkant(grootte * 2);    // elke expressie van het juiste type mag
+```
+
+## Meerdere parameters
+
+Parameters worden gescheiden door komma's. Bij de oproep geef je de argumenten **in dezelfde volgorde** mee:
+
+```csharp norun
+static void ToonRechthoek(int breedte, int hoogte) { ... }
+
+ToonRechthoek(10, 3);   // breedte = 10, hoogte = 3
+```
+
+> [!LET OP]
+> Het aantal en het type van de argumenten moet overeenkomen met de parameters. `ToonRechthoek(10)` geeft compileerfout CS7036 (*er ontbreekt een argument voor parameter 'hoogte'*).
+
+#! voorbeeld
+## Parameters in actie
+
+Volg in de debugger hoe de parameters bij elke methodactivatie een andere waarde krijgen (tabblad **Variabelen** en **Call Stack**).
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        ToonLijn(5, '*');
+        ToonLijn(10, '-');
+        int lengte = 3;
+        ToonLijn(lengte * 2, '#');
+    }
+
+    static void ToonLijn(int lengte, char teken) {
+        for (int i = 0; i < lengte; i++) {
+            Console.Write(teken);
+        }
+        Console.WriteLine();
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit programma af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        Toon(3, "ja");
+        Toon(1, "nee");
+    }
+    static void Toon(int aantal, string woord) {
+        for (int i = 0; i < aantal; i++) {
+            Console.Write(woord + " ");
+        }
+        Console.WriteLine();
+    }
+}
+```
+? De eerste oproep toont 3 keer "ja", de tweede 1 keer "nee".
+
+#! voorspel id=v2 type=choice
+`static void ToonRechthoek(int breedte, int hoogte)` — welke oproep is correct voor een rechthoek van 4 breed en 2 hoog?
++ ToonRechthoek(4, 2);
+- ToonRechthoek(2, 4);
+- ToonRechthoek(int 4, int 2);
+- ToonRechthoek(breedte: 4);
+? Argumenten worden in dezelfde volgorde als de parameters meegegeven: eerst breedte, dan hoogte. Het datatype vermeld je enkel in de definitie.
+
+#! oefening id=L06-02-a rol=oefenen moeilijkheid=2 xp=70 titel="Print een reeks" bron="D10printreeks"
+Schrijf een method `PrintReeks` met twee int-parameters. De method drukt alle gehele getallen af van het **kleinste naar het grootste**, gescheiden door ` > `. De twee getallen kunnen in eender welke volgorde meegegeven worden.
+
+```csharp norun
+static void Main() {
+    PrintReeks(10, 15);
+    PrintReeks(8, 3);
+    PrintReeks(4, 4);
+}
+```
+
+De uitvoer zou moeten opleveren:
+
+```text
+10 > 11 > 12 > 13 > 14 > 15
+3 > 4 > 5 > 6 > 7 > 8
+4
+```
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            PrintReeks(10, 15);
+            PrintReeks(8, 3);
+            PrintReeks(4, 4);
+        }
+
+        // Vul hier de ontbrekende method aan
+    }
+}
+
+#! hint
+De parameters kunnen omgekeerd zijn (8, 3). Bepaal in de method eerst welke de kleinste en welke de grootste is. Welke Math-method helpt?
+
+#! hint
+`int van = Math.Min(a, b); int tot = Math.Max(a, b);` en dan een for loop van `van` t.e.m. `tot`.
+
+#! hint
+Het scheidingsteken komt enkel tussen de getallen: toon het eerste getal vóór de loop en in de loop telkens `" > " + i` (start bij `van + 1`). Sluit af met `Console.WriteLine()`.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            PrintReeks(10, 15);
+            PrintReeks(8, 3);
+            PrintReeks(4, 4);
+        }
+
+        static void PrintReeks(int getal1, int getal2) {
+            int van = Math.Min(getal1, getal2);
+            int tot = Math.Max(getal1, getal2);
+            Console.Write(van);
+            for (int i = van + 1; i <= tot; i++) {
+                Console.Write($" > {i}");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! uitleg
+- Eén method, drie keer opgeroepen met andere argumenten: dat is de kracht van parameters.
+- De method maakt zichzelf robuust door met `Math.Min`/`Math.Max` de volgorde te bepalen.
+- `van` en `tot` zijn **lokale variabelen**: ze bestaan enkel tijdens die methodactivatie.
+
+#! regel type=method doel=PrintReeks geeft=void parameters=2 bericht="Maak een method PrintReeks met 2 parameters"
+
+#! test naam="Uitvoer van Main"
+#! verwacht
+10 > 11 > 12 > 13 > 14 > 15
+3 > 4 > 5 > 6 > 7 > 8
+4
+
+#! test naam="PrintReeks(-2, 1)" soort=code
+Check.OutputEqual("-2 > -1 > 0 > 1\n", () => Program.PrintReeks(-2, 1), "PrintReeks(-2, 1)");
+Check.OutputEqual("7 > 8\n", () => Program.PrintReeks(8, 7), "PrintReeks(8, 7)");
+
+#! oefening id=L06-02-m rol=meesterschap moeilijkheid=3 xp=100 titel="Rechthoek met een method" bron="D10toonrechthoek"
+Schrijf een method `ToonRechthoek` met 2 parameters (`breedte` en `hoogte`) die een rechthoek van sterretjes op de console zet.
+
+Het programma vraagt de gebruiker om een breedte en een hoogte en toont een rechthoek van die afmeting. Voert de gebruiker geen keurig positief getal in, dan herhaalt het programma de vraag (baseer je op D06rechthoekopmaat).
+
+```text
+Geef de breedte: 10
+Geef de hoogte: 3
+**********
+**********
+**********
+```
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Het tekenen gaat naar de method `ToonRechthoek(int breedte, int hoogte)`. De invoer blijft (voorlopig) in Main.
+
+#! hint
+Invoer: twee keer het do-while + TryParse-patroon. Daarna één regel: `ToonRechthoek(breedte, hoogte);`.
+
+#! hint
+In de method: geneste for loops met `hoogte` rijen en `breedte` sterren per rij.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            int breedte;
+            bool ok;
+            do {
+                Console.Write("Geef de breedte: ");
+                ok = int.TryParse(Console.ReadLine(), out breedte) && breedte > 0;
+            } while (!ok);
+            int hoogte;
+            do {
+                Console.Write("Geef de hoogte: ");
+                ok = int.TryParse(Console.ReadLine(), out hoogte) && hoogte > 0;
+            } while (!ok);
+
+            ToonRechthoek(breedte, hoogte);
+        }
+
+        static void ToonRechthoek(int breedte, int hoogte) {
+            for (int rij = 0; rij < hoogte; rij++) {
+                for (int kolom = 0; kolom < breedte; kolom++) {
+                    Console.Write("*");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+
+#! uitleg
+- Het tekenen staat in een method met twee parameters. Die method kan je nu ook elders hergebruiken.
+- Merk op dat de invoercode nog bijna dubbel staat. In de les over return values los je dat op met een method die een getal **teruggeeft** (D10vraaggebruikerompositiefgetal).
+
+#! regel type=method doel=ToonRechthoek geeft=void parameters=2 bericht="Maak een method ToonRechthoek(int breedte, int hoogte)"
+
+#! test naam="10 bij 3"
+#! invoer
+10
+3
+#! verwacht
+Geef de breedte: 10
+Geef de hoogte: 3
+**********
+**********
+**********
+
+#! test naam="Ongeldige invoer" referentie=ja
+#! invoer
+hallo
+4
+-1
+2
+
+#! test naam="ToonRechthoek(3, 2)" soort=code
+Check.OutputEqual("***\n***\n", () => Program.ToonRechthoek(3, 2), "ToonRechthoek(3, 2)");
+Check.OutputEqual("*\n", () => Program.ToonRechthoek(1, 1), "ToonRechthoek(1, 1)");

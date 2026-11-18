@@ -1,0 +1,274 @@
+#! lesson
+id: L07-03
+titel: Return values: arrays teruggeven
+samenvatting: Methods die een nieuwe array opbouwen en teruggeven, zonder de originele array te wijzigen.
+skills: value-reference, parameters, array-loops
+bron: Deel 11 – 2.4. Return values teruggeven · D11filter, D11slice, D11expand
+duur: 30
+
+#! begrijpen
+## Een nieuwe array teruggeven (Deel 11 §2.4)
+
+Een method kan een array **maken en teruggeven**. De originele array blijft dan onaangeroerd — dat maakt je code voorspelbaarder:
+
+```csharp norun
+static int[] Slice(int[] values, int startIndex, int length) {
+    int[] resultaat = new int[length];
+    for (int i = 0; i < length; i++) {
+        resultaat[i] = values[startIndex + i];
+    }
+    return resultaat;
+}
+
+int[] deel = Slice(getallen, 3, 2);
+```
+
+## Hoe groot moet de nieuwe array zijn?
+
+Soms weet je dat pas na een eerste doorloop (bv. bij **filteren**: hoeveel waarden voldoen?). Twee aanpakken:
+
+1. **Twee keer doorlopen**: eerst tellen, dan een array van de juiste grootte maken en vullen.
+2. Een array van de maximale grootte vullen en daarna kopiëren naar een array van de juiste grootte.
+
+Een **lege array** (`new int[0]`) is een geldige return value: een array van lengte nul — iets anders dan `null`!
+
+## Wijzigen of teruggeven?
+
+| Aanpak | Voorbeeld | Effect op het origineel |
+|---|---|---|
+| array wijzigen (void) | `Reverse(woorden)` | origineel verandert |
+| nieuwe array teruggeven | `int[] gefilterd = Filter(meetwaarden, -4, 7)` | origineel blijft ongewijzigd |
+
+#! voorbeeld
+## Filter in twee doorlopen
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int[] meetwaarden = { 3, 6, 10, -1, -23, 0, -6, 7 };
+        int[] positief = GetPositieve(meetwaarden);
+        Console.WriteLine(String.Join(",", positief));
+        Console.WriteLine(String.Join(",", meetwaarden));
+    }
+
+    static int[] GetPositieve(int[] getallen) {
+        int aantal = 0;
+        foreach (int getal in getallen) {
+            if (getal > 0) aantal++;
+        }
+        int[] resultaat = new int[aantal];
+        int index = 0;
+        foreach (int getal in getallen) {
+            if (getal > 0) {
+                resultaat[index] = getal;
+                index++;
+            }
+        }
+        return resultaat;
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        int[] a = { 1, 2, 3 };
+        int[] b = Dubbel(a);
+        Console.WriteLine($"{a[0]} {b[0]} {b.Length}");
+    }
+    static int[] Dubbel(int[] getallen) {
+        int[] resultaat = new int[getallen.Length];
+        for (int i = 0; i < getallen.Length; i++) {
+            resultaat[i] = getallen[i] * 2;
+        }
+        return resultaat;
+    }
+}
+```
+? De method maakt een nieuwe array; `a` blijft ongewijzigd (1), `b[0]` is 2 en `b` heeft 3 elementen.
+
+#! voorspel id=v2 type=choice
+Wat is het verschil tussen `new int[0]` en `null`?
++ new int[0] is een echte array met lengte 0; null is geen array
+- Er is geen verschil
+- new int[0] geeft een fout
+- null heeft lengte 0
+? Een lege array kan je gewoon overlopen of `.Length` van opvragen (0). Bij null crasht dat met een NullReferenceException.
+
+#! oefening id=L07-03-a rol=oefenen moeilijkheid=3 xp=90 titel="Filter" bron="D11filter"
+Schrijf een method `Filter` die een **nieuwe** array teruggeeft met alle waarden uit `getallen` die tussen `min` en `max` liggen (grenzen inbegrepen), in dezelfde volgorde. Vindt de method geen enkele waarde, dan geeft ze een lege array terug.
+
+```csharp norun
+static int[] Filter(int[] getallen, int min, int max)
+```
+
+```csharp norun
+int[] meetwaarden = { 3, 6, 10, -1, -23, 0, -6, 7, 10, -15, -4, 10 };
+Console.WriteLine(String.Join(",", Filter(meetwaarden, -4, 7)));
+Console.WriteLine(String.Join(",", Filter(meetwaarden, 10, 10)));
+Console.WriteLine(String.Join(",", Filter(meetwaarden, 100, 200)));
+```
+
+```text
+3,6,-1,0,7,-4
+10,10,10
+
+```
+
+(De derde regel is leeg.)
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            int[] meetwaarden = { 3, 6, 10, -1, -23, 0, -6, 7, 10, -15, -4, 10 };
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, -4, 7)));
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, 10, 10)));
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, 100, 200)));
+        }
+    }
+}
+
+#! hint
+Hoe groot moet de nieuwe array zijn? Dat weet je pas als je geteld hebt hoeveel waarden tussen de grenzen liggen.
+
+#! hint
+Eerste doorloop: tel. Maak `new int[aantal]`. Tweede doorloop: vul met een aparte index-teller.
+
+#! hint
+De voorwaarde: `getal >= min && getal <= max`. Bij 0 treffers is `new int[0]` vanzelf een lege array.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            int[] meetwaarden = { 3, 6, 10, -1, -23, 0, -6, 7, 10, -15, -4, 10 };
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, -4, 7)));
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, 10, 10)));
+            Console.WriteLine(String.Join(",", Filter(meetwaarden, 100, 200)));
+        }
+
+        static int[] Filter(int[] getallen, int min, int max) {
+            int aantal = 0;
+            foreach (int getal in getallen) {
+                if (getal >= min && getal <= max) {
+                    aantal++;
+                }
+            }
+            int[] resultaat = new int[aantal];
+            int index = 0;
+            foreach (int getal in getallen) {
+                if (getal >= min && getal <= max) {
+                    resultaat[index] = getal;
+                    index++;
+                }
+            }
+            return resultaat;
+        }
+    }
+}
+
+#! uitleg
+- Twee doorlopen: eerst tellen (grootte bepalen), dan vullen. `index` houdt bij waar het volgende element komt.
+- Het origineel `meetwaarden` wordt niet gewijzigd: we bouwen een nieuwe array.
+
+#! regel type=method doel=Filter geeft=int[] parameters=3 bericht="Maak een method static int[] Filter(int[] getallen, int min, int max)"
+
+#! test naam="Main"
+#! verwacht
+3,6,-1,0,7,-4
+10,10,10
+
+#! test naam="Filter laat het origineel ongewijzigd" soort=code
+int[] waarden = { 5, 1, 9 };
+int[] resultaat = Program.Filter(waarden, 2, 9);
+Check.Equal(new[] { 5, 9 }, resultaat, "Filter({5, 1, 9}, 2, 9)");
+Check.Equal(new[] { 5, 1, 9 }, waarden, "origineel ongewijzigd");
+Check.Equal(0, Program.Filter(waarden, 50, 60).Length, "geen treffers → lege array");
+
+#! oefening id=L07-03-m rol=meesterschap moeilijkheid=4 xp=120 titel="Expand" bron="D11expand"
+Schrijf een method `Expand` die een **nieuwe** array teruggeeft waarin elke waarde uit `getallen` een `aantal` keer na elkaar voorkomt. Is `aantal` 0, dan wordt een lege array teruggegeven. Je mag ervan uitgaan dat `aantal` niet negatief is.
+
+```csharp norun
+static int[] Expand(int aantal, int[] getallen)
+```
+
+De reeks 2, 3, -5, 6 via Expand 3x dupliceren geeft:
+
+```text
+2,2,2,3,3,3,-5,-5,-5,6,6,6
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            int[] scores = { 2, 3, -5, 6 };
+            Console.WriteLine(String.Join(",", Expand(1, scores)));
+            Console.WriteLine(String.Join(",", Expand(3, scores)));
+        }
+    }
+}
+
+#! hint
+De grootte van de nieuwe array kan je hier meteen berekenen. Hoeveel elementen krijg je bij 4 getallen die elk 3 keer voorkomen?
+
+#! hint
+`new int[getallen.Length * aantal]`. Voor elk getal voeg je het `aantal` keer toe: een geneste loop.
+
+#! hint
+Gebruik een aparte teller `index` voor de positie in de nieuwe array: `foreach (int getal in getallen) { for (int k = 0; k < aantal; k++) { resultaat[index] = getal; index++; } }`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            int[] scores = { 2, 3, -5, 6 };
+            Console.WriteLine(String.Join(",", Expand(1, scores)));
+            Console.WriteLine(String.Join(",", Expand(3, scores)));
+        }
+
+        static int[] Expand(int aantal, int[] getallen) {
+            int[] resultaat = new int[getallen.Length * aantal];
+            int index = 0;
+            foreach (int getal in getallen) {
+                for (int k = 0; k < aantal; k++) {
+                    resultaat[index] = getal;
+                    index++;
+                }
+            }
+            return resultaat;
+        }
+    }
+}
+
+#! uitleg
+- De grootte is hier vooraf gekend: `Length * aantal`. Bij aantal 0 is dat een lege array.
+- Geneste loop: voor elk origineel getal, `aantal` keer toevoegen. `index` loopt door over alle iteraties heen.
+
+#! regel type=method doel=Expand geeft=int[] parameters=2 bericht="Maak een method static int[] Expand(int aantal, int[] getallen)"
+
+#! test naam="Main"
+#! verwacht
+2,3,-5,6
+2,2,2,3,3,3,-5,-5,-5,6,6,6
+
+#! test naam="Randgevallen" soort=code
+int[] scores = { 2, 3 };
+Check.Equal(0, Program.Expand(0, scores).Length, "Expand(0, …) geeft een lege array");
+Check.Equal(new[] { 2, 2, 3, 3 }, Program.Expand(2, scores), "Expand(2, {2, 3})");
+Check.Equal(new int[0], Program.Expand(5, new int[0]), "Expand van een lege array");
+Check.Equal(new[] { 2, 3 }, scores, "origineel ongewijzigd");

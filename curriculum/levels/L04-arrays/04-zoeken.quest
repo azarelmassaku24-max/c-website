@@ -1,0 +1,279 @@
+#! lesson
+id: L04-04
+titel: Dynamische grootte en zoeken in arrays
+samenvatting: Arrays waarvan de grootte pas tijdens de uitvoering gekend is, en posities van waarden zoeken.
+skills: array-zoeken, array-loops
+bron: Deel 08 – 8. Dynamische grootte van een array, 9. Zoeken in arrays · D08positieszoeken
+duur: 30
+
+#! begrijpen
+## Dynamische grootte (Deel 08 §8)
+
+De lengte van een array moet niet in de broncode vastliggen: ze mag een **variabele** zijn, bv. gebaseerd op invoer.
+
+```csharp norun
+Console.Write("Hoeveel scores? ");
+int aantal = int.Parse(Console.ReadLine());
+int[] scores = new int[aantal];
+```
+
+Eenmaal aangemaakt, kan een array **niet groeien of krimpen**. Wil je toch meer plaats, dan maak je een nieuwe, grotere array en kopieer je de waarden. (In Level 12 leer je `List<T>`, die dat vanzelf doet.)
+
+Een vaak gebruikte techniek: maak de array zo groot als het **maximum** en hou in een aparte variabele bij hoeveel elementen er **echt gebruikt** worden.
+
+```csharp norun
+double[] getallen = new double[6];
+int aantalIngevuld = 0;
+...
+getallen[aantalIngevuld] = getal;
+aantalIngevuld++;
+```
+
+## Zoeken naar een positie (§9.1)
+
+Om te weten waar een waarde in een array staat, overloop je de array en vergelijk je elk element:
+
+```csharp norun
+int positie = -1;
+for (int i = 0; i < namen.Length; i++) {
+    if (namen[i] == gezocht && positie == -1) {
+        positie = i;
+    }
+}
+```
+
+- `-1` betekent "niet gevonden" (zoals bij `IndexOf` voor strings).
+- Wil je **alle** posities, dan toon of tel je elke treffer.
+
+> [!TIP]
+> Bestaat er een kant-en-klare method? `Array.IndexOf(namen, gezocht)` geeft de eerste positie. In de oefeningen schrijf je het zoekalgoritme zelf — zo begrijp je wat er onder de motorkap gebeurt.
+
+#! voorbeeld
+## Zoeken in een array
+
+```csharp invoer="3"
+int[] getallen = { 4, 3, 8, 3, 1, 3 };
+Console.Write("Welk getal zoek je? ");
+int gezocht = int.Parse(Console.ReadLine());
+int aantalGevonden = 0;
+for (int i = 0; i < getallen.Length; i++) {
+    if (getallen[i] == gezocht) {
+        Console.WriteLine($"gevonden op positie {i}");
+        aantalGevonden++;
+    }
+}
+if (aantalGevonden == 0) {
+    Console.WriteLine("niet gevonden");
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string[] dieren = { "kip", "koe", "paard", "koe" };
+int positie = -1;
+for (int i = 0; i < dieren.Length; i++) {
+    if (dieren[i] == "koe") {
+        positie = i;
+    }
+}
+Console.WriteLine(positie);
+```
+? Er is geen extra controle `positie == -1`: elke treffer overschrijft de vorige. Het resultaat is de **laatste** positie, 3.
+
+#! voorspel id=v2 type=choice
+Je array `double[] metingen = new double[10];` zit vol. Je wil een 11de meting bewaren. Wat doe je?
+- metingen.Length = 11;
+- metingen[10] = waarde; (de array groeit vanzelf)
++ Een nieuwe array van 11 elementen maken en de waarden kopiëren
+- Dat kan niet in C#
+? De lengte van een array ligt vast. `metingen[10]` geeft een IndexOutOfRangeException. Je maakt een nieuwe, grotere array — of je gebruikt later een List.
+
+#! oefening id=L04-04-a rol=oefenen moeilijkheid=2 xp=70 titel="Fibonacci op maat" bron="D08fibonacci"
+Schrijf een programma dat de gebruiker vraagt hoeveel getallen van de **rij van Fibonacci** hij wil zien (minstens 2). Maak een array van die grootte, vul de eerste twee elementen met 1 en elk volgend element met de som van de twee vorige. Toon daarna alle getallen gescheiden door een spatie.
+
+```text
+Hoeveel getallen? 10
+1 1 2 3 5 8 13 21 34 55
+```
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel getallen? ");
+            int aantal = int.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+De grootte van de array is `aantal`. De eerste twee elementen (index 0 en 1) zijn 1.
+
+#! hint
+Vul vanaf index 2: `fibonacci[i] = fibonacci[i - 1] + fibonacci[i - 2];`.
+
+#! hint
+Toon met een foreach: `Console.Write(getal + " ");` — een spatie achteraan is geen probleem (de vergelijking negeert spaties op het einde van een regel).
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel getallen? ");
+            int aantal = int.Parse(Console.ReadLine());
+            int[] fibonacci = new int[aantal];
+            fibonacci[0] = 1;
+            fibonacci[1] = 1;
+            for (int i = 2; i < fibonacci.Length; i++) {
+                fibonacci[i] = fibonacci[i - 1] + fibonacci[i - 2];
+            }
+            foreach (int getal in fibonacci) {
+                Console.Write(getal + " ");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! uitleg
+- De grootte van de array volgt uit de invoer: **dynamische grootte**.
+- Elk element hangt af van de twee vorige elementen; daarom begint de loop bij index 2.
+- Met `int` raak je rond het 47ste getal voorbij de maximale waarde (overflow). Probeer eens 50 — wat zie je? Met `long` kom je verder.
+
+#! regel type=statement doel=array bericht="Gebruik een array"
+
+#! test naam="10 getallen"
+#! invoer
+10
+#! verwacht
+Hoeveel getallen? 10
+1 1 2 3 5 8 13 21 34 55
+
+#! test naam="2 getallen" referentie=ja
+#! invoer
+2
+
+#! test naam="20 getallen" referentie=ja verborgen=ja
+#! invoer
+20
+
+#! oefening id=L04-04-m rol=meesterschap moeilijkheid=3 xp=100 titel="Posities zoeken" bron="D08positieszoeken"
+Schrijf een programma dat de gebruiker eerst vraagt hoeveel getallen hij wil ingeven, die getallen in een array bewaart, en daarna vraagt naar een **zoekgetal**. Het programma toont alle posities waarop het zoekgetal voorkomt, of `niet gevonden`.
+
+```text
+Hoeveel getallen? 5
+Getal 1 : 4
+Getal 2 : 7
+Getal 3 : 4
+Getal 4 : 1
+Getal 5 : 4
+Welk getal zoek je? 4
+gevonden op positie(s): 0 2 4
+```
+
+```text
+Welk getal zoek je? 9
+niet gevonden
+```
+
+Gebruik **geen** `Array.IndexOf`: schrijf het zoekalgoritme zelf.
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Drie stappen: array aanmaken en invullen, zoekgetal vragen, array overlopen. Hoe onthoud je de gevonden posities om ze op één regel te tonen?
+
+#! hint
+Bouw een string op met de posities: `posities += " " + i;` bij elke treffer. Na de loop: is de string leeg, dan is er niets gevonden.
+
+#! hint
+`string posities = ""; for (int i = 0; i < getallen.Length; i++) { if (getallen[i] == gezocht) posities += " " + i; }` en dan `if (posities == "") …niet gevonden… else Console.WriteLine("gevonden op positie(s):" + posities);`.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel getallen? ");
+            int aantal = int.Parse(Console.ReadLine());
+            int[] getallen = new int[aantal];
+            for (int i = 0; i < getallen.Length; i++) {
+                Console.Write($"Getal {i + 1} : ");
+                getallen[i] = int.Parse(Console.ReadLine());
+            }
+
+            Console.Write("Welk getal zoek je? ");
+            int gezocht = int.Parse(Console.ReadLine());
+            string posities = "";
+            for (int i = 0; i < getallen.Length; i++) {
+                if (getallen[i] == gezocht) {
+                    posities += " " + i;
+                }
+            }
+            if (posities == "") {
+                Console.WriteLine("niet gevonden");
+            } else {
+                Console.WriteLine("gevonden op positie(s):" + posities);
+            }
+        }
+    }
+}
+
+#! uitleg
+- Het zoekalgoritme overloopt **alle** elementen en vergelijkt telkens met het zoekgetal: een *lineaire zoekactie*.
+- De posities worden in een string verzameld, zodat ze op één regel komen.
+- Let op: de gebruiker telt "Getal 1, 2, …" maar de posities zijn indexen (vanaf 0).
+
+#! regel type=forbids doel=IndexOf bericht="Gebruik geen Array.IndexOf: schrijf het zoekalgoritme zelf"
+
+#! test naam="Meerdere treffers"
+#! invoer
+5
+4
+7
+4
+1
+4
+4
+#! verwacht
+Hoeveel getallen? 5
+Getal 1 : 4
+Getal 2 : 7
+Getal 3 : 4
+Getal 4 : 1
+Getal 5 : 4
+Welk getal zoek je? 4
+gevonden op positie(s): 0 2 4
+
+#! test naam="Niet gevonden" referentie=ja
+#! invoer
+3
+1
+2
+3
+9
+
+#! test naam="Laatste positie" referentie=ja verborgen=ja
+#! invoer
+4
+8
+8
+8
+5
+5

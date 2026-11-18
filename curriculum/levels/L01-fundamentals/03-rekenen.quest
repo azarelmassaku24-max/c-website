@@ -1,0 +1,276 @@
+#! lesson
+id: L01-03
+titel: Rekenen, operatoren en Math
+samenvatting: Rekenkundige operatoren, gehele deling, modulo, de verkorte notatie en de Math-klasse.
+skills: operatoren
+bron: Deel 03 – 2. Werken met getallen (2.2 Math, 2.3 Verkorte notatie)
+aanvulling: De uitleg over de rekenkundige operatoren, gehele deling en modulo is aanvullend geschreven. Math en de verkorte notatie volgen Deel 03 §2.2–2.3.
+duur: 30
+
+#! begrijpen
+## De rekenkundige operatoren
+
+| Operator | Betekenis | Voorbeeld | Resultaat |
+|---|---|---|---|
+| `+` | optellen | `7 + 2` | `9` |
+| `-` | aftrekken | `7 - 2` | `5` |
+| `*` | vermenigvuldigen | `7 * 2` | `14` |
+| `/` | delen | `7 / 2` | `3` (!) |
+| `%` | rest na deling (modulo) | `7 % 2` | `1` |
+
+Zoals in wiskunde gaan `*`, `/` en `%` vóór `+` en `-`. Gebruik **haakjes** om de volgorde te bepalen: `(2 + 3) * 4` is 20.
+
+## Gehele deling: de grootste valkuil
+
+Als **beide** getallen een `int` zijn, is het resultaat ook een `int`: alles na de komma valt weg.
+
+```csharp norun
+int a = 7;
+int b = 2;
+Console.WriteLine(a / b);     // 3
+Console.WriteLine(a / 2.0);   // 3,5 — 2.0 is een double, dus kommadeling
+```
+
+Is minstens één van beide een `double`, dan krijg je een kommagetal. Je kan ook een cast gebruiken: `(double)a / b`.
+
+## Modulo: de rest
+
+`%` geeft de **rest** na een gehele deling. Handig om:
+
+- te testen of een getal **even** is: `getal % 2 == 0`;
+- een getal te **ontleden**: `123 % 10` geeft het laatste cijfer `3`, `123 / 10` geeft `12`;
+- tijd om te rekenen: `125 % 60` = 5 seconden over na 2 volle minuten.
+
+## Verkorte notatie (Deel 03)
+
+| Voluit | Verkort | Effect |
+|---|---|---|
+| `x = x + 1;` | `x++;` | verhoog `x` met 1 |
+| `x = x - 1;` | `x--;` | verminder `x` met 1 |
+| `x = x + y;` | `x += y;` | verhoog `x` met `y` |
+| `x = x * y;` | `x *= y;` | vermenigvuldig `x` met `y` |
+| `x = x / y;` | `x /= y;` | deel `x` door `y` |
+
+Dit werkt ook voor strings: `s1 += " world!";` plakt tekst achteraan.
+
+## De Math-klasse (Deel 03)
+
+| Code | Betekenis |
+|---|---|
+| `Math.Min(a, b)` / `Math.Max(a, b)` | kleinste / grootste van twee getallen |
+| `Math.PI` | de waarde van pi — schrijf nooit zelf `3.14159`! |
+| `Math.Pow(grondtal, exponent)` | macht, bv. `Math.Pow(4, 3)` = 64 |
+| `Math.Sqrt(getal)` | vierkantswortel (geeft een `double`) |
+| `Math.Abs(getal)` | absolute waarde |
+
+`Math.Min(a, b)` heeft hetzelfde type als `a` en `b`: met twee ints krijg je een int, met doubles een double.
+
+#! voorbeeld
+## Rekenen in actie
+
+```csharp
+int totaalSeconden = 125;
+int minuten = totaalSeconden / 60;
+int seconden = totaalSeconden % 60;
+Console.WriteLine(minuten + " minuten en " + seconden + " seconden");
+
+double straal = 3;
+double oppervlakte = Math.PI * Math.Pow(straal, 2);
+Console.WriteLine(oppervlakte);
+
+int x = 10;
+x += 5;
+x++;
+Console.WriteLine(x);
+```
+
+Volg het programma **stap voor stap** en let op:
+
+- `125 / 60` is `2`, niet `2,08…`: gehele deling.
+- `125 % 60` is `5`: de rest.
+- `x` wordt eerst 15 (`x += 5`) en daarna 16 (`x++`).
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int a = 17;
+int b = 5;
+Console.WriteLine(a / b);
+Console.WriteLine(a % b);
+```
+? `17 / 5` is een gehele deling: 3 (want 3 × 5 = 15). De rest `17 % 5` is 2.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+int x = 10;
+int y = 4;
+x *= y;
+x -= 15;
+Console.WriteLine(x);
+```
+? `x *= y` maakt `x` gelijk aan 10 × 4 = 40. Daarna `x -= 15` → 25.
+
+#! voorspel id=v3 type=choice
+Wat is de waarde van `resultaat` in `double resultaat = 7 / 2;`?
+- 3,5
++ 3
+- 4
+- Compileerfout
+? Rechts staan twee `int` literals, dus `7 / 2` is een gehele deling = 3. Pas daarna wordt die 3 in de double gestopt (3,0). De variabele is wel een double, maar de deling was al gebeurd!
+
+#! voorspel id=v4 type=text antwoord=0
+Wat is de uitkomst van `24 % 6`?
+? 24 is precies deelbaar door 6, dus er blijft niets over: 0. Zo test je of een getal deelbaar is door een ander getal.
+
+#! oefening id=L01-03-a rol=oefenen moeilijkheid=2 xp=50 titel="Cirkel" bron="D03cirkel"
+Schrijf een programma dat de gebruiker om de **straal** van een cirkel vraagt (een kommagetal!) en vervolgens de omtrek en de oppervlakte toont.
+
+Voor een cirkel geldt:
+
+- de omtrek is 2 keer pi keer de straal
+- de oppervlakte is pi maal het kwadraat van de straal
+
+```text
+Geef de straal : 2
+De omtrek is 12,566370614359172
+De oppervlakte is 12,566370614359172
+```
+
+Gebruik `Math.PI` en `Math.Pow`.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de straal : ");
+
+        }
+    }
+}
+
+#! hint
+De straal is een kommagetal, dus lees ze in als `double`. Ook de omtrek en de oppervlakte zijn doubles.
+
+#! hint
+Pi schrijf je als `Math.PI`. Het kwadraat van de straal is `Math.Pow(straal, 2)`.
+
+#! hint
+`double omtrek = 2 * Math.PI * straal;` en `double oppervlakte = Math.PI * Math.Pow(straal, 2);`. Toon elk resultaat op een eigen regel.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de straal : ");
+            double straal = double.Parse(Console.ReadLine());
+            double omtrek = 2 * Math.PI * straal;
+            double oppervlakte = Math.PI * Math.Pow(straal, 2);
+            Console.WriteLine("De omtrek is " + omtrek);
+            Console.WriteLine("De oppervlakte is " + oppervlakte);
+        }
+    }
+}
+
+#! uitleg
+- `Math.PI` is nauwkeuriger en duidelijker dan zelf `3.14` te typen (de cursus noemt dat een *magic value*).
+- `Math.Pow(straal, 2)` berekent straal². Je mag ook `straal * straal` schrijven.
+- De literal `2` in de omtrekformule is geen magic value: een naam maakt het niet duidelijker en het zal nooit iets anders zijn.
+
+#! regel type=uses doel=Math.PI bericht="Gebruik Math.PI voor pi"
+
+#! test naam="Straal 2"
+#! invoer
+2
+#! verwacht
+Geef de straal : 2
+De omtrek is 12,566370614359172
+De oppervlakte is 12,566370614359172
+
+#! test naam="Straal 2,5" referentie=ja
+#! invoer
+2,5
+
+#! test naam="Straal 10" referentie=ja verborgen=ja
+#! invoer
+10
+
+#! oefening id=L01-03-m rol=meesterschap moeilijkheid=3 xp=80 titel="Seconden omzetten" bron="D03persecondewijzer"
+Schrijf een programma dat de gebruiker om een **geheel aantal seconden** vraagt en toont hoeveel uren, minuten en seconden dit is.
+
+```text
+Geef het aantal seconden : 8587
+8587 seconden is 2 uren, 23 minuten en 7 seconden
+```
+
+**Tip uit de cursus:** maak eerst voor jezelf drie voorbeelden op papier: 8587 seconden, 307 seconden en 57 seconden.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Eén uur is 3600 seconden en één minuut 60 seconden. Hoeveel volle uren passen er in 8587 seconden? Welke operator geeft je dat aantal zonder komma?
+
+#! hint
+Gehele deling (`/`) geeft het aantal volle uren. De **rest** (`%`) is wat overblijft om in minuten en seconden om te zetten.
+
+#! hint
+Stappenplan: `uren = totaal / 3600`, `rest = totaal % 3600`, `minuten = rest / 60`, `seconden = rest % 60`. Controleer met 8587: 2 uren, rest 1387 → 23 minuten, 7 seconden.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef het aantal seconden : ");
+            int totaalSeconden = int.Parse(Console.ReadLine());
+            int uren = totaalSeconden / 3600;
+            int rest = totaalSeconden % 3600;
+            int minuten = rest / 60;
+            int seconden = rest % 60;
+            Console.WriteLine(totaalSeconden + " seconden is " + uren + " uren, " + minuten + " minuten en " + seconden + " seconden");
+        }
+    }
+}
+
+#! uitleg
+- **Gehele deling** `/` met twee ints geeft het aantal *volle* uren of minuten.
+- **Modulo** `%` geeft wat overblijft. Die rest gebruiken we voor de volgende stap.
+- Traceer de oplossing met 307: uren = 0, rest = 307, minuten = 5, seconden = 7.
+
+#! regel type=regex doel="%" bericht="Gebruik de modulo-operator % om de rest te berekenen"
+
+#! test naam="Voorbeeld uit de cursus (8587)"
+#! invoer
+8587
+#! verwacht
+Geef het aantal seconden : 8587
+8587 seconden is 2 uren, 23 minuten en 7 seconden
+
+#! test naam="307 seconden"
+#! invoer
+307
+#! verwacht
+Geef het aantal seconden : 307
+307 seconden is 0 uren, 5 minuten en 7 seconden
+
+#! test naam="57 seconden" referentie=ja
+#! invoer
+57
+
+#! test naam="Exact één uur" referentie=ja verborgen=ja
+#! invoer
+3600

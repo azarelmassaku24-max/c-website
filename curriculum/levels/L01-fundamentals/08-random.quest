@@ -1,0 +1,237 @@
+#! lesson
+id: L01-08
+titel: Willekeurige getallen met Random
+samenvatting: Je programma laten "dobbelen" met Random en rnd.Next.
+skills: random, if-else
+bron: Deel 03 – 2.1. Random getallen
+duur: 20
+
+#! begrijpen
+## Random getallen
+
+Om je programma een willekeurig getal te laten bepalen gebruik je:
+
+```csharp norun
+Random rnd = new Random();
+int willekeurigGetal = rnd.Next(5, 10);
+```
+
+`willekeurigGetal` bevat een getal dat **groter of gelijk is aan 5** maar **kleiner dan 10**: dus 5, 6, 7, 8 of 9. In wiskundige notatie: het interval `[5, 10[`.
+
+> [!BELANGRIJK]
+> De bovengrens doet **niet** mee. Voor een dobbelsteen (1 t.e.m. 6) schrijf je `rnd.Next(1, 7)`.
+
+Heb je meerdere random getallen nodig, gebruik dan meermaals `rnd.Next()` — de regel `Random rnd = new Random();` is maar **één keer** nodig:
+
+```csharp norun
+Random rnd = new Random();   // slechts 1x nodig
+int worp1 = rnd.Next(1, 7);
+int worp2 = rnd.Next(1, 7);
+```
+
+## Hoe testen we iets willekeurigs?
+
+Een programma met random getallen geeft elke keer een andere uitvoer. Hoe kan je dat automatisch testen? In C# Quest krijgt `Random` tijdens de **tests** een vaste startwaarde (een *seed*): dezelfde seed geeft altijd dezelfde reeks "willekeurige" getallen. Daardoor kunnen we jouw programma vergelijken met de modeloplossing.
+
+Gebruik daarom in de oefeningen **precies** de `rnd.Next(...)`-aanroepen die in de opdracht staan, in dezelfde volgorde. Wanneer je zelf op **Uitvoeren** klikt, is alles wél echt willekeurig.
+
+#! voorbeeld
+## Twee dobbelstenen
+
+Voer dit voorbeeld een paar keer uit: elke keer een andere worp.
+
+```csharp
+Random rnd = new Random();
+int worp1 = rnd.Next(1, 7);
+int worp2 = rnd.Next(1, 7);
+int som = worp1 + worp2;
+Console.WriteLine($"Je gooide {worp1} en {worp2}, samen {som}.");
+if (worp1 == worp2) {
+    Console.WriteLine("Dubbel!");
+}
+```
+
+#! voorspel id=v1 type=choice
+Welke waarden kan `rnd.Next(1, 4)` opleveren?
+- 1, 2, 3 en 4
++ 1, 2 en 3
+- 0, 1, 2 en 3
+- 2 en 3
+? De ondergrens doet mee, de bovengrens niet: `[1, 4[` = 1, 2 of 3.
+
+#! voorspel id=v2 type=choice
+Je wil een willekeurig getal van 0 t.e.m. 10 (beide inbegrepen). Wat schrijf je?
+- rnd.Next(0, 10)
++ rnd.Next(0, 11)
+- rnd.Next(1, 10)
+- rnd.Next(10)
+? De bovengrens is exclusief, dus voor 10 inbegrepen gebruik je 11 als bovengrens.
+
+#! oefening id=L01-08-a rol=oefenen moeilijkheid=2 xp=60 titel="Getal raden (1 kans)" bron="D03getalraden"
+Schrijf een programma dat een random getal bepaalt **tussen 0 en 10** (beide inbegrepen, gebruik `rnd.Next(0, 11)`) en de gebruiker **1 kans** geeft om het te raden. Het programma toont of de gok van de gebruiker juist of fout was.
+
+Een mogelijke uitvoering waarbij het random getal 4 is en de gebruiker 8 gokt:
+
+```text
+De computer denkt aan een getal tussen 0 en 10.
+Welk getal denkt u dat het is : 8
+Helaas, het getal was 4!
+```
+
+Een mogelijke uitvoering waarbij het random getal 4 is en de gebruiker correct gokt:
+
+```text
+De computer denkt aan een getal tussen 0 en 10.
+Welk getal denkt u dat het is : 4
+Proficiat, u heeft goed geraden!
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Je hebt drie dingen nodig: een `Random`-object, één random getal, en de gok van de gebruiker. Daarna vergelijk je die twee.
+
+#! hint
+`Random rnd = new Random();` en `int geheimGetal = rnd.Next(0, 11);`. Vergelijk met `==` in een if … else.
+
+#! hint
+Bepaal het getal vóór je de vraag stelt. In het else-block toon je het geheime getal met interpolatie: `$"Helaas, het getal was {geheimGetal}!"`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            int geheimGetal = rnd.Next(0, 11);
+
+            Console.WriteLine("De computer denkt aan een getal tussen 0 en 10.");
+            Console.Write("Welk getal denkt u dat het is : ");
+            int gok = int.Parse(Console.ReadLine());
+
+            if (gok == geheimGetal) {
+                Console.WriteLine("Proficiat, u heeft goed geraden!");
+            } else {
+                Console.WriteLine($"Helaas, het getal was {geheimGetal}!");
+            }
+        }
+    }
+}
+
+#! uitleg
+- `rnd.Next(0, 11)` geeft 0 t.e.m. 10, want de bovengrens is exclusief.
+- Het geheime getal wordt bepaald vóór de vraag, zodat het vastligt wanneer de gebruiker gokt.
+- Met `==` vergelijk je twee getallen. Het resultaat is een bool die de if gebruikt.
+
+#! regel type=uses doel=Next bericht="Gebruik rnd.Next(...) voor het random getal"
+
+#! test naam="Gok 5 (seed 1)" referentie=ja seed=1
+#! invoer
+5
+
+#! test naam="Gok 3 (seed 7)" referentie=ja seed=7
+#! invoer
+3
+
+#! test naam="Gok 0 (seed 42)" referentie=ja seed=42 verborgen=ja
+#! invoer
+0
+
+#! test naam="Gok 10 (seed 99)" referentie=ja seed=99 verborgen=ja
+#! invoer
+10
+
+#! oefening id=L01-08-m rol=meesterschap moeilijkheid=3 xp=80 titel="Hoger of lager"
+Een kaartspelletje: de computer trekt een eerste kaart (2 t.e.m. 14, gebruik `rnd.Next(2, 15)`). De speler gokt of de **volgende** kaart hoger (`h`) of lager (`l`) zal zijn. Daarna trekt de computer de tweede kaart (opnieuw `rnd.Next(2, 15)`).
+
+- Is de gok juist: `Gewonnen!`
+- Is de gok fout: `Verloren!`
+- Zijn beide kaarten gelijk: `Gelijk, niemand wint.`
+
+```text
+Eerste kaart: 9
+Hoger of lager (h/l)? h
+Tweede kaart: 12
+Gewonnen!
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Trek de eerste kaart, toon ze, vraag de gok, trek dan pas de tweede kaart. Gebruik één `Random`-object voor beide kaarten.
+
+#! hint
+Er zijn drie uitkomsten. Behandel eerst het geval "gelijk". Daarna is de speler gewonnen als (gok is `h` én tweede > eerste) **of** (gok is `l` én tweede < eerste).
+
+#! hint
+`bool gewonnen = (gok == "h" && kaart2 > kaart1) || (gok == "l" && kaart2 < kaart1);` — strings vergelijk je ook met `==`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            int kaart1 = rnd.Next(2, 15);
+            Console.WriteLine($"Eerste kaart: {kaart1}");
+            Console.Write("Hoger of lager (h/l)? ");
+            string gok = Console.ReadLine();
+            int kaart2 = rnd.Next(2, 15);
+            Console.WriteLine($"Tweede kaart: {kaart2}");
+
+            if (kaart1 == kaart2) {
+                Console.WriteLine("Gelijk, niemand wint.");
+            } else {
+                bool gewonnen = (gok == "h" && kaart2 > kaart1) || (gok == "l" && kaart2 < kaart1);
+                if (gewonnen) {
+                    Console.WriteLine("Gewonnen!");
+                } else {
+                    Console.WriteLine("Verloren!");
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- Eén `Random`-object, twee keer `Next`: zo krijg je twee onafhankelijke kaarten.
+- Het speciale geval (gelijk) wordt eerst afgehandeld; daarna blijven er maar twee mogelijkheden over.
+- De logische expressie combineert `&&` en `||` en staat in een `bool` met een duidelijke naam.
+
+#! regel type=statement doel=logical-or bericht="Combineer de voorwaarden met ||"
+
+#! test naam="Gok hoger (seed 3)" referentie=ja seed=3
+#! invoer
+h
+
+#! test naam="Gok lager (seed 3)" referentie=ja seed=3
+#! invoer
+l
+
+#! test naam="Gok lager (seed 11)" referentie=ja seed=11
+#! invoer
+l
+
+#! test naam="Gok hoger (seed 20)" referentie=ja seed=20 verborgen=ja
+#! invoer
+h

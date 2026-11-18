@@ -1,0 +1,291 @@
+#! lesson
+id: L01-10
+titel: Herhalingen met do while en while
+samenvatting: Code herhalen zolang een voorwaarde waar is, en invoer herhalen tot ze geldig is.
+skills: while, robuust
+bron: Deel 05 – 2. Herhalingen (do while), 3. Invoer herhalen, 4. while
+duur: 35
+
+#! begrijpen
+## Waarom herhalingen?
+
+Wil je elk jaartal uit de jaren negentig afdrukken, dan kan je tien keer bijna dezelfde regel schrijven. Dat is saai, foutgevoelig en breekt het **DRY-principe** (*Don't Repeat Yourself*). Met een **herhalingsstructuur** (een *loop*) schrijf je de opdracht één keer en laat je de computer ze herhalen.
+
+## do while
+
+```csharp norun
+int jaar = 1990;
+do {
+    Console.WriteLine(jaar);
+    jaar++;
+} while (jaar <= 1999);
+```
+
+1. Het code block (de *loop body*) wordt **eerst één keer uitgevoerd**.
+2. Daarna wordt de voorwaarde getest. Is ze true, dan begint het block opnieuw.
+3. Is ze false, dan gaat het programma verder na de loop.
+
+Een do while wordt dus **altijd minstens één keer** uitgevoerd. Let op de `;` na `while (...)`.
+
+## while
+
+```csharp norun
+int jaar = 1990;
+while (jaar <= 1999) {
+    Console.WriteLine(jaar);
+    jaar++;
+}
+```
+
+Bij een while wordt de voorwaarde **vóór** elke herhaling getest. Is ze meteen false, dan wordt het block **nul keer** uitgevoerd.
+
+> [!LET OP]
+> Zorg dat de voorwaarde ooit false wordt! Vergeet je `jaar++`, dan heb je een **oneindige loop**. In C# Quest wordt je programma dan na enkele seconden gestopt.
+
+## Invoer herhalen (Deel 05)
+
+Een klassiek gebruik van do while: blijven vragen tot de invoer geldig is.
+
+```csharp norun
+double afstandInMeter;
+bool invoerOk;
+do {
+    Console.Write("Afstand in meter?: ");
+    invoerOk = double.TryParse(Console.ReadLine(), out afstandInMeter);
+} while (!invoerOk);
+```
+
+De vraag moet minstens één keer gesteld worden → do while is hier de natuurlijke keuze.
+
+#! voorbeeld
+## Volg de loop stap voor stap
+
+Open de **Traceertabel** in de stap-voor-stap-weergave: je ziet de voorwaarde telkens true worden, tot de laatste keer false.
+
+```csharp
+int teller = 1;
+while (teller <= 4) {
+    Console.WriteLine($"Ronde {teller}");
+    teller++;
+}
+Console.WriteLine("Klaar!");
+```
+
+## Invoer herhalen
+
+```csharp invoer="abc\n-5\n12"
+int leeftijd;
+bool invoerOk;
+do {
+    Console.Write("Leeftijd?: ");
+    invoerOk = int.TryParse(Console.ReadLine(), out leeftijd) && leeftijd >= 0;
+} while (!invoerOk);
+Console.WriteLine($"Ingevoerd: {leeftijd}");
+```
+
+De invoer `abc` en `-5` worden geweigerd; pas bij `12` stopt de loop.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int getal = 10;
+while (getal > 3) {
+    Console.WriteLine(getal);
+    getal -= 3;
+}
+```
+? 10 > 3 → toon 10, getal 7. 7 > 3 → toon 7, getal 4. 4 > 3 → toon 4, getal 1. 1 > 3 is false → stop.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+int x = 100;
+do {
+    Console.WriteLine(x);
+    x++;
+} while (x < 5);
+```
+? Een do while voert het block **eerst** uit, pas daarna wordt de voorwaarde getest. 100 wordt dus één keer getoond, daarna is 101 < 5 false.
+
+#! voorspel id=v3 type=text antwoord=0|nul|0 keer
+Hoeveel keer wordt "Hallo" getoond?
+```csharp norun
+int x = 100;
+while (x < 5) {
+    Console.WriteLine("Hallo");
+}
+```
+? Bij een while wordt de voorwaarde vooraf getest. 100 < 5 is meteen false → het block wordt 0 keer uitgevoerd. (Mocht de voorwaarde wél true zijn, dan was dit een oneindige loop: x verandert nooit!)
+
+#! oefening id=L01-10-a rol=oefenen moeilijkheid=2 xp=60 titel="Tafel van 7" bron="D05tafelsvan7"
+Maak een programma dat het resultaat van de vermenigvuldiging van het getal 7 met de factoren 1 tot en met 10 weergeeft. Doe dit aan de hand van een herhalingsstructuur: werk met een **do while**.
+
+```text
+1 x 7 = 7
+2 x 7 = 14
+3 x 7 = 21
+...
+10 x 7 = 70
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Je hebt een teller nodig die van 1 tot en met 10 loopt. Wat doe je in elke herhaling, en wanneer stop je?
+
+#! hint
+Begin met `int factor = 1;`. In de loop body: bereken `factor * 7`, toon de regel en verhoog de factor met `factor++`.
+
+#! hint
+`do { int resultaat = factor * 7; Console.WriteLine($"{factor} x 7 = {resultaat}"); factor++; } while (factor <= 10);`
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            const int tafel = 7;
+            int factor = 1;
+            do {
+                int resultaat = factor * tafel;
+                Console.WriteLine($"{factor} x {tafel} = {resultaat}");
+                factor++;
+            } while (factor <= 10);
+        }
+    }
+}
+
+#! uitleg
+- `factor` begint op 1 en wordt in elke herhaling met 1 verhoogd. Na de tiende keer is `factor` 11 en is de voorwaarde false.
+- `resultaat` wordt in de loop body gedeclareerd: hij is enkel daar nodig (kleine scope).
+- De `7` staat in een const `tafel`: wil je de tafel van 8, dan wijzig je één regel.
+
+#! regel type=loop doel=do bericht="Gebruik een do while"
+
+#! test naam="Tafel van 7" mode=exact
+#! verwacht
+1 x 7 = 7
+2 x 7 = 14
+3 x 7 = 21
+4 x 7 = 28
+5 x 7 = 35
+6 x 7 = 42
+7 x 7 = 49
+8 x 7 = 56
+9 x 7 = 63
+10 x 7 = 70
+
+#! oefening id=L01-10-m rol=meesterschap moeilijkheid=3 xp=90 titel="Double-getallen inlezen" bron="D05double"
+Maak een programma dat de gebruiker naar een double-waarde vraagt. Zolang de gebruiker correcte (naar double om te zetten) waarden invoert, wordt vriendelijk gevraagd opnieuw een getal in te voeren. Indien geen naar double omzetbare waarde wordt ingevoerd, eindigt het programma met een gepaste melding.
+
+Programmaverloop bij invoer van `hallo`:
+
+```text
+Voer een (double) getal in?: hallo
+Einde (wegens geen double getal).
+```
+
+Programmaverloop bij invoer van 4; 6,2; 8; 31,5 en wereld:
+
+```text
+Voer een (double) getal in?: 4
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 6,2
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 8
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 31,5
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: wereld
+Einde (wegens geen double getal).
+```
+
+Let op: de **eerste** vraag is anders dan de volgende vragen.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De eerste vraag wordt altijd gesteld, de volgende enkel zolang de invoer geldig was. Welke loop past daarbij — en waar zet je de eerste vraag?
+
+#! hint
+Stel de eerste vraag vóór de loop en probeer de invoer om te zetten met `double.TryParse`. Gebruik dan een `while (invoerOk)`: bedank, stel de tweede soort vraag en probeer opnieuw.
+
+#! hint
+Na de loop weet je dat de laatste invoer ongeldig was: toon dan `Einde (wegens geen double getal).`. In de loop body: `Console.WriteLine("Dank je …"); Console.Write("Gelieve nog …"); invoerOk = double.TryParse(Console.ReadLine(), out getal);`
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            double getal;
+            Console.Write("Voer een (double) getal in?: ");
+            bool invoerOk = double.TryParse(Console.ReadLine(), out getal);
+            while (invoerOk) {
+                Console.WriteLine("Dank je voor het (double) getal.");
+                Console.Write("Gelieve nog een (double) getal in te voeren?: ");
+                invoerOk = double.TryParse(Console.ReadLine(), out getal);
+            }
+            Console.WriteLine("Einde (wegens geen double getal).");
+        }
+    }
+}
+
+#! uitleg
+- De eerste vraag staat vóór de loop, omdat die tekst anders is.
+- `while (invoerOk)` wordt nul of meer keer uitgevoerd: bij ongeldige eerste invoer wordt meteen de eindmelding getoond.
+- In de loop body wordt `invoerOk` opnieuw berekend. Zonder die regel zou de loop nooit stoppen.
+
+#! regel type=uses doel=TryParse bericht="Gebruik double.TryParse"
+#! regel type=loop bericht="Gebruik een herhalingsstructuur"
+
+#! test naam="Meteen ongeldig"
+#! invoer
+hallo
+#! verwacht
+Voer een (double) getal in?: hallo
+Einde (wegens geen double getal).
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+4
+6,2
+8
+31,5
+wereld
+#! verwacht
+Voer een (double) getal in?: 4
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 6,2
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 8
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: 31,5
+Dank je voor het (double) getal.
+Gelieve nog een (double) getal in te voeren?: wereld
+Einde (wegens geen double getal).
+
+#! test naam="Tekst na één getal stopt" referentie=ja verborgen=ja
+#! invoer
+1
+x

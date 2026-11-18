@@ -1,0 +1,317 @@
+#! lesson
+id: L03-05
+titel: Zoeken in strings en Substring
+samenvatting: Posities zoeken met IndexOf, Contains/StartsWith/EndsWith en deelteksten met Substring.
+skills: zoeken-strings
+bron: Deel 07 – 2.6. Zoeken in een string, 2.7. Deeltekst van een string bemachtigen
+duur: 35
+
+#! begrijpen
+## Zoeken vanaf het begin (Deel 07 §2.6.1)
+
+`IndexOf` geeft de **positie** van de eerste keer dat een karakter of tekst voorkomt, of **-1** als het niet gevonden wordt:
+
+```csharp norun
+string tekst = "De hazen vliegen laag";
+int positie = tekst.IndexOf("vliegen");   // 9
+int nergens = tekst.IndexOf("x");          // -1
+```
+
+`LastIndexOf` zoekt de laatste keer.
+
+## Zoeken vanaf een andere positie (§2.6.2)
+
+Met een tweede argument begin je pas te zoeken vanaf een bepaalde positie:
+
+```csharp norun
+int eerste = tekst.IndexOf("a");            // 4
+int tweede = tekst.IndexOf("a", eerste + 1); // 18
+```
+
+Zo kan je in een loop **alle** voorkomens vinden: zoek telkens verder vanaf de vorige vondst.
+
+## Zoekacties zonder positie (§2.6.3)
+
+| Code | true als … |
+|---|---|
+| `tekst.Contains("haas")` | de tekst ergens voorkomt |
+| `tekst.StartsWith("De")` | de tekst ermee begint |
+| `tekst.EndsWith("!")` | de tekst ermee eindigt |
+
+## Een deeltekst bemachtigen (§2.7)
+
+`Substring` geeft een stuk van de string:
+
+```csharp norun
+string tekst = "programmeren";
+string a = tekst.Substring(3, 4);   // "gram" : vanaf index 3, 4 karakters
+string b = tekst.Substring(7);      // "meren": vanaf index 7 tot het einde
+```
+
+> [!LET OP]
+> Als start + lengte voorbij het einde van de string gaat, krijg je een *ArgumentOutOfRangeException*.
+
+## Zoeken + Substring
+
+Een klassieker: het stuk **tussen** twee tekens vinden.
+
+```csharp norun
+int begin = tekst.IndexOf('{');
+int einde = tekst.IndexOf('}');
+if (begin >= 0 && einde > begin) {
+    string tussen = tekst.Substring(begin + 1, einde - begin - 1);
+}
+```
+
+#! voorbeeld
+## Alle voorkomens tellen
+
+```csharp
+string tekst = "abracadabra";
+string zoek = "a";
+int aantal = 0;
+int positie = tekst.IndexOf(zoek);
+while (positie != -1) {
+    aantal++;
+    Console.WriteLine($"gevonden op positie {positie}");
+    positie = tekst.IndexOf(zoek, positie + 1);
+}
+Console.WriteLine($"{aantal} keer gevonden");
+```
+
+Volg in de stap-voor-stap-weergave hoe `positie` telkens verder springt, tot `IndexOf` -1 geeft.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string s = "programmeren";
+Console.WriteLine(s.IndexOf("m"));
+Console.WriteLine(s.IndexOf("x"));
+Console.WriteLine(s.Substring(0, 3));
+```
+? De eerste `m` staat op index 6 (p0 r1 o2 g3 r4 a5 m6). `x` komt niet voor: -1. `Substring(0, 3)` geeft de eerste 3 karakters: "pro".
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+string s = "De hazen {vliegen laag} vandaag";
+int begin = s.IndexOf('{');
+int einde = s.IndexOf('}');
+Console.WriteLine(s.Substring(begin + 1, einde - begin - 1));
+```
+? `{` staat op 9, `}` op 22. Vanaf 10 nemen we 22 − 9 − 1 = 12 karakters: "vliegen laag".
+
+#! voorspel id=v3 type=choice
+Wat geeft `"Hallo".Contains("all")`?
++ True
+- False
+- 1
+- "all"
+? Contains geeft een bool: "all" komt voor in "Hallo".
+
+#! oefening id=L03-05-a rol=oefenen moeilijkheid=3 xp=80 titel="Tussen accolades" bron="D07tussenaccolades"
+Schrijf een programma dat de gebruiker om een tekst vraagt en het deel toont dat **tussen accolades** staat. Indien er meerdere teksten tussen accolades staan, wordt enkel naar de eerste `{` en de eerste `}` gekeken.
+
+```text
+Geef een tekst : De hazen {vliegen laag} vandaag
+gevonden : vliegen laag
+```
+
+```text
+Geef een tekst : De hazen {vliegen laag vandaag
+niet gevonden
+```
+
+```text
+Geef een tekst : De hazen {vliegen} {laag} vandaag
+gevonden : vliegen
+```
+
+```text
+Geef een tekst : De hazen {vliegen {laag}} vandaag
+gevonden : vliegen {laag
+```
+
+Staat de `}` vóór de `{` (of ontbreekt een van beide), toon dan `niet gevonden`.
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Zoek de positie van de eerste `{` en de eerste `}` met `IndexOf`. Wanneer is er iets "gevonden"?
+
+#! hint
+Gevonden als beide posities niet -1 zijn én de `}` ná de `{` staat: `begin != -1 && einde > begin`.
+
+#! hint
+De deeltekst begint op `begin + 1` en heeft lengte `einde - begin - 1`: `tekst.Substring(begin + 1, einde - begin - 1)`.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            int begin = tekst.IndexOf('{');
+            int einde = tekst.IndexOf('}');
+            if (begin != -1 && einde > begin) {
+                string tussen = tekst.Substring(begin + 1, einde - begin - 1);
+                Console.WriteLine($"gevonden : {tussen}");
+            } else {
+                Console.WriteLine("niet gevonden");
+            }
+        }
+    }
+}
+
+#! uitleg
+- `IndexOf` geeft -1 als het teken ontbreekt. `einde > begin` vangt ook het geval op dat de `}` ontbreekt (-1) of vóór de `{` staat.
+- De lengte van het stuk ertussen is `einde - begin - 1`: de accolades zelf tellen niet mee.
+- `tussen` wordt pas gedeclareerd in het if-block (kleine scope).
+
+#! regel type=uses doel=IndexOf bericht="Zoek de accolades met IndexOf"
+#! regel type=uses doel=Substring bericht="Neem de deeltekst met Substring"
+
+#! test naam="Gevonden"
+#! invoer
+De hazen {vliegen laag} vandaag
+#! verwacht
+Geef een tekst : De hazen {vliegen laag} vandaag
+gevonden : vliegen laag
+
+#! test naam="Geen sluitaccolade" referentie=ja
+#! invoer
+De hazen {vliegen laag vandaag
+
+#! test naam="Twee keer accolades" referentie=ja
+#! invoer
+De hazen {vliegen} {laag} vandaag
+
+#! test naam="Geneste accolades" referentie=ja verborgen=ja
+#! invoer
+De hazen {vliegen {laag}} vandaag
+
+#! test naam="Omgekeerde volgorde" referentie=ja verborgen=ja
+#! invoer
+eerst } dan {
+
+#! oefening id=L03-05-m rol=meesterschap moeilijkheid=4 xp=110 titel="Zoeken (hoofdletterongevoelig)" bron="D07zoeken"
+Schrijf een programma dat de gebruiker om een tekst en een zoekwoord vraagt. Het programma toont hoe vaak het zoekwoord in de tekst voorkomt (**hoofdletterongevoelig**).
+
+```text
+Geef een tekst : De man van An haat ambetante verwanten
+Geef de zoektekst : an
+De zoektekst komt 5 keer voor
+```
+
+```text
+Geef een tekst : ananas
+Geef de zoektekst : ana
+De zoektekst komt 2 keer voor
+```
+
+```text
+Geef een tekst : aaaaaa
+Geef de zoektekst : aa
+De zoektekst komt 5 keer voor
+```
+
+Voorkomens mogen **overlappen** (zoals in de cursus). Is de zoektekst leeg, dan komt ze `0 keer` voor.
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            Console.Write("Geef de zoektekst : ");
+            string zoektekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Hoofdletterongevoelig: zet beide teksten eerst om naar kleine letters. Daarna zoek je met `IndexOf` herhaaldelijk verder.
+
+#! hint
+Gebruik het patroon uit het voorbeeld: `positie = tekst.IndexOf(zoek)` vóór de loop, en `positie = tekst.IndexOf(zoek, positie + 1)` op het einde van de loop body, zolang `positie != -1`.
+
+#! hint
+Omdat je met `positie + 1` verder zoekt (en niet met `positie + zoek.Length`), tel je ook overlappende voorkomens: 5 in "aaaaaa". Behandel de lege zoektekst apart.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine().ToLower();
+            Console.Write("Geef de zoektekst : ");
+            string zoektekst = Console.ReadLine().ToLower();
+
+            int aantal = 0;
+            if (zoektekst.Length > 0) {
+                int positie = tekst.IndexOf(zoektekst);
+                while (positie != -1) {
+                    aantal++;
+                    positie = tekst.IndexOf(zoektekst, positie + 1);
+                }
+            }
+            Console.WriteLine($"De zoektekst komt {aantal} keer voor");
+        }
+    }
+}
+
+#! uitleg
+- Beide teksten worden met `ToLower()` omgezet, zodat "An" en "an" allebei gevonden worden.
+- Na elke vondst zoeken we verder vanaf `positie + 1`. Daardoor tellen overlappende voorkomens mee ("aa" in "aaaaaa" → 5).
+- In de cursus volgt oefening **D07zoekennavorige**: zoek verder vanaf `positie + zoektekst.Length` en je krijgt 3 in plaats van 5. Probeer het eens!
+- De lege zoektekst wordt apart behandeld: `IndexOf("")` vindt altijd iets en zou een oneindige telling geven.
+
+#! regel type=uses doel=IndexOf bericht="Gebruik IndexOf om te zoeken"
+#! regel type=loop bericht="Gebruik een loop om alle voorkomens te vinden"
+
+#! test naam="De man van An"
+#! invoer
+De man van An haat ambetante verwanten
+an
+#! verwacht
+Geef een tekst : De man van An haat ambetante verwanten
+Geef de zoektekst : an
+De zoektekst komt 5 keer voor
+
+#! test naam="ananas" referentie=ja
+#! invoer
+ananas
+ana
+
+#! test naam="aaaaaa" referentie=ja
+#! invoer
+aaaaaa
+aa
+
+#! test naam="Lege zoektekst" referentie=ja verborgen=ja
+#! invoer
+De man van An
+<leeg>
+
+#! test naam="abababaabaabb" referentie=ja verborgen=ja
+#! invoer
+abababaabaabb
+AB

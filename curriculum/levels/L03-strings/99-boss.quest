@@ -1,0 +1,290 @@
+#! boss
+id: L03-BOSS
+titel: De Tekstverwerker
+samenvatting: Bouw een tekstanalyse-tool: statistieken, woorden zoeken en tekst omzetten naar titelnotatie.
+skills: strings, zoeken-strings, for
+bron: Deel 07 – combinatie van stringbewerkingen en het char datatype
+verhaal: De redactie van de krant "Het Programmeursnieuws" verdrinkt in teksten. Ze vragen jou een tekstverwerker die teksten analyseert en titels netjes opmaakt. Drie opdrachten, één deadline.
+duur: 50
+
+#! begrijpen
+## Briefing
+
+Je bouwt in drie fases een tekstverwerker, enkel met wat je in Level 3 leerde: indexen, `char`-methods, for/foreach en strings opbouwen. **Gebruik geen `Split`** (die komt pas in Level 5) — je leert juist zelf door een tekst te lopen.
+
+Een **woord** is voor deze boss een opeenvolging van **letters** (`char.IsLetter`). Cijfers, spaties en leestekens scheiden woorden.
+
+1. **Statistieken** — tel letters, cijfers, spaties en leestekens.
+2. **Woorden** — tel de woorden en vind het langste.
+3. **Titelnotatie** — elk woord krijgt een hoofdletter vooraan, de rest kleine letters.
+
+#! oefening id=L03-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=3 xp=110 titel="Tekststatistieken"
+Schrijf een programma dat een tekst inleest en telt hoeveel letters, cijfers, spaties en leestekens erin staan.
+
+```text
+Geef een tekst : Hallo wereld, het is 2026!
+Letters: 16
+Cijfers: 4
+Spaties: 4
+Leestekens: 2
+```
+
+Gebruik `char.IsLetter`, `char.IsDigit`, `char.IsWhiteSpace` en `char.IsPunctuation`.
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Vier tellers, één loop over alle karakters. Welke loop is hier het eenvoudigst als je de positie niet nodig hebt?
+
+#! hint
+`foreach (char c in tekst)` met daarin een `if … else if …` op de vier soorten karakters.
+
+#! hint
+Een karakter is maar van één soort, dus `else if` is correct. Toon de vier tellers na de loop.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            int letters = 0;
+            int cijfers = 0;
+            int spaties = 0;
+            int leestekens = 0;
+            foreach (char c in tekst) {
+                if (char.IsLetter(c)) {
+                    letters++;
+                } else if (char.IsDigit(c)) {
+                    cijfers++;
+                } else if (char.IsWhiteSpace(c)) {
+                    spaties++;
+                } else if (char.IsPunctuation(c)) {
+                    leestekens++;
+                }
+            }
+            Console.WriteLine($"Letters: {letters}");
+            Console.WriteLine($"Cijfers: {cijfers}");
+            Console.WriteLine($"Spaties: {spaties}");
+            Console.WriteLine($"Leestekens: {leestekens}");
+        }
+    }
+}
+
+#! uitleg
+- Eén doorloop met `foreach` volstaat voor alle vier de tellers.
+- De `char.Is…`-methods geven een bool terug; elk karakter valt in hoogstens één categorie.
+- Karakters zoals `+` of `€` zijn geen leesteken maar een *symbool*: ze tellen nergens mee.
+
+#! regel type=forbids doel=Split bericht="Gebruik geen Split in deze boss"
+#! regel type=loop bericht="Overloop de tekst met een loop"
+
+#! test naam="Voorbeeld"
+#! invoer
+Hallo wereld, het is 2026!
+#! verwacht
+Geef een tekst : Hallo wereld, het is 2026!
+Letters: 16
+Cijfers: 4
+Spaties: 4
+Leestekens: 2
+
+#! test naam="Enkel cijfers en symbolen" referentie=ja
+#! invoer
+1 + 1 = 2
+
+#! test naam="Lange zin" referentie=ja verborgen=ja
+#! invoer
+Zeg 'ns AAA! Wat? "Nee," zei hij... 3 keer.
+
+#! oefening id=L03-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=4 xp=150 titel="Woorden tellen"
+Een woord is een opeenvolging van letters. Schrijf een programma dat het **aantal woorden** telt en het **langste woord** toont (bij gelijke lengte: het eerste).
+
+```text
+Geef een tekst : Hallo wereld, het is 2026!
+Aantal woorden: 4
+Langste woord: wereld
+```
+
+Bevat de tekst geen enkel woord, toon dan `Aantal woorden: 0` en `Geen woorden gevonden.`
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Loop door de tekst en bouw het "huidige woord" op zolang je letters tegenkomt. Wanneer is een woord afgelopen?
+
+#! hint
+Bij een letter: `huidig += c;`. Bij een niet-letter: als `huidig` niet leeg is, heb je een woord gevonden (tel het, vergelijk de lengte) en maak `huidig = ""`.
+
+#! hint
+Vergeet het laatste woord niet: na de loop kan `huidig` nog een woord bevatten (als de tekst op een letter eindigt). Verwerk het dan nog één keer. Vergelijk met `huidig.Length > langste.Length` (strikt groter: zo blijft bij gelijke lengte het eerste staan).
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            int aantalWoorden = 0;
+            string langste = "";
+            string huidig = "";
+            foreach (char c in tekst) {
+                if (char.IsLetter(c)) {
+                    huidig += c;
+                } else if (huidig.Length > 0) {
+                    aantalWoorden++;
+                    if (huidig.Length > langste.Length) {
+                        langste = huidig;
+                    }
+                    huidig = "";
+                }
+            }
+            if (huidig.Length > 0) {
+                aantalWoorden++;
+                if (huidig.Length > langste.Length) {
+                    langste = huidig;
+                }
+            }
+            Console.WriteLine($"Aantal woorden: {aantalWoorden}");
+            if (aantalWoorden > 0) {
+                Console.WriteLine($"Langste woord: {langste}");
+            } else {
+                Console.WriteLine("Geen woorden gevonden.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Het "huidige woord" groeit zolang er letters komen. Een niet-letter sluit het woord af.
+- Het laatste woord moet na de loop nog verwerkt worden: een klassieke valkuil bij dit soort algoritmes. (Merk de dubbele code op — in Level 6 los je dat op met een method.)
+- Met `>` (en niet `>=`) blijft bij gelijke lengte het eerste woord het langste.
+
+#! regel type=forbids doel=Split bericht="Gebruik geen Split in deze boss"
+
+#! test naam="Voorbeeld"
+#! invoer
+Hallo wereld, het is 2026!
+#! verwacht
+Geef een tekst : Hallo wereld, het is 2026!
+Aantal woorden: 4
+Langste woord: wereld
+
+#! test naam="Eindigt op een letter" referentie=ja
+#! invoer
+de programmeur programmeert
+
+#! test naam="Geen woorden" referentie=ja
+#! invoer
+123 456 !!!
+
+#! test naam="Gelijke lengte en meerdere spaties" referentie=ja verborgen=ja
+#! invoer
+  kat   hond  muis vis
+
+#! oefening id=L03-BOSS-3 rol=boss fase="Fase 3" moeilijkheid=4 xp=170 titel="Titelnotatie"
+De krant wil titels in **titelnotatie**: elk woord begint met een hoofdletter, de rest van het woord in kleine letters. Alle andere karakters blijven ongewijzigd.
+
+```text
+Geef een titel : hET pROGRAMMEURSNIEUWS van 16-nov
+Het Programmeursnieuws Van 16-Nov
+```
+
+Een letter is het **begin van een woord** als ze het eerste karakter is, of als het karakter ervoor geen letter is.
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een titel : ");
+            string titel = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Strings zijn immutable: bouw een nieuwe string op. Je moet voor elk karakter weten wat het **vorige** karakter was — welke loop geeft je de positie?
+
+#! hint
+In een for loop: `bool beginVanWoord = i == 0 || !char.IsLetter(titel[i - 1]);`. Let op de volgorde: dankzij kortsluitevaluatie wordt `titel[i - 1]` niet opgevraagd als `i == 0`.
+
+#! hint
+Is het karakter een letter: begin van woord → `char.ToUpper`, anders → `char.ToLower`. Is het geen letter: voeg het ongewijzigd toe.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een titel : ");
+            string titel = Console.ReadLine();
+            string resultaat = "";
+            for (int i = 0; i < titel.Length; i++) {
+                char c = titel[i];
+                if (char.IsLetter(c)) {
+                    bool beginVanWoord = i == 0 || !char.IsLetter(titel[i - 1]);
+                    if (beginVanWoord) {
+                        resultaat += char.ToUpper(c);
+                    } else {
+                        resultaat += char.ToLower(c);
+                    }
+                } else {
+                    resultaat += c;
+                }
+            }
+            Console.WriteLine(resultaat);
+        }
+    }
+}
+
+#! uitleg
+- Een **for** loop omdat we het vorige karakter (`titel[i - 1]`) nodig hebben.
+- **Kortsluitevaluatie** beschermt ons: bij `i == 0` is de eerste helft true en wordt `titel[i - 1]` (index -1!) nooit geëvalueerd.
+- Je versloeg de deadline! In Level 4 leer je **arrays**: verzamelingen van waarden — en dan wordt de Twister-generator plots veel korter.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop"
+
+#! test naam="Voorbeeld"
+#! invoer
+hET pROGRAMMEURSNIEUWS van 16-nov
+#! verwacht
+Geef een titel : hET pROGRAMMEURSNIEUWS van 16-nov
+Het Programmeursnieuws Van 16-Nov
+
+#! test naam="Al in orde" referentie=ja
+#! invoer
+De Hazen Vliegen Laag
+
+#! test naam="Leestekens als scheiding" referentie=ja verborgen=ja
+#! invoer
+o'neil en mc.donald: 3x beter!

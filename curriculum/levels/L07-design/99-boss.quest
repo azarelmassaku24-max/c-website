@@ -1,0 +1,312 @@
+#! boss
+id: L07-BOSS
+titel: Het Console-doolhof
+samenvatting: Een speelbaar doolhofspel met enums, ReadKey, SetCursorPosition en arrays als parameter.
+skills: enums, console-ui, value-reference, methods
+bron: Deel 11 – enumeraties, console mogelijkheden en softwareontwerp
+verhaal: Diep onder de campus ligt een vergeten doolhof. Je @ ontwaakt in de linkerbovenhoek; ergens wacht de uitgang G. Bouw het spel — en speel het daarna zelf in de console.
+duur: 50
+
+#! begrijpen
+## Briefing
+
+Je bouwt een klein spel in de console. De speler `@` beweegt met de toetsen **W** (boven), **A** (links), **S** (onder) en **D** (rechts); **Q** stopt het spel.
+
+Ontwerp:
+
+- `enum Richting { Boven, Onder, Links, Rechts, Geen }`
+- `static Richting GetRichting(ConsoleKey toets)` — vertaalt een toets (W/A/S/D én de pijltjestoetsen) naar een Richting
+- tekenen met `Console.Clear()` en `Console.SetCursorPosition`
+
+De tests geven toetsen in en vergelijken het **eindscherm**. Klik daarna op **Uitvoeren** om zelf te spelen (klik in de console om de toetsen te sturen).
+
+#! oefening id=L07-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="Bewegen in een kamer" interactief=ja
+Teken een kamer van 10 breed en 5 hoog met `#` als rand. De speler `@` begint op kolom 1, rij 1. Na elke toets:
+
+1. bepaal de richting met `GetRichting(toets.Key)`;
+2. verplaats de speler, maar **nooit door de rand** (de speler blijft binnen kolom 1–8 en rij 1–3);
+3. wis het scherm en teken kamer en speler opnieuw.
+
+Bij **Q** stopt het spel: zet de cursor op (0, 6) en toon `Gestopt na 4 zetten.` (het aantal toetsen dat een richting was, ook als de speler tegen de muur liep).
+
+Eindscherm na de toetsen `d d s d q`:
+
+```text
+##########
+#        #
+#   @    #
+#        #
+##########
+
+Gestopt na 4 zetten.
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        enum Richting { Boven, Onder, Links, Rechts, Geen };
+
+        static void Main(string[] args) {
+            Console.CursorVisible = false;
+
+        }
+    }
+}
+
+#! hint
+Splits op: `TekenKamer()` (de rand), `TekenSpeler(int x, int y)`, `GetRichting(ConsoleKey toets)`. Main bevat de spelloop.
+
+#! hint
+`GetRichting`: `if (toets == ConsoleKey.W || toets == ConsoleKey.UpArrow) return Richting.Boven;` … en `return Richting.Geen;`. In de loop: `ConsoleKeyInfo info = Console.ReadKey(true); if (info.Key == ConsoleKey.Q) stoppen = true; else { … }`.
+
+#! hint
+Verplaatsen met grenzen: `if (richting == Richting.Rechts && x < 8) x++;` enz. Tel een zet als de richting niet `Geen` is. Teken telkens opnieuw: `Console.Clear(); TekenKamer(); TekenSpeler(x, y);`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        enum Richting { Boven, Onder, Links, Rechts, Geen };
+
+        const int Breedte = 10;
+        const int Hoogte = 5;
+
+        static void Main(string[] args) {
+            Console.CursorVisible = false;
+            int x = 1;
+            int y = 1;
+            int zetten = 0;
+            bool stoppen = false;
+            Teken(x, y);
+            while (!stoppen) {
+                ConsoleKeyInfo info = Console.ReadKey(true);
+                if (info.Key == ConsoleKey.Q) {
+                    stoppen = true;
+                } else {
+                    Richting richting = GetRichting(info.Key);
+                    if (richting != Richting.Geen) {
+                        zetten++;
+                    }
+                    if (richting == Richting.Boven && y > 1) y--;
+                    else if (richting == Richting.Onder && y < Hoogte - 2) y++;
+                    else if (richting == Richting.Links && x > 1) x--;
+                    else if (richting == Richting.Rechts && x < Breedte - 2) x++;
+                    Teken(x, y);
+                }
+            }
+            Console.SetCursorPosition(0, Hoogte + 1);
+            Console.WriteLine($"Gestopt na {zetten} zetten.");
+        }
+
+        static void Teken(int x, int y) {
+            Console.Clear();
+            TekenKamer();
+            Console.SetCursorPosition(x, y);
+            Console.Write("@");
+        }
+
+        static void TekenKamer() {
+            for (int rij = 0; rij < Hoogte; rij++) {
+                Console.SetCursorPosition(0, rij);
+                for (int kolom = 0; kolom < Breedte; kolom++) {
+                    bool rand = rij == 0 || rij == Hoogte - 1 || kolom == 0 || kolom == Breedte - 1;
+                    Console.Write(rand ? "#" : " ");
+                }
+            }
+        }
+
+        static Richting GetRichting(ConsoleKey toets) {
+            if (toets == ConsoleKey.W || toets == ConsoleKey.UpArrow) return Richting.Boven;
+            if (toets == ConsoleKey.S || toets == ConsoleKey.DownArrow) return Richting.Onder;
+            if (toets == ConsoleKey.A || toets == ConsoleKey.LeftArrow) return Richting.Links;
+            if (toets == ConsoleKey.D || toets == ConsoleKey.RightArrow) return Richting.Rechts;
+            return Richting.Geen;
+        }
+    }
+}
+
+#! uitleg
+- `ConsoleKey` (van .NET) wordt vertaald naar je eigen `Richting`: de rest van het spel weet niet welke toetsen er bestaan. Wil je ook ZQSD (azerty) ondersteunen, dan wijzig je enkel `GetRichting`.
+- Grenzen bewaken vóór het verplaatsen voorkomt dat de speler door de muur loopt.
+- `Clear` + alles opnieuw tekenen is de eenvoudigste manier van "animeren" in de console.
+
+#! regel type=statement doel=enum bericht="Gebruik een enum Richting"
+#! regel type=method doel=GetRichting geeft=Richting parameters=1 bericht="Maak een method static Richting GetRichting(ConsoleKey toets)"
+#! regel type=uses doel=ReadKey bericht="Lees toetsen met Console.ReadKey"
+#! regel type=uses doel=SetCursorPosition bericht="Teken met Console.SetCursorPosition"
+
+#! test naam="d d s d q" mode=screen referentie=ja
+#! invoer
+ddsdq
+
+#! test naam="Tegen de muur" mode=screen referentie=ja
+#! invoer
+wwaaxq
+
+#! test naam="GetRichting vertaalt toetsen" soort=code
+Check.Equal("Boven", Program.GetRichting(ConsoleKey.W).ToString(), "W");
+Check.Equal("Links", Program.GetRichting(ConsoleKey.LeftArrow).ToString(), "pijltje links");
+Check.Equal("Rechts", Program.GetRichting(ConsoleKey.D).ToString(), "D");
+Check.Equal("Geen", Program.GetRichting(ConsoleKey.X).ToString(), "X");
+
+#! oefening id=L07-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=200 titel="Het doolhof" interactief=ja
+Nu wordt het een echt doolhof. Het plan staat in een `string[]`:
+
+```csharp norun
+string[] plan = {
+    "##########",
+    "#@   #   #",
+    "# ## # # #",
+    "#  #   #G#",
+    "##########"
+};
+```
+
+- De `@` geeft de startpositie aan (teken daar later een spatie, de speler wordt apart getekend).
+- De speler kan **niet** door `#` lopen (de zet telt dan niet).
+- Bereikt de speler `G`, dan stopt het spel: cursor op (0, 6) en `Gewonnen in 13 zetten!`.
+- Bij **Q**: cursor op (0, 6) en `Opgegeven na 3 zetten.`
+
+Maak een method `static bool IsVrij(string[] plan, int x, int y)` die zegt of een positie geen muur is (let op: `plan[y][x]`).
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        enum Richting { Boven, Onder, Links, Rechts, Geen };
+
+        static void Main(string[] args) {
+            string[] plan = {
+                "##########",
+                "#@   #   #",
+                "# ## # # #",
+                "#  #   #G#",
+                "##########"
+            };
+            Console.CursorVisible = false;
+
+        }
+    }
+}
+
+#! hint
+Zoek eerst de startpositie: overloop de rijen en gebruik `plan[y].IndexOf('@')`. Teken het plan met `Replace('@', ' ')`.
+
+#! hint
+Bereken bij elke toets de nieuwe positie (`nieuwX`, `nieuwY`) en verplaats enkel als `IsVrij(plan, nieuwX, nieuwY)`. `plan[y][x]` is het karakter in rij y, kolom x.
+
+#! hint
+Na een geslaagde zet: `if (plan[y][x] == 'G')` → gewonnen. Gebruik een `bool gedaan` voor de spelloop en onthoud of het gewonnen of opgegeven was.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        enum Richting { Boven, Onder, Links, Rechts, Geen };
+
+        static void Main(string[] args) {
+            string[] plan = {
+                "##########",
+                "#@   #   #",
+                "# ## # # #",
+                "#  #   #G#",
+                "##########"
+            };
+            Console.CursorVisible = false;
+            int x = 0;
+            int y = 0;
+            for (int rij = 0; rij < plan.Length; rij++) {
+                int kolom = plan[rij].IndexOf('@');
+                if (kolom != -1) {
+                    x = kolom;
+                    y = rij;
+                }
+            }
+
+            int zetten = 0;
+            bool gedaan = false;
+            bool gewonnen = false;
+            Teken(plan, x, y);
+            while (!gedaan) {
+                ConsoleKeyInfo info = Console.ReadKey(true);
+                if (info.Key == ConsoleKey.Q) {
+                    gedaan = true;
+                } else {
+                    Richting richting = GetRichting(info.Key);
+                    int nieuwX = x;
+                    int nieuwY = y;
+                    if (richting == Richting.Boven) nieuwY--;
+                    else if (richting == Richting.Onder) nieuwY++;
+                    else if (richting == Richting.Links) nieuwX--;
+                    else if (richting == Richting.Rechts) nieuwX++;
+                    if (richting != Richting.Geen && IsVrij(plan, nieuwX, nieuwY)) {
+                        x = nieuwX;
+                        y = nieuwY;
+                        zetten++;
+                        if (plan[y][x] == 'G') {
+                            gedaan = true;
+                            gewonnen = true;
+                        }
+                    }
+                    Teken(plan, x, y);
+                }
+            }
+            Console.SetCursorPosition(0, plan.Length + 1);
+            if (gewonnen) {
+                Console.WriteLine($"Gewonnen in {zetten} zetten!");
+            } else {
+                Console.WriteLine($"Opgegeven na {zetten} zetten.");
+            }
+        }
+
+        static bool IsVrij(string[] plan, int x, int y) {
+            return plan[y][x] != '#';
+        }
+
+        static void Teken(string[] plan, int x, int y) {
+            Console.Clear();
+            for (int rij = 0; rij < plan.Length; rij++) {
+                Console.SetCursorPosition(0, rij);
+                Console.Write(plan[rij].Replace('@', ' '));
+            }
+            Console.SetCursorPosition(x, y);
+            Console.Write("@");
+        }
+
+        static Richting GetRichting(ConsoleKey toets) {
+            if (toets == ConsoleKey.W || toets == ConsoleKey.UpArrow) return Richting.Boven;
+            if (toets == ConsoleKey.S || toets == ConsoleKey.DownArrow) return Richting.Onder;
+            if (toets == ConsoleKey.A || toets == ConsoleKey.LeftArrow) return Richting.Links;
+            if (toets == ConsoleKey.D || toets == ConsoleKey.RightArrow) return Richting.Rechts;
+            return Richting.Geen;
+        }
+    }
+}
+
+#! uitleg
+- Het plan is een `string[]`: `plan[y]` is een rij (string), `plan[y][x]` een karakter. Een array van strings gedraagt zich zo als een 2D-raster.
+- `IsVrij` is een kleine query die het spel leesbaar maakt. Omdat het plan de rand bevat, kan de speler nooit buiten de array lopen.
+- De array `plan` wordt meegegeven aan methods (reference type) maar niet gewijzigd: de speler wordt apart getekend.
+- Je ontsnapte uit het doolhof! Level 8 neemt je mee naar de officiële documentatie, kommagetallen en datums.
+
+#! regel type=method doel=IsVrij geeft=bool parameters=3 bericht="Maak een query static bool IsVrij(string[] plan, int x, int y)"
+#! regel type=method doel=GetRichting geeft=Richting parameters=1 bericht="Gebruik een method static Richting GetRichting(ConsoleKey toets)"
+
+#! test naam="Tot aan de uitgang" mode=screen referentie=ja
+#! invoer
+dddssddwwddss
+
+#! test naam="Opgeven" mode=screen referentie=ja
+#! invoer
+dwdq
+
+#! test naam="IsVrij" soort=code
+string[] plan = { "###", "# G", "###" };
+Check.Equal(false, Program.IsVrij(plan, 0, 0), "muur");
+Check.Equal(true, Program.IsVrij(plan, 1, 1), "vrije plaats");
+Check.Equal(true, Program.IsVrij(plan, 2, 1), "uitgang is vrij");

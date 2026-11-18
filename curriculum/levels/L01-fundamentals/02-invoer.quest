@@ -1,0 +1,281 @@
+#! lesson
+id: L01-02
+titel: Invoer en typeconversies
+samenvatting: De gebruiker iets laten intypen met Console.ReadLine en tekst omzetten naar getallen.
+skills: invoer, variabelen
+bron: Deel 04 – 1. Invoer meteen converteren
+aanvulling: De uitleg over impliciete (widening) en expliciete conversies (casts) is aanvullend geschreven; het opvangen en converteren van invoer volgt Deel 04 §1.
+duur: 25
+
+#! begrijpen
+## Tekst in, tekst uit
+
+De console werkt **enkel met tekst**. Wat de gebruiker intypt (tot hij op Enter drukt) krijg je van `Console.ReadLine()` altijd terug als een `string`:
+
+```csharp norun
+Console.Write("Hoe heet je? ");
+string naam = Console.ReadLine();
+```
+
+- `Console.Write` toont tekst **zonder** naar de volgende regel te gaan: de gebruiker typt dan op dezelfde regel verder.
+- `Console.WriteLine` toont tekst en gaat daarna naar een nieuwe regel.
+
+## Tekst omzetten naar een getal
+
+Ook als de gebruiker `34` intypt, is dat voor C# de *tekst* `"34"`. Met tekst kan je niet rekenen. Daarom **converteren** we de string naar het gepaste numerieke datatype:
+
+```csharp norun
+Console.Write("Geef het aantal deelnemers : ");
+string aantalDeelnemersAlsTekst = Console.ReadLine();
+int aantalDeelnemers = int.Parse(aantalDeelnemersAlsTekst);
+int helft = aantalDeelnemers / 2;
+```
+
+Merk de naamgeving uit de cursus op: de string heet `aantalDeelnemersAlsTekst`, het getal `aantalDeelnemers`.
+
+Opvangen en converteren mag ook in één regel — de aanroep van `Console.ReadLine()` staat dan meteen tussen de haakjes van `int.Parse(...)`:
+
+```csharp norun
+int aantalDeelnemers = int.Parse(Console.ReadLine());
+```
+
+| Gewenst type | Omzetten met |
+|---|---|
+| `int` | `int.Parse(tekst)` of `Convert.ToInt32(tekst)` |
+| `double` | `double.Parse(tekst)` of `Convert.ToDouble(tekst)` |
+
+> [!BELANGRIJK]
+> Op een Belgische computer typt de gebruiker een kommagetal met een **komma**: `4,5`. Typt hij een letter of laat hij de invoer leeg, dan crasht `Parse` met een *FormatException*. In een latere les maak je dat robuust met `TryParse`.
+
+## Conversies tussen getallen
+
+Een `int` past altijd in een `double` (12 wordt 12,0). C# doet die **widening conversion** daarom automatisch:
+
+```csharp norun
+int aantal = 7;
+double kommagetal = aantal;   // ok: 7 wordt 7,0
+```
+
+Omgekeerd verlies je informatie: de cijfers na de komma. Dat doet C# niet stilzwijgend, je moet het **expliciet** vragen met een *cast*:
+
+```csharp norun
+double prijs = 9.99;
+int heleEuros = (int)prijs;   // 9 — er wordt NIET afgerond, maar afgekapt
+```
+
+Zonder `(int)` krijg je de compileerfout *"Kan type 'double' niet impliciet omzetten naar 'int'"*.
+
+#! voorbeeld
+## Invoer verwerken
+
+Dit programma vraagt twee getallen en toont hun som. Klik op **Stap voor stap**: de invoer `12` en `30` wordt automatisch meegegeven, zodat je kan zien wanneer elke variabele een waarde krijgt.
+
+```csharp invoer="12\n30"
+Console.Write("Eerste getal? ");
+string eersteAlsTekst = Console.ReadLine();
+int eerste = int.Parse(eersteAlsTekst);
+
+Console.Write("Tweede getal? ");
+int tweede = int.Parse(Console.ReadLine());
+
+int som = eerste + tweede;
+Console.WriteLine("De som is " + som);
+```
+
+Wat gebeurt er als je `int.Parse` weglaat en `eersteAlsTekst + tweedeAlsTekst` berekent? Dan plakt `+` twee *strings* aan elkaar: `"12" + "30"` wordt `"1230"`.
+
+## Een cast
+
+```csharp
+double temperatuur = 21.8;
+int afgekapt = (int)temperatuur;
+Console.WriteLine(afgekapt);
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string a = "5";
+string b = "3";
+Console.WriteLine(a + b);
+```
+? `a` en `b` zijn **strings**. De `+` tussen twee strings plakt ze aan elkaar: `"5" + "3"` wordt `"53"`.
+
+#! voorspel id=v2 type=output
+En deze code?
+```csharp
+int a = int.Parse("5");
+int b = int.Parse("3");
+Console.WriteLine(a + b);
+```
+? Nu zijn de teksten eerst omgezet naar `int`. De `+` tussen twee getallen is een optelling: 8.
+
+#! voorspel id=v3 type=choice
+Wat is de waarde van `x` na `int x = (int)7.9;`?
+- 8
++ 7
+- 7,9
+- Compileerfout
+? Een cast van `double` naar `int` **kapt af**: alles na de komma verdwijnt. Er wordt niet afgerond.
+
+#! voorspel id=v4 type=choice
+Welke regel geeft een **compileerfout**?
+- double d = 5;
++ int i = 5.0;
+- int j = (int)5.0;
+- double e = 2.5;
+? `5.0` is een `double`. Een `double` in een `int` stoppen kan informatie verliezen, dus vraagt C# een expliciete cast. `double d = 5;` is wél toegelaten (widening conversion).
+
+#! oefening id=L01-02-a rol=oefenen moeilijkheid=1 xp=40 titel="Leeftijd in maanden"
+Schrijf een programma dat de naam en de leeftijd (in jaren) van de gebruiker vraagt en daarna toont hoeveel maanden dat ongeveer is.
+
+Een voorbeelduitvoering (de gebruiker typt `Sam` en `20`):
+
+```text
+Hoe heet je? Sam
+Hoe oud ben je? 20
+Dag Sam, je bent ongeveer 240 maanden oud.
+```
+
+Gebruik `Console.Write` voor de vragen, zodat de gebruiker op dezelfde regel antwoordt.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoe heet je? ");
+
+        }
+    }
+}
+
+#! hint
+De naam kan je rechtstreeks bewaren in een `string`. Met de leeftijd wil je rekenen, dus die moet een getal worden.
+
+#! hint
+Gebruik `int.Parse(Console.ReadLine())` om de leeftijd meteen om te zetten naar een `int`. Een jaar heeft 12 maanden.
+
+#! hint
+Stappen: lees de naam in → toon de tweede vraag → lees de leeftijd in en zet om → bereken `leeftijd * 12` in een variabele `aantalMaanden` → toon de zin met `+`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoe heet je? ");
+            string naam = Console.ReadLine();
+            Console.Write("Hoe oud ben je? ");
+            int leeftijd = int.Parse(Console.ReadLine());
+            int aantalMaanden = leeftijd * 12;
+            Console.WriteLine("Dag " + naam + ", je bent ongeveer " + aantalMaanden + " maanden oud.");
+        }
+    }
+}
+
+#! uitleg
+- `Console.ReadLine()` geeft tekst terug. Voor de naam is dat precies wat we nodig hebben.
+- Voor de leeftijd zetten we de tekst meteen om met `int.Parse(...)`, zodat we kunnen vermenigvuldigen.
+- De berekening staat in een aparte variabele met een duidelijke naam (`aantalMaanden`). Zo blijft de regel met de output leesbaar.
+
+#! regel type=uses doel=Parse bericht="Zet de leeftijd om naar een getal met int.Parse (of Convert.ToInt32)"
+
+#! test naam="Voorbeeld uit de opdracht"
+#! invoer
+Sam
+20
+#! verwacht
+Hoe heet je? Sam
+Hoe oud ben je? 20
+Dag Sam, je bent ongeveer 240 maanden oud.
+
+#! test naam="Andere naam en leeftijd" referentie=ja
+#! invoer
+Noor
+7
+
+#! test naam="Leeftijd 0" referentie=ja verborgen=ja
+#! invoer
+Baby
+0
+
+#! oefening id=L01-02-m rol=meesterschap moeilijkheid=2 xp=70 titel="Gemiddelde van twee kommagetallen"
+Schrijf een programma dat twee **kommagetallen** inleest en hun gemiddelde toont.
+
+```text
+Eerste getal? 4,5
+Tweede getal? 3
+Het gemiddelde is 3,75
+```
+
+- De gebruiker typt kommagetallen met een komma (`4,5`).
+- Zorg dat het resultaat ook een kommagetal is: het gemiddelde van `4,5` en `3` is `3,75`, niet `3`.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Voor kommagetallen heb je het datatype `double` nodig — zowel voor de invoer als voor het resultaat.
+
+#! hint
+Zet de invoer om met `double.Parse(Console.ReadLine())`. Het gemiddelde van twee getallen is hun som gedeeld door 2.
+
+#! hint
+Let op de volgorde van bewerkingen: `getal1 + getal2 / 2` deelt alleen `getal2` door 2. Gebruik haakjes: `(getal1 + getal2) / 2`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Eerste getal? ");
+            double getal1 = double.Parse(Console.ReadLine());
+            Console.Write("Tweede getal? ");
+            double getal2 = double.Parse(Console.ReadLine());
+            double gemiddelde = (getal1 + getal2) / 2;
+            Console.WriteLine("Het gemiddelde is " + gemiddelde);
+        }
+    }
+}
+
+#! uitleg
+- Beide getallen zijn `double`, want de gebruiker mag kommagetallen ingeven.
+- De haakjes in `(getal1 + getal2) / 2` zijn nodig: zoals in wiskunde gaan delen en vermenigvuldigen vóór optellen.
+- Omdat `getal1` en `getal2` doubles zijn, is ook het resultaat een double en blijven de cijfers na de komma behouden.
+
+#! regel type=regex doel="double\.Parse|Convert\.ToDouble|double\.TryParse" bericht="Lees de getallen in als double"
+
+#! test naam="Voorbeeld uit de opdracht"
+#! invoer
+4,5
+3
+#! verwacht
+Eerste getal? 4,5
+Tweede getal? 3
+Het gemiddelde is 3,75
+
+#! test naam="Gehele getallen met kommaresultaat"
+#! invoer
+10
+5
+#! verwacht
+Eerste getal? 10
+Tweede getal? 5
+Het gemiddelde is 7,5
+
+#! test naam="Negatief en positief" referentie=ja verborgen=ja
+#! invoer
+-2
+2

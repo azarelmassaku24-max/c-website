@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Design tokens — C# Quest
+   Eén bron van waarheid voor kleur, typografie, spacing en beweging.
+   ========================================================================== */
+:root {
+  --font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --text-2xl: 2.125rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 400ms;
+
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+  --content-max: 1180px;
+}
+
+/* ------------------------------------------------------------------ dark */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0c11;
+  --bg-elev: #0f1218;
+  --surface: #13161e;
+  --surface-2: #181c26;
+  --surface-3: #1f2430;
+  --border: #232937;
+  --border-strong: #303749;
+  --text: #e8ebf3;
+  --text-muted: #9aa3b8;
+  --text-faint: #6b7489;
+  --accent: #8b6cff;
+  --accent-2: #3fa9ff;
+  --accent-soft: rgba(139, 108, 255, .14);
+  --accent-text: #b8a6ff;
+  --gradient: linear-gradient(135deg, #8b6cff 0%, #3fa9ff 100%);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, .13);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, .13);
+  --danger: #fb7185;
+  --danger-soft: rgba(251, 113, 133, .13);
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, .13);
+  --xp: #fbbf24;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow: 0 8px 24px rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, .5);
+  --code-bg: #0d1016;
+  --overlay: rgba(5, 7, 10, .66);
+  --focus: 0 0 0 3px rgba(139, 108, 255, .45);
+}
+
+/* ----------------------------------------------------------------- light */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f6fa;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f3f4f8;
+  --surface-3: #e9ebf2;
+  --border: #e2e5ee;
+  --border-strong: #cfd4e1;
+  --text: #151826;
+  --text-muted: #555d72;
+  --text-faint: #858ca0;
+  --accent: #6d4cff;
+  --accent-2: #1d8cf0;
+  --accent-soft: rgba(109, 76, 255, .1);
+  --accent-text: #5a37f0;
+  --gradient: linear-gradient(135deg, #6d4cff 0%, #1d8cf0 100%);
+  --success: #059669;
+  --success-soft: rgba(5, 150, 105, .1);
+  --warning: #b45309;
+  --warning-soft: rgba(217, 119, 6, .12);
+  --danger: #e11d48;
+  --danger-soft: rgba(225, 29, 72, .09);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, .09);
+  --xp: #d97706;
+  --shadow-sm: 0 1px 2px rgba(20, 24, 40, .06);
+  --shadow: 0 8px 24px rgba(20, 24, 40, .08), 0 1px 2px rgba(20, 24, 40, .06);
+  --shadow-lg: 0 24px 64px rgba(20, 24, 40, .16);
+  --code-bg: #f7f8fb;
+  --overlay: rgba(20, 24, 40, .4);
+  --focus: 0 0 0 3px rgba(109, 76, 255, .3);
+}
+
+[data-motion="reduced"] {
+  --dur-fast: 0ms;
+  --dur: 0ms;
+  --dur-slow: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+}

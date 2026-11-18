@@ -1,0 +1,330 @@
+#! lesson
+id: L05-03
+titel: Doorsnedes en frequenties
+samenvatting: Arrays vergelijken: gemeenschappelijke elementen vinden en tellen hoe vaak waarden voorkomen.
+skills: parallelle-arrays, array-zoeken, break
+bron: Deel 09 – 2.2. De doorsnede van twee arrays berekenen · D09getalfrequentie
+duur: 30
+
+#! begrijpen
+## De doorsnede van twee arrays (Deel 09 §2.2)
+
+De **doorsnede** bevat de elementen die in **beide** arrays voorkomen. Bijvoorbeeld: de Gentenaars die ook voetballen.
+
+```csharp norun
+string[] gentenaars = { "jan", "miet", "piet", "els" };
+string[] voetballers = { "tom", "jan", "els", "miet" };
+```
+
+Voor elk element van de eerste array zoek je of het in de tweede array voorkomt — een **geneste loop**:
+
+```csharp norun
+foreach (string gentenaar in gentenaars) {
+    foreach (string voetballer in voetballers) {
+        if (gentenaar == voetballer) {
+            Console.WriteLine(gentenaar);
+            break;   // gevonden: verder vergelijken is overbodig
+        }
+    }
+}
+```
+
+De `break` vermijdt **overbodige vergelijkingen**: we weten immers al dat jan een voetballer is.
+
+## Frequenties tellen met een tellerarray
+
+Om te tellen hoe vaak elk getal van 0 t.e.m. 10 voorkomt, gebruik je een array van 11 tellers. Het getal zelf is de **index**:
+
+```csharp norun
+int[] aantalKeer = new int[11];   // index 0..10, alles begint op 0
+aantalKeer[getal]++;              // het getal is de index
+```
+
+Daarna toon je enkel de getallen waarvan de teller groter dan 0 is.
+
+> [!TIP]
+> Deze truc (de waarde als index gebruiken) werkt als de mogelijke waarden een klein, aaneengesloten bereik vormen. Voor willekeurige waarden (bv. woorden) gebruik je in Level 13 een **Dictionary**.
+
+#! voorbeeld
+## Doorsnede en frequenties
+
+```csharp
+string[] gentenaars = { "jan", "miet", "piet", "els" };
+string[] voetballers = { "tom", "jan", "els", "miet" };
+Console.WriteLine("Gentenaars die voetballen:");
+foreach (string gentenaar in gentenaars) {
+    foreach (string voetballer in voetballers) {
+        if (gentenaar == voetballer) {
+            Console.WriteLine("- " + gentenaar);
+            break;
+        }
+    }
+}
+
+int[] worpen = { 3, 1, 3, 6, 3, 1 };
+int[] aantalKeer = new int[7];
+foreach (int worp in worpen) {
+    aantalKeer[worp]++;
+}
+for (int ogen = 1; ogen <= 6; ogen++) {
+    Console.WriteLine($"{ogen}: {aantalKeer[ogen]} keer");
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int[] a = { 1, 4, 6, 9 };
+int[] b = { 9, 2, 4 };
+int aantal = 0;
+foreach (int x in a) {
+    foreach (int y in b) {
+        if (x == y) {
+            aantal++;
+            break;
+        }
+    }
+}
+Console.WriteLine(aantal);
+```
+? Enkel 4 en 9 komen in beide arrays voor: 2.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+int[] teller = new int[4];
+int[] getallen = { 2, 0, 2, 3, 2 };
+foreach (int g in getallen) {
+    teller[g]++;
+}
+Console.WriteLine(teller[2]);
+Console.WriteLine(teller[1]);
+```
+? Het getal 2 komt 3 keer voor, het getal 1 nooit (de teller blijft op zijn defaultwaarde 0).
+
+#! oefening id=L05-03-a rol=oefenen moeilijkheid=3 xp=80 titel="Gemeenschappelijke vrienden"
+Twee vrienden geven elk een lijst van namen in (op één regel, gescheiden door een spatie wordt in de volgende les behandeld — daarom vraagt dit programma de namen één voor één). Het programma toont welke namen in **beide** lijsten voorkomen (hoofdletterongevoelig), in de volgorde van de eerste lijst.
+
+```text
+Hoeveel vrienden heeft Anna? 3
+Vriend 1 : Jan
+Vriend 2 : Miet
+Vriend 3 : Els
+Hoeveel vrienden heeft Bert? 2
+Vriend 1 : els
+Vriend 2 : Tom
+Gemeenschappelijk: Els
+```
+
+Zijn er geen gemeenschappelijke vrienden, toon dan `Gemeenschappelijk: niemand`.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Lees twee arrays in (elk met een eigen grootte). Voor elk element van de eerste array zoek je in de tweede.
+
+#! hint
+Gebruik een geneste loop met `break` bij een treffer. Vergelijk met `.ToLower()` aan beide kanten. Verzamel de treffers in een string.
+
+#! hint
+`string gemeenschappelijk = "";` en bij een treffer: `gemeenschappelijk += (gemeenschappelijk == "" ? "" : ", ") + naamAnna;` — of houd een teller bij. Is de string op het einde leeg → "niemand".
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Hoeveel vrienden heeft Anna? ");
+            string[] vriendenAnna = new string[int.Parse(Console.ReadLine())];
+            for (int i = 0; i < vriendenAnna.Length; i++) {
+                Console.Write($"Vriend {i + 1} : ");
+                vriendenAnna[i] = Console.ReadLine();
+            }
+            Console.Write("Hoeveel vrienden heeft Bert? ");
+            string[] vriendenBert = new string[int.Parse(Console.ReadLine())];
+            for (int i = 0; i < vriendenBert.Length; i++) {
+                Console.Write($"Vriend {i + 1} : ");
+                vriendenBert[i] = Console.ReadLine();
+            }
+
+            string gemeenschappelijk = "";
+            foreach (string naamAnna in vriendenAnna) {
+                foreach (string naamBert in vriendenBert) {
+                    if (naamAnna.ToLower() == naamBert.ToLower()) {
+                        if (gemeenschappelijk != "") {
+                            gemeenschappelijk += ", ";
+                        }
+                        gemeenschappelijk += naamAnna;
+                        break;
+                    }
+                }
+            }
+            if (gemeenschappelijk == "") {
+                gemeenschappelijk = "niemand";
+            }
+            Console.WriteLine($"Gemeenschappelijk: {gemeenschappelijk}");
+        }
+    }
+}
+
+#! uitleg
+- De buitenste loop overloopt Anna's vrienden, de binnenste zoekt elke naam bij Bert: de **doorsnede**.
+- `break` voorkomt overbodige vergelijkingen én dubbele treffers.
+- Merk de bijna dubbele code voor het inlezen op. In Level 6 maak je daar een method `LeesNamen` van.
+
+#! test naam="Eén gemeenschappelijk"
+#! invoer
+3
+Jan
+Miet
+Els
+2
+els
+Tom
+#! verwacht
+Hoeveel vrienden heeft Anna? 3
+Vriend 1 : Jan
+Vriend 2 : Miet
+Vriend 3 : Els
+Hoeveel vrienden heeft Bert? 2
+Vriend 1 : els
+Vriend 2 : Tom
+Gemeenschappelijk: Els
+
+#! test naam="Meerdere gemeenschappelijk" referentie=ja
+#! invoer
+4
+jan
+miet
+piet
+els
+4
+tom
+jan
+els
+miet
+
+#! test naam="Niemand" referentie=ja verborgen=ja
+#! invoer
+1
+Ali
+1
+Bo
+
+#! oefening id=L05-03-m rol=meesterschap moeilijkheid=4 xp=120 titel="Getalfrequentie" bron="D09getalfrequentie"
+Schrijf een programma dat de gebruiker om getallen vraagt tussen 0 en 10 (grenzen inclusief) totdat de gebruiker `stop` intypt (hoofdletterongevoelig). Na afloop toont het programma hoe vaak elk van de ingevoerde getallen voorkwam, van klein naar groot.
+
+```text
+Geef een getal in [0,10] : 2
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : 2
+Geef een getal in [0,10] : 6
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : StOP
+2 kwam 2 keer voor
+6 kwam 1 keer voor
+7 kwam 3 keer voor
+```
+
+Ongeldige invoer of getallen buiten [0,10] worden genegeerd.
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Gebruik een tellerarray `int[] aantalKeer = new int[11];` waarbij het getal zelf de index is.
+
+#! hint
+Herhaal tot de invoer (na ToLower) gelijk is aan "stop". Bij een geldig getal in [0,10]: `aantalKeer[getal]++`.
+
+#! hint
+Toon na de loop: `for (int getal = 0; getal < aantalKeer.Length; getal++) { if (aantalKeer[getal] > 0) Console.WriteLine(...); }`.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            const int maximum = 10;
+            int[] aantalKeer = new int[maximum + 1];
+            bool stoppen = false;
+            while (!stoppen) {
+                Console.Write($"Geef een getal in [0,{maximum}] : ");
+                string invoer = Console.ReadLine().Trim().ToLower();
+                int getal;
+                if (invoer == "stop") {
+                    stoppen = true;
+                } else if (int.TryParse(invoer, out getal) && getal >= 0 && getal <= maximum) {
+                    aantalKeer[getal]++;
+                }
+            }
+            for (int getal = 0; getal < aantalKeer.Length; getal++) {
+                if (aantalKeer[getal] > 0) {
+                    Console.WriteLine($"{getal} kwam {aantalKeer[getal]} keer voor");
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- De **waarde als index**: `aantalKeer[getal]++` telt in één stap het juiste vakje op.
+- De array heeft 11 elementen (0 t.e.m. 10); defaultwaarde 0 is precies de gewenste beginwaarde van elke teller.
+- Bij het tonen worden de getallen vanzelf van klein naar groot overlopen.
+
+#! regel type=statement doel=array bericht="Gebruik een array als tellers"
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+2
+7
+7
+2
+6
+7
+StOP
+#! verwacht
+Geef een getal in [0,10] : 2
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : 2
+Geef een getal in [0,10] : 6
+Geef een getal in [0,10] : 7
+Geef een getal in [0,10] : StOP
+2 kwam 2 keer voor
+6 kwam 1 keer voor
+7 kwam 3 keer voor
+
+#! test naam="Met ongeldige invoer en grenzen" referentie=ja
+#! invoer
+0
+10
+11
+-1
+abc
+10
+stop
+
+#! test naam="Meteen stoppen" referentie=ja verborgen=ja
+#! invoer
+STOP

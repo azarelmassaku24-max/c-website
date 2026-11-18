@@ -1,0 +1,332 @@
+#! boss
+id: L09-BOSS
+titel: De Ondertitel-synchronisator
+samenvatting: Pas de timecodes in een .srt-ondertitelbestand aan, met backup en foutafhandeling.
+skills: bestanden, exceptions, streams, split-join
+bron: Deel 13 – D13srt
+verhaal: De ondertitels van de nieuwe Star Wars-marathon lopen 1,1 seconde voor op het beeld. Het publiek wordt onrustig. Bouw de synchronisator — en zorg dat er altijd een backup is.
+duur: 55
+
+#! begrijpen
+## Briefing: het SRT-formaat (D13srt)
+
+Een `.srt`-bestand bevat ondertitels. Per fragment:
+
+1. een **teller** (1, 2, 3, …);
+2. de **tijdspanne**: twee timecodes gescheiden door ` --> `. Een timecode is `uu:mm:ss,mmm` (uren, minuten, seconden altijd 2 cijfers, milliseconden 3 cijfers);
+3. de **tekst** op één of meerdere regels;
+4. een **lege regel**.
+
+```text
+1
+00:02:16,012 --> 00:02:19,376
+Senator, we're making
+our final approach into Coruscant.
+
+2
+00:02:19,482 --> 00:02:21,609
+Very good, Lieutenant.
+```
+
+Omdat video's anders versneden worden, lopen de ondertitels soms voor of achter. Jouw programma verschuift alle timecodes met een (positief of negatief) aantal milliseconden.
+
+Fase 1 bouwt de omrekening van timecodes; fase 2 verwerkt een volledig bestand met backup en foutafhandeling.
+
+#! oefening id=L09-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="Timecodes omrekenen"
+Schrijf twee queries:
+
+- `static int TimecodeNaarMs(string timecode)` — `"00:02:16,012"` → 136012
+- `static string MsNaarTimecode(int ms)` — 136012 → `"00:02:16,012"` (let op de voorloopnullen: `067`, niet `67`)
+
+Het programma leest een timecode en een offset en toont de aangepaste timecode:
+
+```text
+Timecode : 00:03:15,167
+Offset (ms) : -1100
+Aangepast: 00:03:14,067
+```
+
+#! starter
+using System;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Timecode : ");
+            string timecode = Console.ReadLine();
+            Console.Write("Offset (ms) : ");
+            int offset = int.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+Splits de timecode op `:` en `,` met `Split(':', ',')`: je krijgt 4 stukken (uren, minuten, seconden, milliseconden).
+
+#! hint
+`ms = ((uren * 60 + minuten) * 60 + seconden) * 1000 + milliseconden`. Omgekeerd: gebruik `/` en `%` (zoals D03persecondewijzer!).
+
+#! hint
+Voorloopnullen met format strings: `{uren:d2}:{minuten:d2}:{seconden:d2},{milliseconden:d3}`.
+
+#! oplossing
+using System;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Timecode : ");
+            string timecode = Console.ReadLine();
+            Console.Write("Offset (ms) : ");
+            int offset = int.Parse(Console.ReadLine());
+            int ms = TimecodeNaarMs(timecode) + offset;
+            Console.WriteLine($"Aangepast: {MsNaarTimecode(ms)}");
+        }
+
+        static int TimecodeNaarMs(string timecode) {
+            string[] delen = timecode.Trim().Split(':', ',');
+            int uren = int.Parse(delen[0]);
+            int minuten = int.Parse(delen[1]);
+            int seconden = int.Parse(delen[2]);
+            int milliseconden = int.Parse(delen[3]);
+            return ((uren * 60 + minuten) * 60 + seconden) * 1000 + milliseconden;
+        }
+
+        static string MsNaarTimecode(int ms) {
+            int milliseconden = ms % 1000;
+            int totaalSeconden = ms / 1000;
+            int seconden = totaalSeconden % 60;
+            int minuten = totaalSeconden / 60 % 60;
+            int uren = totaalSeconden / 3600;
+            return $"{uren:d2}:{minuten:d2}:{seconden:d2},{milliseconden:d3}";
+        }
+    }
+}
+
+#! uitleg
+- Alles omrekenen naar één eenheid (milliseconden) maakt het optellen van de offset triviaal.
+- Terug naar een timecode met `/` en `%`, zoals bij D03persecondewijzer — nu met milliseconden erbij.
+- `:d2` en `:d3` zorgen voor de voorloopnullen (Deel 07).
+
+#! regel type=method doel=TimecodeNaarMs geeft=int parameters=1 bericht="Maak een query static int TimecodeNaarMs(string timecode)"
+#! regel type=method doel=MsNaarTimecode geeft=string parameters=1 bericht="Maak een query static string MsNaarTimecode(int ms)"
+
+#! test naam="Voorbeeld"
+#! invoer
+00:03:15,167
+-1100
+#! verwacht
+Timecode : 00:03:15,167
+Offset (ms) : -1100
+Aangepast: 00:03:14,067
+
+#! test naam="Omrekeningen" soort=code
+Check.Equal(136012, Program.TimecodeNaarMs("00:02:16,012"), "00:02:16,012");
+Check.Equal(3661001, Program.TimecodeNaarMs("01:01:01,001"), "01:01:01,001");
+Check.Equal("00:02:16,012", Program.MsNaarTimecode(136012), "136012 ms");
+Check.Equal("00:03:14,067", Program.MsNaarTimecode(194067), "voorloopnullen bij milliseconden");
+Check.Equal("01:00:00,000", Program.MsNaarTimecode(3600000), "precies een uur");
+
+#! oefening id=L09-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=220 titel="Een volledig .srt-bestand" bron="D13srt"
+Het programma vraagt welk `.srt`-bestand aangepast moet worden en een offset. Daarna:
+
+1. maakt het een **backup** naar een bestand met dezelfde naam + `.backup` (bv. `test.srt.backup`) met `File.Copy` — overschrijf geen bestaande backup;
+2. verschuift het alle timecodes en schrijft het resultaat terug naar het originele bestand;
+3. toont het per fragment het nummer, de tekst en de aangepaste timecodes, zoals hieronder.
+
+Bij een probleem toont het programma `Er treedt een probleem op: ...` met een Nederlandse uitleg en **vraagt het opnieuw** (bestand en offset):
+
+- bestand niet gevonden → `Er treedt een probleem op: het bestand werd niet gevonden, probeer het opnieuw...`
+- backup bestaat al → `Er treedt een probleem op: het backup bestand bestaat reeds, probeer het opnieuw...`
+
+```text
+Welk .srt bestand wil u aanpassen?: bestaat-niet.srt
+Milliseconden (positief of negatief) offset?: 0
+Er treedt een probleem op: het bestand werd niet gevonden, probeer het opnieuw...
+Welk .srt bestand wil u aanpassen?: test.srt
+Milliseconden (positief of negatief) offset?: -1100
+1
+Senator, we're making
+our final approach into Coruscant.
+Start timecode 00:02:16,012 aangepast in 00:02:14,912.
+Einde timecode 00:02:19,376 aangepast in 00:02:18,276.
+2
+Very good, Lieutenant.
+Start timecode 00:02:19,482 aangepast in 00:02:18,382.
+Einde timecode 00:02:21,609 aangepast in 00:02:20,509.
+De aanpassingen zijn doorgevoerd in: test.srt
+De orginele .srt is nog steeds terug te vinden in: test.srt.backup
+```
+
+#! bestand naam=test.srt
+1
+00:02:16,012 --> 00:02:19,376
+Senator, we're making
+our final approach into Coruscant.
+<leeg>
+2
+00:02:19,482 --> 00:02:21,609
+Very good, Lieutenant.
+<leeg>
+3
+00:03:13,336 --> 00:03:15,167
+We made it.
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+
+        static int TimecodeNaarMs(string timecode) {
+            string[] delen = timecode.Trim().Split(':', ',');
+            return ((int.Parse(delen[0]) * 60 + int.Parse(delen[1])) * 60 + int.Parse(delen[2])) * 1000 + int.Parse(delen[3]);
+        }
+
+        static string MsNaarTimecode(int ms) {
+            int totaalSeconden = ms / 1000;
+            return $"{totaalSeconden / 3600:d2}:{totaalSeconden / 60 % 60:d2}:{totaalSeconden % 60:d2},{ms % 1000:d3}";
+        }
+    }
+}
+
+#! hint
+Lees alle regels met `File.ReadAllLines`. Een regel met ` --> ` is een tijdspanne; de regel ervóór is het nummer, de regels erna (tot een lege regel) de tekst.
+
+#! hint
+Bouw een nieuwe `string[]` met dezelfde lengte: kopieer elke regel, maar vervang de tijdspanne-regels door de aangepaste versie. Schrijf die array terug met `File.WriteAllLines`. Maak de backup **vóór** je schrijft: `File.Copy(pad, pad + ".backup");` (zonder true: dan krijg je een IOException als de backup al bestaat).
+
+#! hint
+Zet de verwerking in een `try` met `catch (FileNotFoundException)` en `catch (IOException)` (in die volgorde: FileNotFoundException is een speciale IOException). Herhaal met een `bool klaar` tot het lukt. Toon de tekst per fragment pas na de tijdspanne: verzamel de tekstregels tot een lege regel.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            bool klaar = false;
+            while (!klaar) {
+                Console.Write("Welk .srt bestand wil u aanpassen?: ");
+                string pad = Console.ReadLine().Trim();
+                Console.Write("Milliseconden (positief of negatief) offset?: ");
+                int offset = int.Parse(Console.ReadLine());
+                try {
+                    PasBestandAan(pad, offset);
+                    Console.WriteLine($"De aanpassingen zijn doorgevoerd in: {pad}");
+                    Console.WriteLine($"De orginele .srt is nog steeds terug te vinden in: {pad}.backup");
+                    klaar = true;
+                } catch (FileNotFoundException) {
+                    Console.WriteLine("Er treedt een probleem op: het bestand werd niet gevonden, probeer het opnieuw...");
+                } catch (IOException) {
+                    Console.WriteLine("Er treedt een probleem op: het backup bestand bestaat reeds, probeer het opnieuw...");
+                }
+            }
+        }
+
+        static void PasBestandAan(string pad, int offset) {
+            string[] regels = File.ReadAllLines(pad);
+            File.Copy(pad, pad + ".backup");
+            string[] nieuw = new string[regels.Length];
+            for (int i = 0; i < regels.Length; i++) {
+                nieuw[i] = regels[i];
+                if (regels[i].Contains(" --> ")) {
+                    string[] codes = regels[i].Split(" --> ");
+                    string nieuweStart = MsNaarTimecode(TimecodeNaarMs(codes[0]) + offset);
+                    string nieuwEinde = MsNaarTimecode(TimecodeNaarMs(codes[1]) + offset);
+                    nieuw[i] = $"{nieuweStart} --> {nieuwEinde}";
+
+                    Console.WriteLine(regels[i - 1]);
+                    int j = i + 1;
+                    while (j < regels.Length && regels[j].Trim() != "") {
+                        Console.WriteLine(regels[j]);
+                        j++;
+                    }
+                    Console.WriteLine($"Start timecode {codes[0].Trim()} aangepast in {nieuweStart}.");
+                    Console.WriteLine($"Einde timecode {codes[1].Trim()} aangepast in {nieuwEinde}.");
+                }
+            }
+            File.WriteAllLines(pad, nieuw);
+        }
+
+        static int TimecodeNaarMs(string timecode) {
+            string[] delen = timecode.Trim().Split(':', ',');
+            return ((int.Parse(delen[0]) * 60 + int.Parse(delen[1])) * 60 + int.Parse(delen[2])) * 1000 + int.Parse(delen[3]);
+        }
+
+        static string MsNaarTimecode(int ms) {
+            int totaalSeconden = ms / 1000;
+            return $"{totaalSeconden / 3600:d2}:{totaalSeconden / 60 % 60:d2}:{totaalSeconden % 60:d2},{ms % 1000:d3}";
+        }
+    }
+}
+
+#! uitleg
+- **Backup eerst**: `File.Copy` zonder overschrijven gooit een IOException als de backup al bestaat — precies het gewenste gedrag.
+- **Volgorde van de catch-blokken**: FileNotFoundException is een "soort" IOException, dus moet ze eerst staan.
+- De methods uit fase 1 doen het rekenwerk; `PasBestandAan` regelt het bestand. Main regelt enkel het herhalen en de meldingen.
+- Je beheerst bestanden en exceptions! Level 10 opent de deur naar **objectgeoriënteerd programmeren**.
+
+#! regel type=uses doel=File.Copy bericht="Maak de backup met File.Copy"
+#! regel type=statement doel=try bericht="Vang fouten op met try/catch"
+#! regel type=regex doel="catch\s*\(\s*FileNotFoundException" bericht="Vang FileNotFoundException op"
+
+#! test naam="Fout bestand, daarna test.srt"
+#! invoer
+bestaat-niet.srt
+0
+test.srt
+-1100
+#! verwacht
+Welk .srt bestand wil u aanpassen?: bestaat-niet.srt
+Milliseconden (positief of negatief) offset?: 0
+Er treedt een probleem op: het bestand werd niet gevonden, probeer het opnieuw...
+Welk .srt bestand wil u aanpassen?: test.srt
+Milliseconden (positief of negatief) offset?: -1100
+1
+Senator, we're making
+our final approach into Coruscant.
+Start timecode 00:02:16,012 aangepast in 00:02:14,912.
+Einde timecode 00:02:19,376 aangepast in 00:02:18,276.
+2
+Very good, Lieutenant.
+Start timecode 00:02:19,482 aangepast in 00:02:18,382.
+Einde timecode 00:02:21,609 aangepast in 00:02:20,509.
+3
+We made it.
+Start timecode 00:03:13,336 aangepast in 00:03:12,236.
+Einde timecode 00:03:15,167 aangepast in 00:03:14,067.
+De aanpassingen zijn doorgevoerd in: test.srt
+De orginele .srt is nog steeds terug te vinden in: test.srt.backup
+#! verwacht-bestand naam=test.srt
+1
+00:02:14,912 --> 00:02:18,276
+Senator, we're making
+our final approach into Coruscant.
+
+2
+00:02:18,382 --> 00:02:20,509
+Very good, Lieutenant.
+
+3
+00:03:12,236 --> 00:03:14,067
+We made it.
+
+#! test naam="Backup bestaat al" referentie=ja
+#! invoer
+test.srt
+500
+oud.srt
+500
+#! test-bestand naam=test.srt.backup
+oude backup
+#! test-bestand naam=oud.srt
+1
+00:00:01,000 --> 00:00:02,000
+Hallo

@@ -1,0 +1,302 @@
+#! lesson
+id: L04-02
+titel: Elementen aanspreken en overlopen met for en foreach
+samenvatting: Elementen lezen en wijzigen, IndexOutOfRangeException vermijden en arrays overlopen.
+skills: array-loops, arrays
+bron: Deel 08 – 5. Aanspreken van array-elementen, 6. Itereren met for en foreach
+duur: 30
+
+#! begrijpen
+## Elementen opvragen en opvullen (Deel 08 §5)
+
+```csharp norun
+int[] dagen = new int[12];
+dagen[0] = 31;              // opvullen
+int januari = dagen[0];     // opvragen
+dagen[1] += 1;              // wijzigen
+```
+
+Dit lijkt sterk op het opvragen van karakters uit een string (`tekst[i]`) — met één groot verschil: de elementen van een array kan je **wél wijzigen**, de karakters van een string niet.
+
+## IndexOutOfRangeException (§5.3)
+
+Een index buiten 0 … `Length - 1` geeft tijdens de uitvoering een **IndexOutOfRangeException**: je programma crasht.
+
+## Dynamisch elementen benaderen (§6.1)
+
+De index hoeft geen literal te zijn: elke int-expressie mag, bv. een tellervariabele. Zo kan een loop alle elementen benaderen.
+
+## Itereren met for (§6.2)
+
+```csharp norun
+for (int index = 0; index < dagen.Length; index++) {
+    totaal += dagen[index];
+}
+```
+
+Gebruik `dagen.Length` als grens, nooit een vast getal: zo blijft de loop correct als de array groter of kleiner wordt.
+
+## Itereren met foreach (§6.3)
+
+```csharp norun
+foreach (int aantal in dagen) {
+    totaal += aantal;
+}
+```
+
+| `for` | `foreach` |
+|---|---|
+| je hebt de **index** nodig | je hebt enkel de **waarden** nodig |
+| je kan elementen **wijzigen** (`a[i] = ...`) | de loopvariabele is **readonly** |
+| je kan een deel of achterstevoren overlopen | altijd alles, van voor naar achter |
+
+> [!LET OP]
+> In een foreach kan je de loopvariabele niet wijzigen: `aanspreking = "Dag " + aanspreking;` geeft een compileerfout. Gebruik dan een for loop met `aansprekingen[i] = ...`.
+
+#! voorbeeld
+## Totaal en netjes tonen
+
+```csharp
+int[] dagen = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+int totaal = 0;
+foreach (int aantal in dagen) {
+    totaal += aantal;
+}
+Console.WriteLine("Totaal: " + totaal);
+
+string[] aansprekingen = { "Jan", "Piet", "Pol" };
+for (int i = 0; i < aansprekingen.Length; i++) {
+    aansprekingen[i] = "Dag " + aansprekingen[i];
+}
+foreach (string aanspreking in aansprekingen) {
+    Console.WriteLine(aanspreking);
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af? (D08gemeenten)
+```csharp
+string[] gemeenten = { "Brussel", "1000", "Antwerpen", "2000", "Gent", "9000" };
+for (int i = 1; i < gemeenten.Length; i += 2) {
+    Console.WriteLine(gemeenten[i]);
+}
+```
+? De loop begint bij index 1 en springt telkens 2 posities verder: enkel de postcodes 1000, 2000 en 9000.
+
+#! voorspel id=v2 type=choice
+Wat gebeurt er bij deze code?
+```csharp norun
+int[] a = { 5, 3, 1 };
+for (int i = 0; i <= a.Length; i++) {
+    Console.WriteLine(a[i]);
+}
+```
+- Toont 5, 3, 1
++ Toont 5, 3, 1 en crasht dan met een IndexOutOfRangeException
+- Compileerfout
+- Toont 5, 3, 1, 0
+? Met `<=` probeert de laatste iteratie `a[3]` op te vragen, maar de laatste geldige index is 2. Gebruik `<`.
+
+#! voorspel id=v3 type=output
+Wat drukt deze code af? (D08netto)
+```csharp
+double[] kortingen = { 10, 50, 19.4 };
+double nettoBedrag = 1000;
+foreach (double korting in kortingen) {
+    nettoBedrag -= korting;
+}
+Console.WriteLine(nettoBedrag);
+```
+? 1000 − 10 − 50 − 19,4 = 920,6.
+
+#! oefening id=L04-02-a rol=oefenen moeilijkheid=2 xp=60 titel="Getallen netjes tonen" bron="D08toongetallen"
+Begin met `int[] a = {5, 3, 1, -1, -3};` en schrijf een programma dat de waarden netjes achter elkaar op het scherm zet, met komma's en spaties ertussen:
+
+```text
+5, 3, 1, -1, -3
+```
+
+Na de laatste waarde staat geen komma. Gebruik een loop die zich aanpast aan de lengte van de array: als `a` meer of minder waarden bevat, moet het programma nog steeds correct werken. (Gebruik **geen** `String.Join`: die leer je in Level 5.)
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            int[] a = { 5, 3, 1, -1, -3 };
+
+        }
+    }
+}
+
+#! hint
+Na elk element komt ", " — behalve na het laatste. Hoe weet je in een loop of je bij het laatste element bent?
+
+#! hint
+In een for loop is het laatste element het element met index `a.Length - 1`. Toon het element met `Console.Write` en voeg enkel ", " toe als `i < a.Length - 1`.
+
+#! hint
+Alternatief: toon het eerste element vóór de loop en laat de loop bij index 1 beginnen met telkens `", " + a[i]`. Sluit af met `Console.WriteLine();`.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            int[] a = { 5, 3, 1, -1, -3 };
+            for (int i = 0; i < a.Length; i++) {
+                Console.Write(a[i]);
+                if (i < a.Length - 1) {
+                    Console.Write(", ");
+                }
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! uitleg
+- De loop gebruikt `a.Length`, zodat hij werkt voor elke grootte.
+- Het scheidingsteken wordt enkel tussen elementen gezet: niet na het laatste (`i < a.Length - 1`).
+- In Level 5 zie je `String.Join(", ", a)` dat precies dit doet — maar nu weet je hoe het werkt.
+
+#! regel type=forbids doel=Join bericht="Gebruik (nog) geen String.Join"
+#! regel type=uses doel=Length bericht="Gebruik a.Length zodat de loop zich aanpast aan de lengte"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+5, 3, 1, -1, -3
+
+#! oefening id=L04-02-m rol=meesterschap moeilijkheid=4 xp=120 titel="Woordslang" bron="D08woordslang"
+Schrijf een programma waarbij de gebruiker **5 woorden** moet ingeven en het programma controleert of ze een **woordslang** vormen: een reeks woorden waarbij elk woord begint met de laatste letter van het vorige woord.
+
+- groen, nooit, trots, slaap, punt is een woordslang
+- groen, nooit, katrol, leuk, kamer is geen woordslang ("nooit" eindigt met "t" maar "katrol" begint niet met "t")
+
+Het programma bewaart alle woorden in een **array** en begint daarna met de controle.
+
+- Is het een woordslang: toon alle woorden na elkaar met `-` ertussen.
+- Anders: toon de eerste twee woorden die niet voldoen.
+
+```text
+Geef een woord : groen
+Geef een woord : nooit
+Geef een woord : trots
+Geef een woord : slaap
+Geef een woord : punt
+de woordslang is groen-nooit-trots-slaap-punt
+```
+
+```text
+Geef een woord : groen
+Geef een woord : nooit
+Geef een woord : katrol
+Geef een woord : leuk
+Geef een woord : kamer
+het is geen woordslang : nooit-katrol
+```
+
+#! starter
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalWoorden = 5;
+
+        }
+    }
+}
+
+#! hint
+Deel het probleem op: (1) 5 woorden inlezen in een array, (2) elk woord vergelijken met het vorige, (3) de juiste output tonen.
+
+#! hint
+Vergelijk voor i van 1 t.e.m. 4: de laatste letter van `woorden[i - 1]` (dat is `woorden[i - 1][woorden[i - 1].Length - 1]`) met de eerste letter van `woorden[i]`.
+
+#! hint
+Hou de index van het eerste probleem bij in een variabele (bv. `int foutIndex = -1;`) en zet die enkel bij de eerste fout (`if (foutIndex == -1 && …)`). Na de controle: is `foutIndex` nog -1, dan is het een woordslang.
+
+#! oplossing
+using System;
+
+namespace D08 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalWoorden = 5;
+            string[] woorden = new string[aantalWoorden];
+            for (int i = 0; i < woorden.Length; i++) {
+                Console.Write("Geef een woord : ");
+                woorden[i] = Console.ReadLine();
+            }
+
+            int foutIndex = -1;
+            for (int i = 1; i < woorden.Length; i++) {
+                string vorige = woorden[i - 1];
+                char laatsteLetter = vorige[vorige.Length - 1];
+                if (foutIndex == -1 && woorden[i][0] != laatsteLetter) {
+                    foutIndex = i;
+                }
+            }
+
+            if (foutIndex == -1) {
+                string slang = woorden[0];
+                for (int i = 1; i < woorden.Length; i++) {
+                    slang += "-" + woorden[i];
+                }
+                Console.WriteLine($"de woordslang is {slang}");
+            } else {
+                Console.WriteLine($"het is geen woordslang : {woorden[foutIndex - 1]}-{woorden[foutIndex]}");
+            }
+        }
+    }
+}
+
+#! uitleg
+- **Inlezen** en **controleren** zijn twee aparte stappen, zoals de opdracht vraagt.
+- `woorden[i - 1]` is het vorige woord; zijn laatste letter staat op index `Length - 1`.
+- `foutIndex` onthoudt de **eerste** fout: daarna wordt hij niet meer overschreven. (In Level 5 leer je `break` om de loop meteen te stoppen.)
+- `const int aantalWoorden = 5;` maakt het programma makkelijk aanpasbaar.
+
+#! regel type=statement doel=array bericht="Bewaar de woorden in een array"
+
+#! test naam="Woordslang"
+#! invoer
+groen
+nooit
+trots
+slaap
+punt
+#! verwacht
+Geef een woord : groen
+Geef een woord : nooit
+Geef een woord : trots
+Geef een woord : slaap
+Geef een woord : punt
+de woordslang is groen-nooit-trots-slaap-punt
+
+#! test naam="Geen woordslang" referentie=ja
+#! invoer
+groen
+nooit
+katrol
+leuk
+kamer
+
+#! test naam="Meteen fout" referentie=ja
+#! invoer
+appel
+peer
+rozijn
+noot
+toast
+
+#! test naam="Fout pas op het einde" referentie=ja verborgen=ja
+#! invoer
+aap
+pan
+neus
+sok
+pet

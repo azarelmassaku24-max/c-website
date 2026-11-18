@@ -1,0 +1,256 @@
+#! lesson
+id: L08-03
+titel: Momenten voorstellen met DateTime
+samenvatting: DateTime-waarden maken, hun onderdelen opvragen, ermee rekenen en ze vergelijken.
+skills: datetime
+bron: Deel 12 – 3.1. Momenten voorstellen met DateTime · D12seizoen, D12verjaardagen
+duur: 30
+
+#! begrijpen
+## DateTime-waarden maken (Deel 12 §3.1.1)
+
+Een `DateTime` stelt een **moment** voor: een datum met (eventueel) een tijdstip.
+
+```csharp norun
+DateTime verjaardag = new DateTime(2026, 11, 16);          // jaar, maand, dag
+DateTime afspraak = new DateTime(2026, 11, 16, 14, 30, 0);  // + uur, minuut, seconde
+DateTime nu = DateTime.Now;                                  // het huidige moment
+DateTime vandaag = DateTime.Today;                           // vandaag om 00:00
+DateTime ingelezen = DateTime.Parse("23/12/1997");           // volgens de taalinstellingen
+```
+
+Op een Belgische computer verwacht `DateTime.Parse` dag/maand/jaar: `23/12/1997`. Geef je enkel `09/04` in, dan neemt hij het huidige jaar.
+
+## Onderdelen opvragen
+
+| Property | Voorbeeld voor 16/11/2026 14:30 |
+|---|---|
+| `.Year`, `.Month`, `.Day` | 2026, 11, 16 |
+| `.Hour`, `.Minute` | 14, 30 |
+| `.DayOfWeek` | `DayOfWeek.Monday` (een **enum**) |
+| `.DayOfYear` | 320 |
+
+## Werken met DateTime (§3.1.2)
+
+Een DateTime is **immutable**, net als een string: `AddDays` geeft een **nieuw** moment terug.
+
+```csharp norun
+DateTime volgendeWeek = vandaag.AddDays(7);
+DateTime vorigeMaand = vandaag.AddMonths(-1);
+string tekst = vandaag.ToString("dd/MM/yyyy");
+```
+
+## Vergelijken (§3.1.3)
+
+DateTime-waarden vergelijk je met `<`, `>`, `==`, …: een vroeger moment is "kleiner".
+
+```csharp norun
+if (afspraak < DateTime.Now) {
+    Console.WriteLine("Die afspraak is al voorbij.");
+}
+```
+
+> [!NOTE]
+> `DateTime.Now` geeft elke keer een ander resultaat. De automatische tests geven daarom altijd een datum in, in plaats van "vandaag" te gebruiken.
+
+#! voorbeeld
+## Datums in actie
+
+```csharp invoer="23/12/1997"
+Console.Write("Geboortedatum? ");
+DateTime geboorte = DateTime.Parse(Console.ReadLine());
+Console.WriteLine($"Jaar: {geboorte.Year}, maand: {geboorte.Month}, dag: {geboorte.Day}");
+Console.WriteLine($"Dat was een {geboorte.DayOfWeek}");
+DateTime honderdDagenLater = geboorte.AddDays(100);
+Console.WriteLine($"100 dagen later: {honderdDagenLater:dd/MM/yyyy}");
+Console.WriteLine(honderdDagenLater > geboorte);
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+DateTime d = new DateTime(2026, 1, 31);
+DateTime e = d.AddDays(1);
+Console.WriteLine($"{e.Day}/{e.Month}");
+Console.WriteLine(d.Day);
+```
+? 31 januari + 1 dag = 1 februari. DateTime is immutable: `d` blijft 31 januari.
+
+#! voorspel id=v2 type=choice
+`DateTime a = new DateTime(2026, 3, 1); DateTime b = new DateTime(2025, 12, 24);` — wat is `a > b`?
++ True
+- False
+- Compileerfout
+? 1 maart 2026 ligt later dan 24 december 2025, dus a is "groter".
+
+#! oefening id=L08-03-a rol=oefenen moeilijkheid=2 xp=70 titel="Weerkundig seizoen" bron="D12seizoen"
+Schrijf een programma dat de gebruiker om een datum vraagt en aangeeft in welk **weerkundig** seizoen deze datum valt. Elk jaar begint de lente op 01/03, de zomer op 01/06, de herfst op 01/09 en de winter op 01/12.
+
+```text
+Geef een datum : 09/04
+Lente
+```
+
+```text
+Geef een datum : 01/02
+Winter
+```
+
+Schrijf een query `static string GetSeizoen(DateTime datum)`.
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een datum : ");
+            DateTime datum = DateTime.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+Het seizoen hangt enkel af van de **maand**: `datum.Month`.
+
+#! hint
+Lente: maand 3–5, zomer: 6–8, herfst: 9–11, winter: 12, 1 en 2. Gebruik interval checking.
+
+#! hint
+`if (maand >= 12 || maand <= 2) return "Winter"; if (maand <= 5) return "Lente"; …`
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een datum : ");
+            DateTime datum = DateTime.Parse(Console.ReadLine());
+            Console.WriteLine(GetSeizoen(datum));
+        }
+
+        static string GetSeizoen(DateTime datum) {
+            int maand = datum.Month;
+            if (maand == 12 || maand <= 2) {
+                return "Winter";
+            } else if (maand <= 5) {
+                return "Lente";
+            } else if (maand <= 8) {
+                return "Zomer";
+            }
+            return "Herfst";
+        }
+    }
+}
+
+#! uitleg
+- Van een DateTime vraag je de onderdelen op met properties zoals `.Month`.
+- Weerkundige seizoenen beginnen op de eerste dag van een maand, dus volstaat de maand.
+
+#! regel type=method doel=GetSeizoen geeft=string parameters=1 bericht="Maak een query static string GetSeizoen(DateTime datum)"
+
+#! test naam="09/04"
+#! invoer
+09/04
+#! verwacht
+Geef een datum : 09/04
+Lente
+
+#! test naam="Alle seizoenen" soort=code
+Check.Equal("Winter", Program.GetSeizoen(new DateTime(2026, 2, 28)), "28/02");
+Check.Equal("Lente", Program.GetSeizoen(new DateTime(2026, 3, 1)), "01/03");
+Check.Equal("Zomer", Program.GetSeizoen(new DateTime(2026, 7, 1)), "01/07");
+Check.Equal("Herfst", Program.GetSeizoen(new DateTime(2026, 11, 30)), "30/11");
+Check.Equal("Winter", Program.GetSeizoen(new DateTime(2026, 12, 1)), "01/12");
+
+#! oefening id=L08-03-m rol=meesterschap moeilijkheid=3 xp=110 titel="Verjaardagen per maand" bron="D12verjaardagen"
+Schrijf een programma dat de gebruiker om **5** geboortedata vraagt en toont hoeveel verjaardagen er elke maand zijn. Maanden zonder verjaardagen worden niet getoond. Gebruik een tellerarray en een array met maandnamen.
+
+```text
+Geef een geboortedatum : 23/12/1997
+Geef een geboortedatum : 12/01/1993
+Geef een geboortedatum : 05/12/2001
+Geef een geboortedatum : 30/06/1988
+Geef een geboortedatum : 14/01/2004
+januari: 2
+juni: 1
+december: 2
+```
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalDatums = 5;
+            string[] maandNamen = { "januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december" };
+
+        }
+    }
+}
+
+#! hint
+Gebruik een `int[] aantalPerMaand = new int[12];`. Welke index hoort bij een datum in maand `m`?
+
+#! hint
+`aantalPerMaand[datum.Month - 1]++;` — maand 1 hoort bij index 0 (zoals de dagnummers in Level 4).
+
+#! hint
+Toon daarna voor elke index waarvan de teller > 0 is: `$"{maandNamen[i]}: {aantalPerMaand[i]}"`.
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalDatums = 5;
+            string[] maandNamen = { "januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december" };
+            int[] aantalPerMaand = new int[12];
+            for (int i = 0; i < aantalDatums; i++) {
+                Console.Write("Geef een geboortedatum : ");
+                DateTime datum = DateTime.Parse(Console.ReadLine());
+                aantalPerMaand[datum.Month - 1]++;
+            }
+            for (int i = 0; i < aantalPerMaand.Length; i++) {
+                if (aantalPerMaand[i] > 0) {
+                    Console.WriteLine($"{maandNamen[i]}: {aantalPerMaand[i]}");
+                }
+            }
+        }
+    }
+}
+
+#! uitleg
+- Een combinatie van Level 5 (tellerarray, parallelle arrays) en DateTime.
+- `datum.Month - 1` zet maand 1–12 om naar index 0–11.
+
+#! regel type=uses doel=Month bericht="Gebruik de property Month van DateTime"
+
+#! test naam="Voorbeeld"
+#! invoer
+23/12/1997
+12/01/1993
+05/12/2001
+30/06/1988
+14/01/2004
+#! verwacht
+Geef een geboortedatum : 23/12/1997
+Geef een geboortedatum : 12/01/1993
+Geef een geboortedatum : 05/12/2001
+Geef een geboortedatum : 30/06/1988
+Geef een geboortedatum : 14/01/2004
+januari: 2
+juni: 1
+december: 2
+
+#! test naam="Allemaal verschillend" referentie=ja
+#! invoer
+01/01/2000
+01/03/2000
+01/05/2000
+01/07/2000
+01/09/2000

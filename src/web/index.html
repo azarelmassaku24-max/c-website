@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="nl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C# Quest</title>
+  <meta name="description" content="Interactieve C#-academy: leer programmeren met echte code, levels, boss fights en een persoonlijke coach.">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/lab.css">
+  <link rel="stylesheet" href="/vendor/xterm/xterm.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "preact": "/vendor/preact/preact.module.js",
+        "preact/hooks": "/vendor/preact/hooks.module.js",
+        "htm": "/vendor/htm/htm.module.js",
+        "marked": "/vendor/marked/marked.esm.js",
+        "@xterm/xterm": "/vendor/xterm/xterm.mjs",
+        "@xterm/addon-fit": "/vendor/xterm/addon-fit.mjs"
+      }
+    }
+  </script>
+  <script>
+    // Thema zo vroeg mogelijk toepassen (geen flits van het verkeerde thema).
+    try {
+      var saved = JSON.parse(localStorage.getItem('csq.settings') || '{}');
+      var theme = saved.theme || 'dark';
+      if (theme === 'system') theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.dataset.theme = theme;
+      if (saved.reducedMotion) document.documentElement.dataset.motion = 'reduced';
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div class="boot">
+      <div class="boot-logo"><img src="/img/logo.svg" alt="" width="44" height="44"></div>
+      <div class="boot-text">C# Quest wordt geladen…</div>
+    </div>
+  </div>
+  <noscript>C# Quest heeft JavaScript nodig.</noscript>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

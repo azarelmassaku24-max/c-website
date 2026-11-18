@@ -1,0 +1,231 @@
+#! lesson
+id: L08-02
+titel: Expliciet afronden en MidpointRounding
+samenvatting: Math.Round, Ceiling en Floor, afronden op n cijfers en het verschil tussen intern afronden en enkel bij de output.
+skills: afronden
+bron: Deel 12 – 2.2. Expliciet afronden, 2.3. Afronden op n cijfers na de komma · D12soortenafrondingen, D12kapitaalwelafgerond
+duur: 30
+
+#! begrijpen
+## Afronden naar een geheel getal (Deel 12 §2.2)
+
+| Method | Doet | 7,5 | −7,5 |
+|---|---|---|---|
+| `Math.Ceiling(g)` | naar boven (plafond) | 8 | −7 |
+| `Math.Floor(g)` | naar beneden (vloer) | 7 | −8 |
+| `Math.Round(g)` | naar het dichtstbijzijnde geheel getal | **8** | **−8** |
+
+## MidpointRounding
+
+Wat doet `Math.Round` met een getal **precies in het midden** (7,5 of 6,5)? Standaard gebruikt .NET **banker's rounding** (`MidpointRounding.ToEven`): naar het dichtstbijzijnde **even** getal. Dus `Math.Round(6.5)` is 6 en `Math.Round(7.5)` is 8!
+
+Wil je afronden zoals op school (vijf naar boven, weg van nul), gebruik dan:
+
+```csharp norun
+Math.Round(6.5, MidpointRounding.AwayFromZero)   // 7
+```
+
+## Afronden op n cijfers na de komma (§2.3)
+
+```csharp norun
+Math.Round(123.456, 2)                                // 123,46
+Math.Round(2.345M, 2, MidpointRounding.AwayFromZero)  // 2,35
+```
+
+## Intern afronden of enkel bij de output? (§2.3.1)
+
+- `{bedrag:f2}` rondt enkel af **bij het tonen**. Je blijft rekenen met alle cijfers.
+- `bedrag = Math.Round(bedrag, 2);` rondt de **interne waarde** af. Rekent een bank elk jaar verder met het afgeronde bedrag, dan krijg je na enkele jaren een ander resultaat dan wanneer ze niet afrondt.
+
+Bij D12kapitaal**niet**afgerond en D12kapitaal**wel**afgerond scheelt dat na 20 jaar 0,02 euro!
+
+#! voorbeeld
+## Soorten afrondingen
+
+```csharp
+double[] waarden = { 7.4, 7.5, 7.6, -7.4, -7.5, -7.6, 6.5 };
+foreach (double g in waarden) {
+    Console.WriteLine($"{g,5}: Ceiling {Math.Ceiling(g),3} Floor {Math.Floor(g),3} Round {Math.Round(g),3} AwayFromZero {Math.Round(g, MidpointRounding.AwayFromZero),3}");
+}
+```
+
+Let op 6,5: `Math.Round` geeft 6 (naar even), AwayFromZero geeft 7.
+
+#! voorspel id=v1 type=output
+Wat drukt dit af?
+```csharp
+Console.WriteLine(Math.Round(2.5));
+Console.WriteLine(Math.Round(3.5));
+Console.WriteLine(Math.Round(2.5, MidpointRounding.AwayFromZero));
+```
+? Standaard rondt Round een midden af naar het **even** getal: 2,5 → 2 en 3,5 → 4. Met AwayFromZero: 3.
+
+#! voorspel id=v2 type=output
+Wat drukt dit af?
+```csharp
+Console.WriteLine(Math.Floor(-7.5));
+Console.WriteLine(Math.Ceiling(-7.5));
+```
+? Floor gaat altijd naar beneden (−8 is kleiner dan −7,5); Ceiling naar boven (−7).
+
+#! oefening id=L08-02-a rol=oefenen moeilijkheid=2 xp=70 titel="Soorten afrondingen" bron="D12soortenafrondingen"
+Schrijf een programma dat een kommagetal inleest en de vier soorten afrondingen toont:
+
+```text
+Geef een getal : 7,5
+Ceiling: 8
+Floor: 7
+Round: 8
+Round AwayFromZero: 8
+```
+
+Voorspel eerst zelf de waarden voor 7,4 – 7,5 – 7,6 – -7,4 – -7,5 – -7,6 en controleer daarna met je programma (D12soortenafrondingen).
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een getal : ");
+            double g = double.Parse(Console.ReadLine());
+
+        }
+    }
+}
+
+#! hint
+Je hebt vier methods nodig: `Math.Ceiling`, `Math.Floor`, `Math.Round` en `Math.Round` met een tweede argument.
+
+#! hint
+`Math.Round(g, MidpointRounding.AwayFromZero)` rondt middens weg van nul af.
+
+#! hint
+Vier regels output met interpolatie, bv. `Console.WriteLine($"Ceiling: {Math.Ceiling(g)}");` — of bereken de waarden eerst in variabelen (netter!).
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een getal : ");
+            double g = double.Parse(Console.ReadLine());
+            double plafond = Math.Ceiling(g);
+            double vloer = Math.Floor(g);
+            double afgerond = Math.Round(g);
+            double wegVanNul = Math.Round(g, MidpointRounding.AwayFromZero);
+            Console.WriteLine($"Ceiling: {plafond}");
+            Console.WriteLine($"Floor: {vloer}");
+            Console.WriteLine($"Round: {afgerond}");
+            Console.WriteLine($"Round AwayFromZero: {wegVanNul}");
+        }
+    }
+}
+
+#! uitleg
+- Ceiling en Floor kijken enkel naar de richting (boven/onder), niet naar het dichtstbijzijnde getal.
+- Het verschil tussen Round en Round AwayFromZero zie je enkel bij een midden zoals 6,5 of -6,5.
+
+#! regel type=uses doel=Ceiling bericht="Gebruik Math.Ceiling"
+#! regel type=uses doel=Floor bericht="Gebruik Math.Floor"
+#! regel type=regex doel="MidpointRounding\.AwayFromZero" bericht="Gebruik MidpointRounding.AwayFromZero"
+
+#! test naam="7,5"
+#! invoer
+7,5
+#! verwacht
+Geef een getal : 7,5
+Ceiling: 8
+Floor: 7
+Round: 8
+Round AwayFromZero: 8
+
+#! test naam="6,5 (naar even!)" referentie=ja
+#! invoer
+6,5
+
+#! test naam="-7,6" referentie=ja
+#! invoer
+-7,6
+
+#! test naam="-7,5" referentie=ja verborgen=ja
+#! invoer
+-7,5
+
+#! oefening id=L08-02-m rol=meesterschap moeilijkheid=3 xp=110 titel="Kapitaal, wel afgerond" bron="D12kapitaalwelafgerond"
+Schrijf een programma dat de gebruiker om het startkapitaal en een intrestvoet (in %) vraagt en toont hoeveel kapitaal er is in de eerste 20 jaar. De bank rekent **elk jaar verder met het afgeronde kapitaal** (2 cijfers na de komma, `MidpointRounding.AwayFromZero`). Gebruik `decimal`.
+
+```text
+Geef een bedrag : 100
+Geef de intrestvoet (in %) : 5
+jaar 0 : 100,00
+jaar 1 : 105,00
+jaar 2 : 110,25
+jaar 3 : 115,76
+...
+jaar 9 : 155,14
+...
+jaar 20 : 265,35
+```
+
+(Zonder interne afronding zou jaar 9 op 155,13 en jaar 20 op 265,33 uitkomen: 0,02 euro verschil!)
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Een for loop over de jaren 0 t.e.m. 20. Toon het kapitaal, en bereken daarna het kapitaal voor het volgende jaar.
+
+#! hint
+Nieuw kapitaal = kapitaal + kapitaal × intrestvoet / 100. Rond het resultaat meteen af: `kapitaal = Math.Round(kapitaal, 2, MidpointRounding.AwayFromZero);`.
+
+#! hint
+Toon met `{kapitaal:f2}` zodat jaar 0 als `100,00` verschijnt.
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalJaren = 20;
+            Console.Write("Geef een bedrag : ");
+            decimal kapitaal = decimal.Parse(Console.ReadLine());
+            Console.Write("Geef de intrestvoet (in %) : ");
+            decimal intrestvoet = decimal.Parse(Console.ReadLine());
+
+            for (int jaar = 0; jaar <= aantalJaren; jaar++) {
+                Console.WriteLine($"jaar {jaar} : {kapitaal:f2}");
+                decimal intrest = kapitaal * intrestvoet / 100;
+                kapitaal = Math.Round(kapitaal + intrest, 2, MidpointRounding.AwayFromZero);
+            }
+        }
+    }
+}
+
+#! uitleg
+- De interne waarde wordt **elk jaar** afgerond: zo rekent de bank verder met hele centen.
+- Laat je de afronding weg (en rond je enkel bij de output af met `:f2`), dan krijg je de oefening D12kapitaal**niet**afgerond — en 0,02 euro verschil na 20 jaar.
+- Decimal + AwayFromZero is de standaard voor financiële berekeningen.
+
+#! regel type=uses doel=Math.Round bericht="Rond het kapitaal intern af met Math.Round"
+#! regel type=regex doel="MidpointRounding\.AwayFromZero" bericht="Gebruik MidpointRounding.AwayFromZero"
+
+#! test naam="100 euro aan 5%" referentie=ja
+#! invoer
+100
+5
+
+#! test naam="2500 euro aan 3,25%" referentie=ja
+#! invoer
+2500
+3,25

@@ -1,0 +1,243 @@
+#! lesson
+id: L09-02
+titel: Paden, mappen en bestanden beheren
+samenvatting: Relatieve en absolute paden, Path.Combine, Environment en bestanden kopiëren, verplaatsen en verwijderen.
+skills: bestanden
+bron: Deel 13 – 1.3. Relatieve bestandspaden versus absolute paden, 1.6. Bestanden verplaatsen, kopiëren of verwijderen
+duur: 25
+
+#! begrijpen
+## Relatieve en absolute paden (Deel 13 §1.3)
+
+- Een **absoluut pad** begint bij de schijf: `C:\Users\jan\Documents\data.txt`.
+- Een **relatief pad** vertrekt vanuit de **huidige map** van het programma: `data.txt` of `backup\data.txt`.
+
+`Environment.CurrentDirectory` geeft de huidige map als string. Met `Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)` vraag je speciale mappen op (Documenten, Bureaublad, …).
+
+## Path.Combine
+
+Plak paden nooit zelf aan elkaar met `+ "\\" +`: op Windows is het scheidingsteken `\`, op Linux en macOS `/`. `Path.Combine` doet het correct:
+
+```csharp norun
+string map = Environment.CurrentDirectory;
+string pad = Path.Combine(map, "backup", "data.txt");
+```
+
+## Mappen
+
+```csharp norun
+Directory.CreateDirectory("backup");        // maakt de map (geen fout als ze al bestaat)
+bool bestaat = Directory.Exists("backup");
+string[] bestanden = Directory.GetFiles("backup");
+```
+
+## Kopiëren, verplaatsen en verwijderen (§1.6)
+
+| Method | Doet |
+|---|---|
+| `File.Copy(bron, doel)` | kopieert (fout als doel al bestaat) |
+| `File.Copy(bron, doel, true)` | kopieert en overschrijft |
+| `File.Move(bron, doel)` | verplaatst of hernoemt |
+| `File.Delete(pad)` | verwijdert (geen fout als het bestand niet bestaat) |
+| `Path.GetFileName(pad)` | enkel de bestandsnaam, bv. `data.txt` |
+
+> [!NOTE]
+> In de sandbox van C# Quest werken relatieve paden en `Environment.GetFolderPath` binnen de map van je programma. Een absoluut pad naar een map van je computer wordt geweigerd (UnauthorizedAccessException) — zo kan geen enkele oefening je eigen bestanden beschadigen.
+
+#! voorbeeld
+## Een backup maken
+
+```csharp
+File.WriteAllText("data.txt", "belangrijke gegevens");
+Directory.CreateDirectory("backup");
+string doel = Path.Combine("backup", "data.txt");
+File.Copy("data.txt", doel, true);
+Console.WriteLine($"Gekopieerd naar {doel}");
+Console.WriteLine(File.ReadAllText(doel));
+Console.WriteLine(Path.GetFileName(doel));
+```
+
+#! voorspel id=v1 type=choice
+Waarom gebruik je `Path.Combine("backup", "data.txt")` in plaats van `"backup\\data.txt"`?
+- Path.Combine is sneller
++ Path.Combine gebruikt het juiste scheidingsteken voor het besturingssysteem
+- Een string mag geen backslash bevatten
+- Path.Combine maakt de map automatisch aan
+? Windows gebruikt `\`, Linux en macOS `/`. Path.Combine kiest het juiste teken. (De map maak je zelf aan met Directory.CreateDirectory.)
+
+#! voorspel id=v2 type=choice
+Wat doet `File.Copy("a.txt", "b.txt")` als b.txt al bestaat?
+- b.txt wordt overschreven
+- De inhoud wordt achteraan toegevoegd
++ Er treedt een IOException op
+- Er gebeurt niets
+? Zonder derde argument `true` weigert File.Copy een bestaand bestand te overschrijven.
+
+#! oefening id=L09-02-a rol=oefenen moeilijkheid=2 xp=70 titel="Backup maken"
+In de map van het programma staan de bestanden `rapport.txt` en `cijfers.txt`. Schrijf een programma dat:
+
+1. een map `backup` aanmaakt;
+2. beide bestanden naar die map **kopieert** (met `Path.Combine` voor het doelpad);
+3. per bestand toont `rapport.txt gekopieerd` en op het einde het aantal bestanden in de backupmap.
+
+```text
+rapport.txt gekopieerd
+cijfers.txt gekopieerd
+De backup bevat 2 bestand(en).
+```
+
+#! bestand naam=rapport.txt
+Jaarrapport 2026
+#! bestand naam=cijfers.txt
+14;17;9
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            string[] teKopieren = { "rapport.txt", "cijfers.txt" };
+
+        }
+    }
+}
+
+#! hint
+Maak de map met `Directory.CreateDirectory("backup")`. Overloop daarna de array met bestandsnamen.
+
+#! hint
+`File.Copy(naam, Path.Combine("backup", naam), true);` — met `true` werkt het ook als je het programma twee keer uitvoert.
+
+#! hint
+`Directory.GetFiles("backup").Length` geeft het aantal bestanden in de map.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            string[] teKopieren = { "rapport.txt", "cijfers.txt" };
+            const string backupMap = "backup";
+            Directory.CreateDirectory(backupMap);
+            foreach (string naam in teKopieren) {
+                File.Copy(naam, Path.Combine(backupMap, naam), true);
+                Console.WriteLine($"{naam} gekopieerd");
+            }
+            int aantal = Directory.GetFiles(backupMap).Length;
+            Console.WriteLine($"De backup bevat {aantal} bestand(en).");
+        }
+    }
+}
+
+#! uitleg
+- `Directory.CreateDirectory` geeft geen fout als de map al bestaat — handig.
+- `Path.Combine` bouwt het pad `backup\rapport.txt` (of `backup/rapport.txt` op Linux).
+- Kijk na het uitvoeren in het tabblad **Bestanden**: je ziet de map backup met de kopieën.
+
+#! regel type=uses doel=Path.Combine bericht="Bouw het doelpad met Path.Combine"
+#! regel type=uses doel=File.Copy bericht="Kopieer met File.Copy"
+
+#! test naam="Backup"
+#! verwacht
+rapport.txt gekopieerd
+cijfers.txt gekopieerd
+De backup bevat 2 bestand(en).
+#! verwacht-bestand naam=backup/rapport.txt
+Jaarrapport 2026
+
+#! oefening id=L09-02-m rol=meesterschap moeilijkheid=3 xp=110 titel="Logbestanden archiveren"
+De map van het programma bevat meerdere bestanden. Schrijf een programma dat:
+
+1. alle bestanden die eindigen op `.log` **verplaatst** naar een map `archief`;
+2. alle bestanden die eindigen op `.tmp` **verwijdert**;
+3. per actie een regel toont, en op het einde een samenvatting.
+
+Gebruik `Directory.GetFiles(".")` en `Path.GetFileName` om enkel de bestandsnaam te tonen. Overloop de bestanden in **alfabetische volgorde** (`Array.Sort`).
+
+```text
+fout.log verplaatst naar archief
+oud.tmp verwijderd
+start.log verplaatst naar archief
+2 verplaatst, 1 verwijderd.
+```
+
+#! bestand naam=start.log
+programma gestart
+#! bestand naam=fout.log
+fout op regel 12
+#! bestand naam=oud.tmp
+tijdelijk
+#! bestand naam=data.txt
+belangrijk
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+`string[] bestanden = Directory.GetFiles(".");` geeft paden zoals `.\start.log`. `Path.GetFileName` haalt de naam eruit; `naam.EndsWith(".log")` test de extensie.
+
+#! hint
+Maak eerst de map `archief`. Verplaatsen: `File.Move(pad, Path.Combine("archief", naam));`. Verwijderen: `File.Delete(pad);`.
+
+#! hint
+Sorteer de array met `Array.Sort(bestanden);` voor je ze overloopt. Hou twee tellers bij voor de samenvatting.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            const string archief = "archief";
+            Directory.CreateDirectory(archief);
+            string[] bestanden = Directory.GetFiles(".");
+            Array.Sort(bestanden);
+            int verplaatst = 0;
+            int verwijderd = 0;
+            foreach (string pad in bestanden) {
+                string naam = Path.GetFileName(pad);
+                if (naam.EndsWith(".log")) {
+                    File.Move(pad, Path.Combine(archief, naam));
+                    Console.WriteLine($"{naam} verplaatst naar {archief}");
+                    verplaatst++;
+                } else if (naam.EndsWith(".tmp")) {
+                    File.Delete(pad);
+                    Console.WriteLine($"{naam} verwijderd");
+                    verwijderd++;
+                }
+            }
+            Console.WriteLine($"{verplaatst} verplaatst, {verwijderd} verwijderd.");
+        }
+    }
+}
+
+#! uitleg
+- `Directory.GetFiles(".")` geeft volledige (relatieve) paden; `Path.GetFileName` maakt er een leesbare naam van.
+- `File.Move` verplaatst naar een andere map; `File.Delete` verwijdert definitief.
+- data.txt blijft onaangeroerd: enkel .log en .tmp worden behandeld.
+
+#! regel type=uses doel=File.Move bericht="Verplaats met File.Move"
+#! regel type=uses doel=File.Delete bericht="Verwijder met File.Delete"
+
+#! test naam="Archiveren"
+#! verwacht
+fout.log verplaatst naar archief
+oud.tmp verwijderd
+start.log verplaatst naar archief
+2 verplaatst, 1 verwijderd.
+#! verwacht-bestand naam=archief/fout.log
+fout op regel 12

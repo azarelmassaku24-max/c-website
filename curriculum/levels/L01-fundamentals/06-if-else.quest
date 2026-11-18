@@ -1,0 +1,311 @@
+#! lesson
+id: L01-06
+titel: if, else if en else
+samenvatting: Beslissingen nemen met vergelijkingsoperatoren en geneste if-structuren.
+skills: if-else
+bron: Deel 04 – 3. If … else if … else …
+aanvulling: De korte uitleg over vergelijkingsoperatoren en het bool-type is aanvullend geschreven; de if-structuren volgen Deel 04 §3.
+duur: 30
+
+#! begrijpen
+## Vergelijkingsoperatoren
+
+Een vergelijking geeft altijd een `bool`: `true` of `false`.
+
+| Operator | Betekenis | Voorbeeld (`x = 7`) |
+|---|---|---|
+| `==` | is gelijk aan | `x == 7` → true |
+| `!=` | is niet gelijk aan | `x != 7` → false |
+| `<` / `>` | kleiner / groter dan | `x < 10` → true |
+| `<=` / `>=` | kleiner / groter dan of gelijk | `x >= 8` → false |
+
+> [!LET OP]
+> `=` is een **toekenning**, `==` is een **vergelijking**. `if (x = 5)` geeft een compileerfout.
+
+## if … else
+
+```csharp norun
+if (temperatuur >= 30) {
+    Console.WriteLine("Het is enorm warm.");
+} else {
+    Console.WriteLine("Het is niet enorm warm.");
+}
+```
+
+Is de voorwaarde `true`, dan wordt het eerste code block uitgevoerd, anders het block na `else`. Het `else`-gedeelte is optioneel.
+
+## Geneste if's en else if (Deel 04)
+
+Een if kan in een andere if worden uitgeschreven. Vaak laten we de accolades rond een if in een else-block weg en schrijven we de tweede if meteen na `else`:
+
+```csharp norun
+if (temperatuur >= 30) {
+    Console.WriteLine("Het is enorm warm.");
+} else if (temperatuur >= 15) {
+    Console.WriteLine("Het is aangenaam warm.");
+} else if (temperatuur < 10) {
+    Console.WriteLine("Het is koud.");
+} else {
+    Console.WriteLine("Het is eerder fris.");
+}
+```
+
+- De voorwaarden worden **van boven naar onder** gecontroleerd.
+- Zodra er één `true` is, wordt dat block uitgevoerd en worden de **overige voorwaarden niet meer bekeken**.
+- Je mag nul of meerdere `else if`-blocks gebruiken, maar maximaal één `else`.
+
+## if's in sequentie zijn iets anders!
+
+```csharp norun
+if (glazen < personen) { glazen = glazen + 6; }
+if (glazen > personen) { Console.WriteLine("We hebben meer dan voldoende glazen."); }
+```
+
+If's **na elkaar** worden allemaal geëvalueerd. Doordat het eerste block `glazen` verandert, kan ook het tweede block uitgevoerd worden. Met `else if` gebeurt dat niet.
+
+#! voorbeeld
+## De temperatuurcheck
+
+Voer het voorbeeld uit met verschillende temperaturen. Kijk in de **stap-voor-stap**-weergave welke voorwaarden `true` of `false` zijn en welke zelfs niet geëvalueerd worden.
+
+```csharp invoer="12"
+Console.Write("Geef de actuele temperatuur in : ");
+int temperatuur = int.Parse(Console.ReadLine());
+
+if (temperatuur >= 30) {
+    Console.WriteLine("Het is enorm warm.");
+} else if (temperatuur >= 15) {
+    Console.WriteLine("Het is aangenaam warm.");
+} else if (temperatuur < 10) {
+    Console.WriteLine("Het is koud.");
+} else {
+    Console.WriteLine("Het is eerder fris.");
+}
+```
+
+Met 12 graden is de eerste voorwaarde false, de tweede false, de derde false → "Het is eerder fris."
+
+#! voorspel id=v1 type=output invoer="25"
+Wat drukt dit programma af als de gebruiker **25** ingeeft?
+```csharp
+int temperatuur = int.Parse(Console.ReadLine());
+if (temperatuur >= 30) {
+    Console.WriteLine("enorm warm");
+} else if (temperatuur >= 15) {
+    Console.WriteLine("aangenaam");
+} else {
+    Console.WriteLine("fris");
+}
+```
+? 25 >= 30 is false, 25 >= 15 is true → "aangenaam". De ingetypte 25 verschijnt ook in de output omdat de gebruiker die intypt.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af? (if's in sequentie!)
+```csharp
+int personen = 10;
+int glazen = 5;
+if (glazen < personen) {
+    Console.WriteLine("Tekort, nieuwe doos.");
+    glazen = glazen + 6;
+}
+if (glazen > personen) {
+    Console.WriteLine("Meer dan voldoende.");
+}
+if (glazen == personen) {
+    Console.WriteLine("Precies genoeg.");
+}
+```
+? Het eerste block verhoogt `glazen` naar 11. Daarna wordt de tweede if ook geëvalueerd: 11 > 10 is true. Beide zinnen verschijnen — precies het "vreemde" resultaat uit de cursus.
+
+#! voorspel id=v3 type=choice
+Hoeveel `else`-blocks mag één if-structuur maximaal hebben?
+- Geen
++ Eén
+- Twee
+- Onbeperkt
+? Je mag onbeperkt `else if`-blocks gebruiken, maar maximaal één `else` — helemaal achteraan.
+
+#! oefening id=L01-06-a rol=oefenen moeilijkheid=1 xp=50 titel="Groter of gelijk" bron="D04groterofgelijk"
+Schrijf een programma dat de gebruiker om twee getallen vraagt en naargelang de situatie `het eerste is groter`, `het tweede is groter` of `ze zijn gelijk` afbeeldt.
+
+```text
+Geef het eerste getal : 7
+Geef het tweede getal : 3
+het eerste is groter
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Er zijn drie mogelijke situaties. Welke structuur gebruik je om uit drie mogelijkheden er precies één te kiezen?
+
+#! hint
+Gebruik `if … else if … else`. Twee situaties test je met een vergelijking; de derde is "wat overblijft".
+
+#! hint
+`if (getal1 > getal2) { ... } else if (getal2 > getal1) { ... } else { ... }` — in het else-block weet je zeker dat ze gelijk zijn.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef het eerste getal : ");
+            int getal1 = int.Parse(Console.ReadLine());
+            Console.Write("Geef het tweede getal : ");
+            int getal2 = int.Parse(Console.ReadLine());
+
+            if (getal1 > getal2) {
+                Console.WriteLine("het eerste is groter");
+            } else if (getal2 > getal1) {
+                Console.WriteLine("het tweede is groter");
+            } else {
+                Console.WriteLine("ze zijn gelijk");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Met `else if` wordt de tweede voorwaarde enkel gecontroleerd als de eerste false was.
+- In het `else`-block hoef je niets meer te vergelijken: als het eerste niet groter is én het tweede niet groter, zijn ze gelijk.
+- Drie losse if's na elkaar zouden ook werken, maar dan worden altijd alle drie de voorwaarden geëvalueerd.
+
+#! regel type=statement doel=else-if bericht="Gebruik een if … else if … else structuur"
+
+#! test naam="Eerste groter"
+#! invoer
+7
+3
+#! verwacht
+Geef het eerste getal : 7
+Geef het tweede getal : 3
+het eerste is groter
+
+#! test naam="Tweede groter" referentie=ja
+#! invoer
+2
+9
+
+#! test naam="Gelijk" referentie=ja
+#! invoer
+4
+4
+
+#! test naam="Negatieve getallen" referentie=ja verborgen=ja
+#! invoer
+-8
+-3
+
+#! oefening id=L01-06-m rol=meesterschap moeilijkheid=3 xp=90 titel="BMI-calculator" bron="D04bmi"
+Maak een programma dat de lengte in centimeter en het gewicht in kilogram vraagt, de **body mass index** berekent (gewicht-in-kilogram / lengte-in-meter²) en afdrukt, samen met de omschrijving:
+
+- Onder de 18,5: ondergewicht
+- Vanaf 18,5 en minder dan 25: normaal gewicht
+- Vanaf 25 en minder dan 30: overgewicht
+- Vanaf 30 en minder dan 40: zwaarlijvigheid
+- Vanaf 40: ernstige zwaarlijvigheid
+
+In het getoonde scenario werd 153 en 84 ingevoerd:
+
+```text
+Lengte in cm?: 153
+Gewicht in kg?: 84
+BMI: 35,883634499551455 (zwaarlijvigheid)
+```
+
+> [!NOTE]
+> In je cursusdocument staat `35,8836344995515`. Nieuwere versies van .NET tonen een double met meer cijfers: `35,883634499551455`. Beide zijn correct.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De lengte komt binnen in centimeter, maar de formule gebruikt meter. Hoe zet je cm om naar m — en let op: welk type deling krijg je met `153 / 100`?
+
+#! hint
+`double lengteInMeter = lengteInCm / 100.0;` en `double bmi = gewicht / Math.Pow(lengteInMeter, 2);`. Daarna bepaal je de omschrijving met een `if … else if … else`.
+
+#! hint
+Bewaar de omschrijving in een `string omschrijving` die je in elk block een waarde geeft (begin met de kleinste grens: `if (bmi < 18.5)`). Toon op het einde `$"BMI: {bmi} ({omschrijving})"`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Lengte in cm?: ");
+            int lengteInCm = int.Parse(Console.ReadLine());
+            Console.Write("Gewicht in kg?: ");
+            double gewicht = double.Parse(Console.ReadLine());
+
+            double lengteInMeter = lengteInCm / 100.0;
+            double bmi = gewicht / Math.Pow(lengteInMeter, 2);
+
+            string omschrijving;
+            if (bmi < 18.5) {
+                omschrijving = "ondergewicht";
+            } else if (bmi < 25) {
+                omschrijving = "normaal gewicht";
+            } else if (bmi < 30) {
+                omschrijving = "overgewicht";
+            } else if (bmi < 40) {
+                omschrijving = "zwaarlijvigheid";
+            } else {
+                omschrijving = "ernstige zwaarlijvigheid";
+            }
+            Console.WriteLine($"BMI: {bmi} ({omschrijving})");
+        }
+    }
+}
+
+#! uitleg
+- `lengteInCm / 100.0`: door `100.0` (een double) krijg je een kommadeling. Met `100` zou 153 / 100 = 1 zijn!
+- De grenzen worden van klein naar groot gecontroleerd. In het block `bmi < 25` weet je al dat `bmi >= 18.5` is (anders zat je in het eerste block). Daarom hoef je de ondergrens niet opnieuw te testen — dat heet **interval checking** en komt in de volgende les nog aan bod.
+- `string omschrijving;` krijgt in élk pad een waarde. Zonder het `else`-block geeft de compiler fout CS0165 (variabele mogelijk niet toegekend).
+
+#! regel type=statement doel=else-if aantal=3 bericht="Gebruik een if … else if … else structuur voor de categorieën"
+
+#! test naam="Voorbeeld uit de cursus (153 cm, 84 kg)" referentie=ja
+#! invoer
+153
+84
+
+#! test naam="Normaal gewicht" referentie=ja
+#! invoer
+180
+65
+
+#! test naam="Ondergewicht" referentie=ja
+#! invoer
+175
+50
+
+#! test naam="Overgewicht" referentie=ja verborgen=ja
+#! invoer
+170
+80
+
+#! test naam="Ernstige zwaarlijvigheid" referentie=ja verborgen=ja
+#! invoer
+160
+110

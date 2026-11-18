@@ -1,0 +1,266 @@
+#! lesson
+id: L03-03
+titel: Het char datatype
+samenvatting: Eén karakter bewaren in een char, hoofd- en kleine letters, en het soort karakter achterhalen.
+skills: strings
+bron: Deel 07 – 2.3. Het char datatype
+duur: 25
+
+#! begrijpen
+## char: één karakter
+
+Een `char` bevat **precies één karakter**. Een char literal staat tussen **enkele** aanhalingstekens:
+
+```csharp norun
+char letter = 'a';
+char cijfer = '7';
+char spatie = ' ';
+string tekst = "a";     // dit is een string (dubbele aanhalingstekens)!
+```
+
+Een karakter uit een string opvragen met `tekst[i]` geeft altijd een `char`.
+
+## Grote en kleine letters
+
+| Code | Resultaat |
+|---|---|
+| `char.ToUpper('a')` | `'A'` |
+| `char.ToLower('B')` | `'b'` |
+| `char.IsUpper('Q')` | `true` |
+| `char.IsLower('q')` | `true` |
+
+## Het soort karakter achterhalen
+
+| Code | true als het karakter … is |
+|---|---|
+| `char.IsLetter(c)` | een letter |
+| `char.IsDigit(c)` | een cijfer |
+| `char.IsWhiteSpace(c)` | een spatie, tab, … |
+| `char.IsPunctuation(c)` | een leesteken (`. , ! ? ' "` …) |
+| `char.IsLetterOrDigit(c)` | een letter of cijfer |
+
+## Conversie van char naar string
+
+```csharp norun
+char c = 'x';
+string s = c.ToString();   // "x"
+string t = "" + c;         // ook "x"
+```
+
+> [!LET OP]
+> `char` vergelijk je met `'a'`, niet met `"a"`: `tekst[0] == 'a'`. Een char is intern een getal (de Unicode-code). `'a' + 'b'` is daarom geen tekst maar het getal 195!
+
+#! voorbeeld
+## Karakters onderzoeken
+
+```csharp invoer="Zeg 'ns AAA 12!"
+Console.Write("Geef een tekst : ");
+string tekst = Console.ReadLine();
+char eerste = tekst[0];
+Console.WriteLine($"Eerste karakter: {eerste}");
+Console.WriteLine($"Is hoofdletter: {char.IsUpper(eerste)}");
+
+int aantalCijfers = 0;
+for (int i = 0; i < tekst.Length; i++) {
+    if (char.IsDigit(tekst[i])) {
+        aantalCijfers++;
+    }
+}
+Console.WriteLine($"Aantal cijfers: {aantalCijfers}");
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string woord = "hallo";
+char c = woord[1];
+Console.WriteLine(char.ToUpper(c));
+Console.WriteLine(char.IsDigit(c));
+```
+? `woord[1]` is `'a'`. `char.ToUpper('a')` is `'A'`. `'a'` is geen cijfer: False.
+
+#! voorspel id=v2 type=choice
+Welke regel geeft een **compileerfout**?
+- char c = 'x';
++ char c = "x";
+- string s = "x";
+- string s = 'x'.ToString();
+? `"x"` is een string. Een string kan je niet in een char stoppen, ook al bevat hij maar één karakter.
+
+#! voorspel id=v3 type=output
+Wat drukt deze code af?
+```csharp
+string tekst = "a1 b2!";
+int letters = 0;
+for (int i = 0; i < tekst.Length; i++) {
+    if (char.IsLetter(tekst[i])) {
+        letters++;
+    }
+}
+Console.WriteLine(letters);
+```
+? Enkel `a` en `b` zijn letters: 2.
+
+#! oefening id=L03-03-a rol=oefenen moeilijkheid=2 xp=60 titel="Begint met een hoofdletter" bron="D07begintmethoofdletter"
+Schrijf een programma dat de gebruiker om tekst vraagt en weergeeft of die tekst start met een hoofdletter of een kleine letter.
+
+```text
+Geef een tekst : programmeren
+De tekst start met een kleine letter.
+```
+
+```text
+Geef een tekst : Zeg 'ns AAA!
+De tekst start met een hoofdletter.
+```
+
+Start de tekst met iets anders (bv. een cijfer), toon dan `De tekst start niet met een letter.`
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Het eerste karakter vraag je op met `tekst[0]`. Daarna onderzoek je het soort karakter.
+
+#! hint
+Gebruik `char.IsUpper(...)` en `char.IsLower(...)` in een `if … else if … else`.
+
+#! hint
+`char eerste = tekst[0]; if (char.IsUpper(eerste)) { … } else if (char.IsLower(eerste)) { … } else { … }`
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            char eerste = tekst[0];
+            if (char.IsUpper(eerste)) {
+                Console.WriteLine("De tekst start met een hoofdletter.");
+            } else if (char.IsLower(eerste)) {
+                Console.WriteLine("De tekst start met een kleine letter.");
+            } else {
+                Console.WriteLine("De tekst start niet met een letter.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- `tekst[0]` geeft een `char`: het karakter op index 0.
+- `char.IsUpper` en `char.IsLower` geven een bool terug. Een cijfer of leesteken is geen van beide, daarom het else-block.
+- Wat als de gebruiker niets intypt? Dan bestaat `tekst[0]` niet → IndexOutOfRangeException. Robuuster: eerst `if (tekst.Length == 0)` controleren.
+
+#! regel type=regex doel="char\.Is(Upper|Lower)" bericht="Gebruik char.IsUpper of char.IsLower"
+
+#! test naam="Kleine letter"
+#! invoer
+programmeren
+#! verwacht
+Geef een tekst : programmeren
+De tekst start met een kleine letter.
+
+#! test naam="Hoofdletter" referentie=ja
+#! invoer
+Zeg 'ns AAA!
+
+#! test naam="Cijfer" referentie=ja verborgen=ja
+#! invoer
+12 monkeys
+
+#! oefening id=L03-03-m rol=meesterschap moeilijkheid=3 xp=90 titel="Klinkers en medeklinkers" bron="D07klinkersenmedeklinkers"
+Schrijf een programma dat de gebruiker om een tekst vraagt en het aantal klinkers en medeklinkers weergeeft. We beschouwen enkel de letters uit het a–z-alfabet met 5 klinkers (a, e, i, o en u). Hoofdletters tellen ook mee.
+
+```text
+Geef een tekst : Hokey Cokey, pig-in-a-pokey!
+9 klinker(s) en 12 medeklinker(s)
+```
+
+**Hint uit de cursus:** het is wellicht het makkelijkst om 2 strings te definiëren en voor elk karakter na te gaan of het in deze strings voorkomt:
+
+```csharp norun
+string klinkers = "aeiou";
+string medeklinkers = "bcdfghjklmnpqrstvwxyz";
+```
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Overloop elk karakter. Zet het eerst om naar een kleine letter, zodat `H` en `h` hetzelfde behandeld worden.
+
+#! hint
+Je kan testen of een karakter in een string voorkomt met `klinkers.Contains(c)` of `klinkers.IndexOf(c) >= 0` (dat zie je in een volgende les nog beter).
+
+#! hint
+In de loop: `char c = char.ToLower(tekst[i]); if (klinkers.Contains(c)) aantalKlinkers++; else if (medeklinkers.Contains(c)) aantalMedeklinkers++;` — leestekens en spaties tellen niet mee.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            const string klinkers = "aeiou";
+            const string medeklinkers = "bcdfghjklmnpqrstvwxyz";
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+            int aantalKlinkers = 0;
+            int aantalMedeklinkers = 0;
+            for (int i = 0; i < tekst.Length; i++) {
+                char c = char.ToLower(tekst[i]);
+                if (klinkers.Contains(c)) {
+                    aantalKlinkers++;
+                } else if (medeklinkers.Contains(c)) {
+                    aantalMedeklinkers++;
+                }
+            }
+            Console.WriteLine($"{aantalKlinkers} klinker(s) en {aantalMedeklinkers} medeklinker(s)");
+        }
+    }
+}
+
+#! uitleg
+- Door elk karakter met `char.ToLower` om te zetten, volstaan strings met kleine letters.
+- `klinkers.Contains(c)` is true als het karakter in de string voorkomt.
+- Karakters die in geen van beide strings staan (spaties, `-`, `!`, `,`) tellen nergens mee.
+
+#! regel type=loop bericht="Overloop de karakters met een loop"
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+Hokey Cokey, pig-in-a-pokey!
+#! verwacht
+Geef een tekst : Hokey Cokey, pig-in-a-pokey!
+9 klinker(s) en 12 medeklinker(s)
+
+#! test naam="HOOFDLETTERS" referentie=ja
+#! invoer
+AEIOU XYZ
+
+#! test naam="Zonder letters" referentie=ja verborgen=ja
+#! invoer
+123 !?

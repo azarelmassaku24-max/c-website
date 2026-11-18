@@ -1,0 +1,258 @@
+#! lesson
+id: L09-04
+titel: StreamReader, StreamWriter en using
+samenvatting: Bestanden regel per regel lezen en schrijven met stream-objecten, en ze netjes afsluiten met using.
+skills: streams, exceptions
+bron: Deel 13 – 3. Tekst lezen uit, of schrijven naar bestanden met stream objecten (StreamReader, Using, EndOfStream, StreamWriter)
+duur: 30
+
+#! begrijpen
+## Waarom streams? (Deel 13 §3.3)
+
+`File.ReadAllLines` leest een bestand **in één keer** in het geheugen. Voor heel grote bestanden (logbestanden van gigabytes) is dat niet haalbaar. Een **stream** leest of schrijft stukje per stukje, zoals water door een buis stroomt.
+
+## StreamReader (§3.1)
+
+```csharp norun
+using (StreamReader reader = new StreamReader("data.txt")) {
+    while (!reader.EndOfStream) {
+        string regel = reader.ReadLine();
+        Console.WriteLine(regel);
+    }
+}
+```
+
+- `new StreamReader(pad)` opent het bestand.
+- `ReadLine()` leest de volgende regel; `EndOfStream` is true als alles gelezen is (§3.1.7.1).
+- `Read()` leest één karakter, `ReadToEnd()` de rest van het bestand.
+
+## Beëindigen van het gebruik: using (§3.1.4)
+
+Een stream houdt het bestand **open** tot je hem afsluit. Vergeet je dat, dan kan een ander programma (of je eigen programma) het bestand niet gebruiken. Het **using-statement** sluit de stream automatisch af aan het einde van het block — **ook als er een exception optreedt**.
+
+```csharp norun
+using (StreamReader reader = new StreamReader(pad)) {
+    ...
+}   // hier wordt reader automatisch afgesloten
+```
+
+> [!NOTE]
+> Dit `using` (een statement in je code) is iets anders dan de using-directive bovenaan je bestand (`using System.IO;`).
+
+## StreamWriter (§3.2)
+
+```csharp norun
+using (StreamWriter writer = new StreamWriter("uit.txt")) {
+    writer.WriteLine("eerste regel");
+    writer.Write("zonder regeleinde");
+}
+```
+
+`new StreamWriter(pad, true)` voegt toe in plaats van te overschrijven.
+
+## Zelf exception handling voorzien (§3.1.6)
+
+Combineer using met try/catch om fouten bij het openen op te vangen:
+
+```csharp norun
+try {
+    using (StreamReader reader = new StreamReader(pad)) { ... }
+} catch (FileNotFoundException) {
+    Console.WriteLine("Bestand niet gevonden.");
+}
+```
+
+#! voorbeeld
+## Regel per regel
+
+```csharp
+using (StreamWriter writer = new StreamWriter("kwadraten.txt")) {
+    for (int i = 1; i <= 5; i++) {
+        writer.WriteLine($"{i} x {i} = {i * i}");
+    }
+}
+
+int aantal = 0;
+using (StreamReader reader = new StreamReader("kwadraten.txt")) {
+    while (!reader.EndOfStream) {
+        string regel = reader.ReadLine();
+        aantal++;
+        Console.WriteLine($"{aantal}: {regel}");
+    }
+}
+```
+
+#! voorspel id=v1 type=choice
+Wat is het belangrijkste voordeel van `using (StreamReader r = ...) { ... }`?
+- Het bestand wordt sneller gelezen
++ De stream wordt altijd afgesloten, ook bij een exception
+- Je hoeft geen pad op te geven
+- Het bestand wordt automatisch aangemaakt
+? using roept op het einde van het block automatisch Dispose (en dus Close) op, wat er ook gebeurt.
+
+#! voorspel id=v2 type=choice
+Wanneer stopt `while (!reader.EndOfStream) { reader.ReadLine(); }`?
++ Als alle regels gelezen zijn
+- Na de eerste lege regel
+- Na 100 regels
+- Nooit
+? EndOfStream wordt true zodra er niets meer te lezen valt. Een lege regel is gewoon een regel met lege inhoud.
+
+#! oefening id=L09-04-a rol=oefenen moeilijkheid=2 xp=80 titel="Woorden tellen met StreamReader"
+Het bestand `tekst.txt` bevat enkele regels tekst. Lees het **regel per regel** met een `StreamReader` (in een using-statement) en toon per regel het aantal woorden (gescheiden door spaties). Toon op het einde het totaal.
+
+```text
+Regel 1: 4 woorden
+Regel 2: 6 woorden
+Regel 3: 1 woorden
+Totaal: 11 woorden
+```
+
+#! bestand naam=tekst.txt
+De hazen vliegen laag
+Het werd donker en koud vandaag
+Einde
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Open het bestand met `using (StreamReader reader = new StreamReader("tekst.txt")) { … }` en lees met een while loop op `!reader.EndOfStream`.
+
+#! hint
+Per regel: `regel.Split(' ').Length` geeft het aantal woorden (je mag ervan uitgaan dat woorden door precies één spatie gescheiden zijn).
+
+#! hint
+Hou een regelnummer en een totaal bij, buiten de loop.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            int regelnummer = 0;
+            int totaal = 0;
+            using (StreamReader reader = new StreamReader("tekst.txt")) {
+                while (!reader.EndOfStream) {
+                    string regel = reader.ReadLine();
+                    regelnummer++;
+                    int aantal = regel.Split(' ').Length;
+                    totaal += aantal;
+                    Console.WriteLine($"Regel {regelnummer}: {aantal} woorden");
+                }
+            }
+            Console.WriteLine($"Totaal: {totaal} woorden");
+        }
+    }
+}
+
+#! uitleg
+- De StreamReader leest één regel per keer: het geheugengebruik blijft klein, ook bij enorme bestanden.
+- Het using-statement sluit de reader automatisch af na de loop.
+
+#! regel type=new doel=StreamReader bericht="Gebruik een StreamReader"
+#! regel type=statement doel=using bericht="Gebruik een using-statement"
+#! regel type=uses doel=EndOfStream bericht="Lees tot EndOfStream"
+
+#! test naam="Drie regels"
+#! verwacht
+Regel 1: 4 woorden
+Regel 2: 6 woorden
+Regel 3: 1 woorden
+Totaal: 11 woorden
+
+#! oefening id=L09-04-m rol=meesterschap moeilijkheid=3 xp=110 titel="Tafels naar een bestand"
+Schrijf een programma dat vraagt van welk getal de tafel gemaakt moet worden en tot welke factor. Het programma schrijft de tafel met een `StreamWriter` naar het bestand `tafel.txt` (één regel per vermenigvuldiging, rechts uitgelijnd op 3 posities) en meldt daarna hoeveel regels er geschreven zijn.
+
+```text
+Tafel van? 7
+Tot factor? 3
+3 regels geschreven naar tafel.txt
+```
+
+Inhoud van `tafel.txt`:
+
+```text
+  1 x 7 =   7
+  2 x 7 =  14
+  3 x 7 =  21
+```
+
+#! starter
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+`using (StreamWriter writer = new StreamWriter("tafel.txt")) { … }` en daarin een for loop met `writer.WriteLine(...)`.
+
+#! hint
+Uitlijnen: `$"{factor,3} x {tafel} = {product,3}"`.
+
+#! hint
+De melding toon je ná het using-block: dan is het bestand gegarandeerd afgesloten en volledig weggeschreven.
+
+#! oplossing
+using System;
+using System.IO;
+
+namespace D13 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Tafel van? ");
+            int tafel = int.Parse(Console.ReadLine());
+            Console.Write("Tot factor? ");
+            int totFactor = int.Parse(Console.ReadLine());
+            using (StreamWriter writer = new StreamWriter("tafel.txt")) {
+                for (int factor = 1; factor <= totFactor; factor++) {
+                    int product = factor * tafel;
+                    writer.WriteLine($"{factor,3} x {tafel} = {product,3}");
+                }
+            }
+            Console.WriteLine($"{totFactor} regels geschreven naar tafel.txt");
+        }
+    }
+}
+
+#! uitleg
+- WriteLine op een StreamWriter werkt zoals Console.WriteLine, maar schrijft naar het bestand.
+- Pas bij het afsluiten (einde van het using-block) is alles gegarandeerd naar de schijf geschreven.
+
+#! regel type=new doel=StreamWriter bericht="Gebruik een StreamWriter"
+#! regel type=statement doel=using bericht="Gebruik een using-statement"
+
+#! test naam="Tafel van 7 tot 3"
+#! invoer
+7
+3
+#! verwacht
+Tafel van? 7
+Tot factor? 3
+3 regels geschreven naar tafel.txt
+#! verwacht-bestand naam=tafel.txt
+  1 x 7 =   7
+  2 x 7 =  14
+  3 x 7 =  21
+
+#! test naam="Tafel van 12 tot 10" referentie=ja
+#! invoer
+12
+10

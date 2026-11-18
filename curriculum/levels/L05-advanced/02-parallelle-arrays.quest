@@ -1,0 +1,259 @@
+#! lesson
+id: L05-02
+titel: Parallelle arrays
+samenvatting: Gegevens die bij elkaar horen verdelen over meerdere arrays met dezelfde index.
+skills: parallelle-arrays
+bron: Deel 09 – 2.1. Parallelle arrays · D09buisvakken, D09toonscore, D09dagnummernaarmaand
+duur: 25
+
+#! begrijpen
+## Parallelle arrays (Deel 09 §2.1)
+
+Soms horen meerdere gegevens bij elkaar: een vak en de score, een maand en het aantal dagen, een letter en de morsecode. Met **parallelle arrays** bewaar je elk soort gegeven in een eigen array, waarbij **dezelfde index** naar hetzelfde "ding" verwijst:
+
+```csharp norun
+string[] vakken = { "Frans", "Engels", "Wiskunde", "Duits", "L.O." };
+int[] scores    = {  34,      55,       20,        10,      80   };
+```
+
+Op index 1 vinden we dat de student voor het vak Engels een score van 55 behaalde.
+
+## Zoeken in de ene, gebruiken in de andere
+
+Het typische patroon: zoek de **index** in de ene array en gebruik die index in de andere.
+
+```csharp norun
+int index = -1;
+for (int i = 0; i < vakken.Length; i++) {
+    if (vakken[i].ToLower() == gezocht.ToLower()) {
+        index = i;
+        break;
+    }
+}
+if (index != -1) {
+    Console.WriteLine($"De score voor dit vak is {scores[index]}/100");
+}
+```
+
+> [!LET OP]
+> Parallelle arrays moeten **altijd even lang** zijn en in dezelfde volgorde blijven. Voeg je een vak toe in de ene array maar niet in de andere, dan klopt alles erna niet meer. In Level 10 leer je een betere oplossing: een **klasse** die vak en score samen bundelt.
+
+#! voorbeeld
+## Buisvakken (D09buisvakken)
+
+```csharp
+string[] vakken = { "Frans", "Engels", "Wiskunde", "Duits", "L.O." };
+int[] scores = { 34, 55, 20, 10, 80 };
+Console.WriteLine("Onvoldoende voor:");
+for (int i = 0; i < vakken.Length; i++) {
+    if (scores[i] < 50) {
+        Console.WriteLine($"- {vakken[i]} ({scores[i]}/100)");
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string[] maanden = { "Januari", "Februari", "Maart" };
+int[] dagen = { 31, 28, 31 };
+int totaal = 0;
+for (int i = 0; i < 2; i++) {
+    totaal += dagen[i];
+}
+Console.WriteLine($"{maanden[1]}: {totaal}");
+```
+? De loop telt de dagen van index 0 en 1 op: 31 + 28 = 59. `maanden[1]` is Februari.
+
+#! voorspel id=v2 type=choice
+Je voegt in `vakken` een nieuw vak toe tussen "Engels" en "Wiskunde", maar vergeet `scores` aan te passen. Wat gebeurt er?
+- Niets, C# past scores automatisch aan
+- Compileerfout
++ Vanaf "Wiskunde" horen de scores bij het verkeerde vak
+- De nieuwe score wordt 0
+? De arrays zijn niet meer "parallel": vanaf de ingevoegde positie verschuift alles. Dat is precies het risico van parallelle arrays.
+
+#! oefening id=L05-02-a rol=oefenen moeilijkheid=2 xp=60 titel="Toon de score" bron="D09toonscore"
+Begin met de twee arrays:
+
+```csharp norun
+string[] vakken = { "Frans", "Engels", "Wiskunde", "Duits", "L.O." };
+int[] scores = { 34, 55, 20, 10, 80 };
+```
+
+Het programma vraagt de gebruiker om de naam van een vak en toont de score van de student. Het zoekt **hoofdletterongevoelig**. Wordt het vak niet gevonden, dan toont het `Geen score bekend`.
+
+```text
+Geef de naam van een vak : wiskunde
+De score voor dit vak is 20/100
+```
+
+```text
+Geef de naam van een vak : Hoelahoepen
+Geen score bekend
+```
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] vakken = { "Frans", "Engels", "Wiskunde", "Duits", "L.O." };
+            int[] scores = { 34, 55, 20, 10, 80 };
+
+        }
+    }
+}
+
+#! hint
+Zoek eerst de index van het vak in `vakken`. Met die index vraag je de score op in `scores`.
+
+#! hint
+Hoofdletterongevoelig vergelijken: `vakken[i].ToLower() == vak.ToLower()`. Gebruik `int index = -1;` en `break` bij een treffer.
+
+#! hint
+Na de loop: `if (index == -1)` → geen score bekend, anders `scores[index]` tonen.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] vakken = { "Frans", "Engels", "Wiskunde", "Duits", "L.O." };
+            int[] scores = { 34, 55, 20, 10, 80 };
+            Console.Write("Geef de naam van een vak : ");
+            string vak = Console.ReadLine().Trim().ToLower();
+            int index = -1;
+            for (int i = 0; i < vakken.Length; i++) {
+                if (vakken[i].ToLower() == vak) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) {
+                Console.WriteLine("Geen score bekend");
+            } else {
+                Console.WriteLine($"De score voor dit vak is {scores[index]}/100");
+            }
+        }
+    }
+}
+
+#! uitleg
+- Het zoeken gebeurt in `vakken`, het resultaat komt uit `scores` — met **dezelfde index**.
+- Beide kanten van de vergelijking worden in kleine letters gezet.
+- `index == -1` signaleert dat er niets gevonden werd.
+
+#! test naam="wiskunde"
+#! invoer
+wiskunde
+#! verwacht
+Geef de naam van een vak : wiskunde
+De score voor dit vak is 20/100
+
+#! test naam="Onbekend vak" referentie=ja
+#! invoer
+Hoelahoepen
+
+#! test naam="L.O. in hoofdletters" referentie=ja verborgen=ja
+#! invoer
+l.o.
+
+#! oefening id=L05-02-m rol=meesterschap moeilijkheid=3 xp=100 titel="Dagnummer naar maand" bron="D09dagnummernaarmaand"
+Schrijf een programma dat de gebruiker vraagt om een dagnummer in het jaar (1 t.e.m. 365, geen schrikkeljaar) en toont in welke maand die dag valt. Gebruik deze twee parallelle arrays:
+
+```csharp norun
+int[] aantalDagen = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+string[] maandNamen = { "Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December" };
+```
+
+```text
+Geef het dagnummer : 59
+De maand is Februari
+```
+
+```text
+Geef het dagnummer : 366
+De maand is onbepaald
+```
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            int[] aantalDagen = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+            string[] maandNamen = { "Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December" };
+
+        }
+    }
+}
+
+#! hint
+Denk aan een lopende som: na januari zitten we aan dag 31, na februari aan dag 59, … In welke maand valt dagnummer 45?
+
+#! hint
+Overloop de maanden en tel telkens `aantalDagen[i]` op bij een variabele `totaal`. Zodra `dagnummer <= totaal`, ligt de dag in maand `i`.
+
+#! hint
+Gebruik `string maand = "onbepaald";` als beginwaarde. In de loop: `totaal += aantalDagen[i]; if (dagnummer >= 1 && dagnummer <= totaal) { maand = maandNamen[i]; break; }`.
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            int[] aantalDagen = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+            string[] maandNamen = { "Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December" };
+            Console.Write("Geef het dagnummer : ");
+            int dagnummer = int.Parse(Console.ReadLine());
+
+            string maand = "onbepaald";
+            int totaal = 0;
+            if (dagnummer >= 1) {
+                for (int i = 0; i < aantalDagen.Length; i++) {
+                    totaal += aantalDagen[i];
+                    if (dagnummer <= totaal) {
+                        maand = maandNamen[i];
+                        break;
+                    }
+                }
+            }
+            Console.WriteLine($"De maand is {maand}");
+        }
+    }
+}
+
+#! uitleg
+- `totaal` is na elke iteratie het nummer van de **laatste dag** van die maand (31, 59, 90, …).
+- Zodra het dagnummer kleiner of gelijk is aan dat totaal, hebben we de maand: de index in `aantalDagen` is dezelfde als in `maandNamen`.
+- Voor 366 (of 0) wordt nooit een maand gevonden en blijft "onbepaald" staan.
+
+#! regel type=statement doel=break bericht="Stop met zoeken zodra de maand gevonden is"
+
+#! test naam="Dag 59"
+#! invoer
+59
+#! verwacht
+Geef het dagnummer : 59
+De maand is Februari
+
+#! test naam="Dag 183" referentie=ja
+#! invoer
+183
+
+#! test naam="Dag 365" referentie=ja
+#! invoer
+365
+
+#! test naam="Dag 366" referentie=ja verborgen=ja
+#! invoer
+366
+
+#! test naam="Dag 1" referentie=ja verborgen=ja
+#! invoer
+1

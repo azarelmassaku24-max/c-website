@@ -1,0 +1,305 @@
+#! lesson
+id: L01-04
+titel: String interpolatie, scope en const
+samenvatting: Leesbare tekst bouwen met $"...", de scope van variabelen en magic values vervangen door const.
+skills: interpolatie, scope
+bron: Deel 03 – 1. String interpolatie, 3. Variabelen en scope
+duur: 30
+
+#! begrijpen
+## String interpolatie
+
+Tot nu toe bouwden we tekst met `+` (string concatenatie):
+
+```csharp norun
+string bericht = "Dag " + naam + ", je bent dus " + leeftijd + " jaar oud.";
+```
+
+De vele `"` en `+` symbolen maken het moeilijk om te zien hoe de tekst eruitziet en de spaties goed te krijgen. Een betere manier is **string interpolatie**: zet een `$` vóór je string literal en plaats variabelen tussen `{` en `}`.
+
+```csharp norun
+string bericht = $"Dag {naam}, je bent dus {leeftijd} jaar oud.";
+```
+
+Moet het resultaat letterlijk een `{` of `}` bevatten, schrijf dan `{{` of `}}`.
+
+> [!BELANGRIJK]
+> **Meng geen berekeningen met string interpolatie** (regel uit de cursus). Tussen de accolades zet je enkel namen van variabelen.
+> Dus niet `$"De som is {getal1 + getal2}."` maar eerst `int som = getal1 + getal2;` en dan `$"De som is {som}."`.
+> Zo hou je het berekenen gescheiden van het tonen van output.
+
+## Scope: waar bestaat een variabele?
+
+Code staat in **code blocks** tussen `{` en `}`. De **scope** van een variabele begint bij haar declaratie en houdt op aan het einde van het **direct omsluitende code block**.
+
+```csharp norun
+1: static void Main(string[] args) {
+2:     int aantal = int.Parse(Console.ReadLine());
+3:     if (aantal > 50) {
+4:         int helft = aantal / 2;
+5:         Console.WriteLine($"de helft is {helft}");
+6:     } else {
+7:         int dubbel = aantal * 2;
+8:         Console.WriteLine($"het dubbel is {dubbel}");
+9:     }
+10: }
+```
+
+- `aantal` is in scope op regel 2 t.e.m. 9.
+- `helft` enkel op regel 4–5, `dubbel` enkel op regel 7–8.
+
+Code blocks zitten in elkaar zoals **Matroesjka-poppetjes**. Op regel 7 kan je `helft` niet gebruiken: die is daar *out of scope*.
+
+> [!TIP]
+> Geef een variabele een **zo klein mogelijke scope**. Onderzoek wijst uit dat er dan statistisch minder kans is op fouten.
+
+## const en magic values
+
+Een **magic value** is een getal middenin je code waarvan je je afvraagt waar het vandaan komt (*"geen idee, maar het is nodig: it must be magic!"*). Bijvoorbeeld `1609.34`. Vervang ze door een **const** variabele: een variabele waarvan de waarde na initialisatie niet meer kan veranderen.
+
+```csharp norun
+const double meterPerMijl = 1609.34;
+const int aantalKoekenPerPak = 15;
+```
+
+- Een const maakt je code **leesbaarder** (de naam zegt wat het getal betekent).
+- Verandert de waarde ooit, dan pas je ze op **één plaats** aan.
+- In tegenstelling tot gewone variabelen zetten we const declaraties **samen bovenaan**.
+
+Niet elke literal is een magic value: de `2` in `straal = diameter / 2` maakt een naam niet duidelijker en zal nooit veranderen.
+
+#! voorbeeld
+## Interpolatie en const samen
+
+```csharp invoer="3"
+const int aantalKoekenPerPak = 15;
+const double aantalCalorieenPerKoek = 94.0;
+
+Console.Write("Geef het aantal pakjes koeken : ");
+int aantalPakken = int.Parse(Console.ReadLine());
+
+double aantalCalorieen = aantalPakken * aantalKoekenPerPak * aantalCalorieenPerKoek;
+Console.WriteLine($"Samen zijn dat {aantalCalorieen} calorieën.");
+```
+
+Probeer **Uitvoeren** en daarna **Stap voor stap**. Merk op dat de const variabelen bovenaan staan en dat er tussen de accolades enkel een variabele staat, geen berekening.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string dier = "kat";
+int aantal = 3;
+Console.WriteLine($"Ik heb {aantal} {dier}ten.");
+```
+? De waarden van de variabelen worden op de plaats van de accolades ingelast: `Ik heb 3 katten.` De tekst rond de accolades blijft letterlijk staan.
+
+#! voorspel id=v2 type=choice
+Wat gebeurt er bij deze code?
+```csharp norun
+const int maximum = 10;
+maximum = 20;
+```
+- maximum wordt 20
+- maximum blijft 10, de tweede regel wordt genegeerd
++ Compileerfout: een const kan geen nieuwe waarde krijgen
+- Runtimefout bij het uitvoeren
+? Een `const` variabele kan na initialisatie niet meer veranderen. De compiler weigert de code.
+
+#! voorspel id=v3 type=choice
+```csharp norun
+1: int getal = 8;
+2: if (getal > 5) {
+3:     int dubbel = getal * 2;
+4: }
+5: Console.WriteLine(dubbel);
+```
+Wat is er aan de hand?
+- De code toont 16
+- De code toont 0
++ Compileerfout: dubbel is out of scope op regel 5
+- Runtimefout
+? `dubbel` is gedeclareerd in het code block van de if (regel 3–4). Op regel 5 bestaat die variabele niet meer. Wil je ze daar gebruiken, dan moet je ze vóór de if declareren.
+
+#! voorspel id=v4 type=output
+Wat drukt deze code af?
+```csharp
+int x = 4;
+Console.WriteLine($"{{x}} = {x}");
+```
+? `{{` en `}}` worden letterlijke accolades. Enkel `{x}` wordt vervangen door de waarde: `{x} = 4`.
+
+#! oefening id=L01-04-a rol=oefenen moeilijkheid=2 xp=50 titel="Frietkot"
+In het frietkot kost een pakje friet **3 euro** en een frikandel **2,25 euro**.
+
+Schrijf een programma dat vraagt hoeveel pakjes friet en hoeveel frikandellen de klant wil, en toont wat dat kost:
+
+```text
+Hoeveel pakjes friet? 3
+Hoeveel frikandellen? 2
+Totaal: 3 x friet + 2 x frikandel = 13,5 euro
+```
+
+Vereisten:
+
+- Gebruik **string interpolatie** voor de laatste regel.
+- Gebruik **const** variabelen voor de twee prijzen (geen magic values).
+- Zet **geen berekening** tussen de accolades.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Begin met twee const declaraties bovenaan, bv. `const double prijsFriet = 3.0;`. Welke naam geef je de prijs van een frikandel?
+
+#! hint
+Lees beide aantallen in als `int`. Bereken het totaal **vóór** je het toont, in een variabele `totaal` van type `double`.
+
+#! hint
+De laatste regel: `Console.WriteLine($"Totaal: {aantalFriet} x friet + {aantalFrikandellen} x frikandel = {totaal} euro");`
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            const double prijsFriet = 3.0;
+            const double prijsFrikandel = 2.25;
+
+            Console.Write("Hoeveel pakjes friet? ");
+            int aantalFriet = int.Parse(Console.ReadLine());
+            Console.Write("Hoeveel frikandellen? ");
+            int aantalFrikandellen = int.Parse(Console.ReadLine());
+
+            double totaal = aantalFriet * prijsFriet + aantalFrikandellen * prijsFrikandel;
+            Console.WriteLine($"Totaal: {aantalFriet} x friet + {aantalFrikandellen} x frikandel = {totaal} euro");
+        }
+    }
+}
+
+#! uitleg
+- De prijzen zijn **const**: ze staan samen bovenaan en hebben een duidelijke naam.
+- Het totaal wordt eerst berekend. In de interpolatie staan enkel namen van variabelen.
+- Omdat de prijzen doubles zijn, is ook het totaal een double: `13,5`.
+
+#! regel type=statement doel=interpolation bericht="Gebruik string interpolatie (een $ vóór de string)"
+#! regel type=statement doel=const aantal=2 bericht="Gebruik const variabelen voor beide prijzen"
+#! regel type=no-literal doel=2.25 bericht="Gebruik geen magic value 2.25 buiten een const"
+
+#! test naam="Voorbeeld uit de opdracht"
+#! invoer
+3
+2
+#! verwacht
+Hoeveel pakjes friet? 3
+Hoeveel frikandellen? 2
+Totaal: 3 x friet + 2 x frikandel = 13,5 euro
+
+#! test naam="Enkel friet" referentie=ja
+#! invoer
+4
+0
+
+#! test naam="Grote bestelling" referentie=ja verborgen=ja
+#! invoer
+12
+9
+
+#! oefening id=L01-04-m rol=meesterschap moeilijkheid=2 xp=70 titel="Imperiale eenheden" bron="D03imperial"
+Dit programma vraagt de gebruiker om een afstand in feet en inches, en toont dan de equivalente afstand in centimeter. Het werkt al, maar bevat **magic values**.
+
+Herwerk het programma:
+
+1. Vervang de magic values `30.48` en `2.54` door **const** variabelen met een duidelijke naam.
+2. Zet de const declaraties samen **bovenaan**.
+
+De output moet hetzelfde blijven:
+
+```text
+Geef het aantal feet : 5
+Geef het aantal inches : 3
+Dat is 160,02cm.
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef het aantal feet : ");
+            string aantalFeetAlsTekst = Console.ReadLine();
+            double aantalFeet = double.Parse(aantalFeetAlsTekst);
+            Console.Write("Geef het aantal inches : ");
+            string aantalInchesAlsTekst = Console.ReadLine();
+            double aantalInches = double.Parse(aantalInchesAlsTekst);
+            double aantalFeetInCm = aantalFeet * 30.48;
+            double aantalInchesInCm = aantalInches * 2.54;
+            double totaalInCm = aantalFeetInCm + aantalInchesInCm;
+            Console.WriteLine($"Dat is {totaalInCm}cm.");
+        }
+    }
+}
+
+#! hint
+Wat betekenen 30.48 en 2.54? Eén foot is 30,48 cm en één inch is 2,54 cm. Bedenk namen die dat uitdrukken.
+
+#! hint
+Bijvoorbeeld `const double cmPerFoot = 30.48;` en `const double cmPerInch = 2.54;`. Zet ze als eerste regels in `Main`.
+
+#! hint
+Vervang daarna in de berekeningen elk getal door de naam van de const. De output verandert niet — enkel de leesbaarheid.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            const double cmPerFoot = 30.48;
+            const double cmPerInch = 2.54;
+
+            Console.Write("Geef het aantal feet : ");
+            string aantalFeetAlsTekst = Console.ReadLine();
+            double aantalFeet = double.Parse(aantalFeetAlsTekst);
+            Console.Write("Geef het aantal inches : ");
+            string aantalInchesAlsTekst = Console.ReadLine();
+            double aantalInches = double.Parse(aantalInchesAlsTekst);
+            double aantalFeetInCm = aantalFeet * cmPerFoot;
+            double aantalInchesInCm = aantalInches * cmPerInch;
+            double totaalInCm = aantalFeetInCm + aantalInchesInCm;
+            Console.WriteLine($"Dat is {totaalInCm}cm.");
+        }
+    }
+}
+
+#! uitleg
+- `cmPerFoot` en `cmPerInch` vertellen meteen wat de getallen betekenen.
+- Mocht een omrekenfactor ooit veranderen (of een tikfout bevatten), dan pas je ze op één plaats aan.
+- Dit heet **refactoren**: de code verbeteren zonder dat de werking verandert.
+
+#! regel type=no-literal doel=30.48 bericht="Gebruik geen magic value 30.48 buiten een const"
+#! regel type=no-literal doel=2.54 bericht="Gebruik geen magic value 2.54 buiten een const"
+#! regel type=statement doel=const aantal=2 bericht="Declareer twee const variabelen"
+
+#! test naam="Voorbeeld uit de opdracht"
+#! invoer
+5
+3
+#! verwacht
+Geef het aantal feet : 5
+Geef het aantal inches : 3
+Dat is 160,02cm.
+
+#! test naam="Enkel feet" referentie=ja
+#! invoer
+6
+0

@@ -1,0 +1,276 @@
+#! lesson
+id: L06-03
+titel: Return values, lokale variabelen, command en query
+samenvatting: Methods die een waarde teruggeven, de scope van lokale variabelen en het verschil tussen command en query.
+skills: parameters, methods
+bron: Deel 10 – 2.6. Lokale variabelen, 2.8. Return values, 2.9. Command versus Query · D10faculteit, D10intervaloverlap
+duur: 35
+
+#! begrijpen
+## Return values (§2.8)
+
+Een method kan een **waarde teruggeven** aan de plaats waar ze opgeroepen werd. In plaats van `void` vermeld je het **return type**, en met `return` geef je de waarde terug:
+
+```csharp norun
+static int GetFaculteit(int getal) {
+    int resultaat = 1;
+    for (int i = 2; i <= getal; i++) {
+        resultaat *= i;
+    }
+    return resultaat;
+}
+```
+
+De oproep is dan een **expressie** met dat type, die je kan gebruiken zoals elke andere waarde:
+
+```csharp norun
+int f = GetFaculteit(5);                        // 120
+Console.WriteLine($"5! is {GetFaculteit(5)}");
+int som = GetFaculteit(3) + GetFaculteit(4);    // 6 + 24
+```
+
+- `return` beëindigt de method **meteen**.
+- Een method met een return type moet in **elk** mogelijk pad een `return` bereiken, anders: compileerfout CS0161.
+
+## Lokale variabelen (§2.6)
+
+Variabelen die in een method gedeclareerd worden (ook de parameters) zijn **lokaal**: ze bestaan enkel tijdens die methodactivatie. Twee methods mogen elk een variabele `resultaat` hebben — het zijn verschillende variabelen. `Main` kan de lokale variabelen van `GetFaculteit` niet zien; de enige manier om iets terug te krijgen is de **return value**.
+
+## Command versus query (§2.9)
+
+| Soort | Doet | Return type | Voorbeeld |
+|---|---|---|---|
+| **Command** | voert een actie uit (bv. output tonen) | `void` | `ToonRechthoek(3, 2)` |
+| **Query** | berekent en geeft een antwoord terug | een type | `GetFaculteit(5)` |
+
+Een goede query **toont geen output** en wijzigt niets: ze berekent enkel het antwoord. Zo kan je ze overal hergebruiken — in een console-app, een webpagina of een test. Namen van queries beginnen vaak met `Get…`, `Is…` of `Bevat…`.
+
+#! voorbeeld
+## Een query in actie
+
+Volg in de debugger de **return value**: na `return` zie je in de Call Stack welke waarde teruggegeven wordt.
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int resultaat = GetGrootste(12, 45);
+        Console.WriteLine(resultaat);
+        Console.WriteLine(IsEven(7));
+    }
+
+    static int GetGrootste(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
+    }
+
+    static bool IsEven(int getal) {
+        return getal % 2 == 0;
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit programma af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        int x = Verdubbel(4);
+        Console.WriteLine(x + Verdubbel(1));
+    }
+    static int Verdubbel(int getal) {
+        return getal * 2;
+    }
+}
+```
+? `Verdubbel(4)` geeft 8, `Verdubbel(1)` geeft 2: 8 + 2 = 10.
+
+#! voorspel id=v2 type=choice
+Waarom geeft deze method een compileerfout?
+```csharp norun
+static int GetTeken(int getal) {
+    if (getal > 0) {
+        return 1;
+    } else if (getal < 0) {
+        return -1;
+    }
+}
+```
+- return mag niet in een if staan
++ Niet alle codepaden geven een waarde terug (bij getal == 0)
+- Een method mag maar één return hebben
+- -1 is geen geldige return value
+? Als getal 0 is, bereikt de method het einde zonder return (CS0161). Voeg een `return 0;` toe of gebruik een else.
+
+#! voorspel id=v3 type=choice
+Welke method is een **query**?
+- static void ToonScore(int score)
++ static double GetGemiddelde(int[] scores)
+- static void PrintMenu()
+- static void Main()
+? Een query geeft een antwoord terug (hier een double). De andere methods zijn commands (void).
+
+#! oefening id=L06-03-a rol=oefenen moeilijkheid=2 xp=70 titel="Faculteit" bron="D10faculteit"
+Schrijf een programma dat de gebruiker om een getal vraagt en de **faculteit** van dat getal toont. De faculteit is het product van alle getallen van 1 t.e.m. dat getal (de faculteit van 0 is 1).
+
+```text
+Geef een getal : 5
+5! is 120
+```
+
+Voorzie een method `GetFaculteit` met een parameter van type `int` die een `int` waarde **teruggeeft** (een query: de method toont zelf niets).
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De method heeft als hoofding `static int GetFaculteit(int getal)`. Wat moet ze berekenen en teruggeven?
+
+#! hint
+Begin met `int resultaat = 1;` en vermenigvuldig in een for loop met 2, 3, …, getal. Geef het resultaat terug met `return resultaat;`.
+
+#! hint
+In Main: lees het getal in en toon `$"{getal}! is {GetFaculteit(getal)}"` — of bewaar de return value eerst in een variabele.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een getal : ");
+            int getal = int.Parse(Console.ReadLine());
+            int faculteit = GetFaculteit(getal);
+            Console.WriteLine($"{getal}! is {faculteit}");
+        }
+
+        static int GetFaculteit(int getal) {
+            int resultaat = 1;
+            for (int i = 2; i <= getal; i++) {
+                resultaat *= i;
+            }
+            return resultaat;
+        }
+    }
+}
+
+#! uitleg
+- `GetFaculteit` is een **query**: ze berekent enkel. Het tonen gebeurt in Main.
+- Voor 0 en 1 wordt de loop niet uitgevoerd en blijft `resultaat` 1 — precies goed.
+- Vergelijk met D05playlist (Level 1): dezelfde berekening, maar nu herbruikbaar.
+
+#! regel type=method doel=GetFaculteit geeft=int parameters=1 bericht="Maak een method static int GetFaculteit(int getal)"
+
+#! test naam="5!"
+#! invoer
+5
+#! verwacht
+Geef een getal : 5
+5! is 120
+
+#! test naam="GetFaculteit geeft het juiste resultaat" soort=code
+Check.Equal(1, Program.GetFaculteit(0), "GetFaculteit(0)");
+Check.Equal(1, Program.GetFaculteit(1), "GetFaculteit(1)");
+Check.Equal(6, Program.GetFaculteit(3), "GetFaculteit(3)");
+Check.Equal(3628800, Program.GetFaculteit(10), "GetFaculteit(10)");
+
+#! test naam="GetFaculteit toont zelf niets (query)" soort=code
+string output = Check.Output(() => Program.GetFaculteit(4));
+Check.True(output == "", "GetFaculteit schrijft niets naar de console");
+
+#! oefening id=L06-03-m rol=meesterschap moeilijkheid=3 xp=110 titel="Overlappende intervallen" bron="D10intervaloverlap"
+Schrijf een method `IsOverlappend` die vertelt of twee intervallen **overlappen**. Een interval is een verzameling getallen tussen een ondergrens en een bovengrens (beide inbegrepen): [34,39] bevat 34, 39 en alle getallen daartussen.
+
+```csharp norun
+static bool IsOverlappend(int minInterval1, int maxInterval1, int minInterval2, int maxInterval2)
+```
+
+De return value geeft aan of de intervallen minstens 1 gemeenschappelijk getal hebben. Je mag ervan uitgaan dat `minInterval1 <= maxInterval1` en `minInterval2 <= maxInterval2`.
+
+Probeer je method uit in `Main`:
+
+```text
+True
+True
+False
+```
+
+voor `IsOverlappend(3, 6, 4, 10)`, `IsOverlappend(3, 6, 6, 10)` en `IsOverlappend(3, 6, 7, 10)`.
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            Console.WriteLine(IsOverlappend(3, 6, 4, 10));
+            Console.WriteLine(IsOverlappend(3, 6, 6, 10));
+            Console.WriteLine(IsOverlappend(3, 6, 7, 10));
+        }
+    }
+}
+
+#! hint
+Teken enkele intervallen op een getallenlijn. Het is soms makkelijker om na te denken wanneer twee intervallen **niet** overlappen.
+
+#! hint
+Ze overlappen niet als het ene interval volledig links van het andere ligt: `maxInterval1 < minInterval2` of `maxInterval2 < minInterval1`.
+
+#! hint
+`return !(maxInterval1 < minInterval2 || maxInterval2 < minInterval1);` — of equivalent: `return minInterval1 <= maxInterval2 && minInterval2 <= maxInterval1;`.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            Console.WriteLine(IsOverlappend(3, 6, 4, 10));
+            Console.WriteLine(IsOverlappend(3, 6, 6, 10));
+            Console.WriteLine(IsOverlappend(3, 6, 7, 10));
+        }
+
+        static bool IsOverlappend(int minInterval1, int maxInterval1, int minInterval2, int maxInterval2) {
+            return minInterval1 <= maxInterval2 && minInterval2 <= maxInterval1;
+        }
+    }
+}
+
+#! uitleg
+- Twee intervallen overlappen precies als elk interval begint vóór (of op) het einde van het andere.
+- De voorwaarde zelf is al een bool: `return voorwaarde;` is korter dan `if (voorwaarde) return true; else return false;`.
+- De 12 testgevallen uit de cursus (zie de tests) controleren alle randgevallen: aanraken, omgekeerde volgorde, één-getal-intervallen.
+
+#! regel type=method doel=IsOverlappend geeft=bool parameters=4 bericht="Maak een method static bool IsOverlappend met 4 int-parameters"
+
+#! test naam="Main" mode=exact
+#! verwacht
+True
+True
+False
+
+#! test naam="Alle gevallen uit de cursus" soort=code
+Check.Equal(true, Program.IsOverlappend(3, 6, 4, 10), "IsOverlappend(3, 6, 4, 10)");
+Check.Equal(true, Program.IsOverlappend(4, 10, 3, 6), "IsOverlappend(4, 10, 3, 6)");
+Check.Equal(true, Program.IsOverlappend(3, 6, 6, 10), "IsOverlappend(3, 6, 6, 10)");
+Check.Equal(true, Program.IsOverlappend(6, 10, 3, 6), "IsOverlappend(6, 10, 3, 6)");
+Check.Equal(false, Program.IsOverlappend(3, 6, 7, 10), "IsOverlappend(3, 6, 7, 10)");
+Check.Equal(false, Program.IsOverlappend(7, 10, 3, 6), "IsOverlappend(7, 10, 3, 6)");
+Check.Equal(false, Program.IsOverlappend(6, 6, 7, 7), "IsOverlappend(6, 6, 7, 7)");
+Check.Equal(false, Program.IsOverlappend(7, 7, 6, 6), "IsOverlappend(7, 7, 6, 6)");
+Check.Equal(true, Program.IsOverlappend(6, 6, 3, 10), "IsOverlappend(6, 6, 3, 10)");
+Check.Equal(true, Program.IsOverlappend(3, 10, 6, 6), "IsOverlappend(3, 10, 6, 6)");
+Check.Equal(true, Program.IsOverlappend(6, 6, 6, 10), "IsOverlappend(6, 6, 6, 10)");
+Check.Equal(true, Program.IsOverlappend(6, 10, 6, 6), "IsOverlappend(6, 10, 6, 6)");

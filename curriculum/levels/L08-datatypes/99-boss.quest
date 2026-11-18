@@ -1,0 +1,207 @@
+#! boss
+id: L08-BOSS
+titel: De Spaarplanner
+samenvatting: Een spaarplan met decimal, correcte afronding, DateTime en TimeSpan.
+skills: afronden, datetime, documentatie
+bron: Deel 12 – numerieke datatypes, afronden, DateTime en TimeSpan
+verhaal: De bank "Centje Wijzer" verliest klanten door afrondingsfouten van een cent. Bouw een spaarplanner die tot op de cent klopt — en die precies zegt wanneer het spaardoel bereikt wordt.
+duur: 45
+
+#! begrijpen
+## Briefing
+
+Een klant zet elke maand een vast bedrag op een spaarrekening. Op het einde van elke maand krijgt hij **maandelijkse intrest** (jaarintrest / 12) op het saldo. De bank rekent met **decimal** en rondt na elke berekening af op 2 cijfers met `MidpointRounding.AwayFromZero`.
+
+Volgorde per maand:
+
+1. storting bij het saldo
+2. intrest = saldo × (jaarintrest / 100 / 12), afgerond
+3. saldo += intrest
+
+#! oefening id=L08-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=4 xp=150 titel="Een jaar sparen"
+Lees het maandelijkse bedrag en de jaarintrest (in %) in en toon het saldo na elke maand van één jaar, met de intrest van die maand. Toon op het einde het totaal gestorte bedrag en de totaal ontvangen intrest.
+
+```text
+Maandelijks bedrag : 100
+Jaarintrest (in %) : 2,4
+maand  1 : saldo   100,20 (intrest 0,20)
+maand  2 : saldo   200,60 (intrest 0,40)
+...
+maand 12 : saldo  1215,71 (intrest 2,43)
+Gestort: 1200,00
+Intrest: 15,71
+```
+
+Gebruik een method `static decimal Afronden(decimal bedrag)` en toon met `{maand,2}` en `{saldo,8:f2}`.
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De maandintrest-factor is `jaarintrest / 100 / 12`. Bereken in een for loop van maand 1 t.e.m. 12 de drie stappen.
+
+#! hint
+Rond de intrest af vóór je ze bij het saldo telt. Hou de totale intrest bij in een aparte variabele.
+
+#! hint
+`saldo += storting; decimal intrest = Afronden(saldo * jaarintrest / 100 / 12); saldo += intrest; totaleIntrest += intrest;`
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            const int aantalMaanden = 12;
+            Console.Write("Maandelijks bedrag : ");
+            decimal storting = decimal.Parse(Console.ReadLine());
+            Console.Write("Jaarintrest (in %) : ");
+            decimal jaarintrest = decimal.Parse(Console.ReadLine());
+
+            decimal saldo = 0;
+            decimal totaleIntrest = 0;
+            for (int maand = 1; maand <= aantalMaanden; maand++) {
+                saldo += storting;
+                decimal intrest = Afronden(saldo * jaarintrest / 100 / 12);
+                saldo += intrest;
+                totaleIntrest += intrest;
+                Console.WriteLine($"maand {maand,2} : saldo {saldo,8:f2} (intrest {intrest:f2})");
+            }
+            decimal gestort = storting * aantalMaanden;
+            Console.WriteLine($"Gestort: {gestort:f2}");
+            Console.WriteLine($"Intrest: {totaleIntrest:f2}");
+        }
+
+        static decimal Afronden(decimal bedrag) {
+            return Math.Round(bedrag, 2, MidpointRounding.AwayFromZero);
+        }
+    }
+}
+
+#! uitleg
+- Decimal + afronding na elke stap: elk getoond bedrag is een echt bedrag in centen.
+- De totale intrest wordt opgeteld uit de afgeronde maandbedragen, zodat Gestort + Intrest exact het eindsaldo is.
+
+#! regel type=method doel=Afronden geeft=decimal parameters=1 bericht="Maak een method static decimal Afronden(decimal bedrag)"
+#! regel type=no-regex doel="\bdouble\b" bericht="Gebruik decimal, geen double"
+
+#! test naam="100 euro aan 2,4%" referentie=ja mode=exact
+#! invoer
+100
+2,4
+
+#! test naam="250 euro aan 3%" referentie=ja mode=exact
+#! invoer
+250
+3
+
+#! oefening id=L08-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=5 xp=200 titel="Wanneer is mijn doel bereikt?"
+De klant geeft nu ook een **spaardoel** en een **startdatum** in. Het programma rekent maand per maand door (zelfde berekening als fase 1) tot het saldo het doel bereikt of overschrijdt, en toont:
+
+- na hoeveel maanden het doel bereikt is;
+- de datum (startdatum + aantal maanden) in het formaat `dd/MM/yyyy`;
+- hoeveel dagen dat is vanaf de startdatum (TimeSpan);
+- het eindsaldo.
+
+```text
+Maandelijks bedrag : 100
+Jaarintrest (in %) : 2,4
+Spaardoel : 1000
+Startdatum : 01/01/2027
+Doel bereikt na 10 maanden, op 01/11/2027 (304 dagen).
+Eindsaldo: 1011,06
+```
+
+Je mag ervan uitgaan dat het doel binnen 1000 maanden bereikt wordt.
+
+#! starter
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Gebruik een while loop: herhaal zolang `saldo < doel`. Tel de maanden.
+
+#! hint
+De einddatum is `startdatum.AddMonths(aantalMaanden)`. Het aantal dagen is `(einddatum - startdatum).Days`.
+
+#! hint
+Toon de datum met `{einddatum:dd/MM/yyyy}`.
+
+#! oplossing
+using System;
+
+namespace D12 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Maandelijks bedrag : ");
+            decimal storting = decimal.Parse(Console.ReadLine());
+            Console.Write("Jaarintrest (in %) : ");
+            decimal jaarintrest = decimal.Parse(Console.ReadLine());
+            Console.Write("Spaardoel : ");
+            decimal doel = decimal.Parse(Console.ReadLine());
+            Console.Write("Startdatum : ");
+            DateTime start = DateTime.Parse(Console.ReadLine());
+
+            decimal saldo = 0;
+            int aantalMaanden = 0;
+            while (saldo < doel) {
+                saldo += storting;
+                saldo += Afronden(saldo * jaarintrest / 100 / 12);
+                aantalMaanden++;
+            }
+
+            DateTime einde = start.AddMonths(aantalMaanden);
+            TimeSpan duur = einde - start;
+            Console.WriteLine($"Doel bereikt na {aantalMaanden} maanden, op {einde:dd/MM/yyyy} ({duur.Days} dagen).");
+            Console.WriteLine($"Eindsaldo: {saldo:f2}");
+        }
+
+        static decimal Afronden(decimal bedrag) {
+            return Math.Round(bedrag, 2, MidpointRounding.AwayFromZero);
+        }
+    }
+}
+
+#! uitleg
+- Een while loop, want het aantal maanden is niet vooraf gekend.
+- `AddMonths` rekent correct met maanden van verschillende lengte; het verschil tussen twee DateTime's is een TimeSpan.
+- Je beheerst nu numerieke types, afronden en datums. Level 9: **bestanden en exceptions**!
+
+#! regel type=uses doel=AddMonths bericht="Bereken de einddatum met AddMonths"
+#! regel type=type doel=TimeSpan bericht="Gebruik een TimeSpan voor het aantal dagen"
+
+#! test naam="Doel 1000"
+#! invoer
+100
+2,4
+1000
+01/01/2027
+#! verwacht
+Maandelijks bedrag : 100
+Jaarintrest (in %) : 2,4
+Spaardoel : 1000
+Startdatum : 01/01/2027
+Doel bereikt na 10 maanden, op 01/11/2027 (304 dagen).
+Eindsaldo: 1011,06
+
+#! test naam="Groot doel" referentie=ja
+#! invoer
+250
+3
+10000
+15/03/2027

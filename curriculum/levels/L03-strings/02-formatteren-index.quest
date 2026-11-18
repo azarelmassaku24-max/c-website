@@ -1,0 +1,278 @@
+#! lesson
+id: L03-02
+titel: Getallen formatteren, Length en indexen
+samenvatting: Getallen netjes uitlijnen en afronden met format strings, en karakters opvragen met [index].
+skills: strings
+bron: Deel 07 – 2.1. Een getal omzetten naar een geformatteerde string, 2.2. De onderdelen van een string
+duur: 30
+
+#! begrijpen
+## Format strings (Deel 07 §2.1)
+
+Met `.ToString()` of string concatenatie heb je geen controle over hoe een getal eruitziet. Op een kassaticket staan prijzen rechts uitgelijnd, en van een kommagetal wil je meestal maar een paar cijfers na de komma. Daarvoor gebruik je een **format string**, tussen de accolades van de interpolatie:
+
+**Voor int: `{getal,x:dy}`**
+
+- `x` = de minimale ruimte die het getal inneemt (aangevuld met spaties links);
+- `y` = het minimum aantal cijfers (aangevuld met nullen vooraan).
+
+| Format | Waarde | Resultaat (`_` = spatie) |
+|---|---|---|
+| `{getal,7:d5}` | 123 | `__00123` |
+| `{getal,5:d}` | 123 | `__123` |
+| `{getal,0:d5}` | 123 | `00123` |
+
+**Voor double: `{getal,x:fy}`**
+
+- `x` = het totaal aantal posities (de komma telt mee);
+- `y` = het aantal cijfers na de komma (afgerond of aangevuld met nullen).
+
+| Format | Waarde | Resultaat |
+|---|---|---|
+| `{getal,7:f2}` | 123,4567 | `_123,46` |
+| `{getal,7:f2}` | 123,4 | `_123,40` |
+| `{getal:f3}` | 16,96460… | `16,965` |
+
+Vergeet de **komma** na de variabele niet (`{getal,7:d5}`)! Of de fractie met een komma of punt verschijnt, hangt af van de taalinstellingen van de computer.
+
+## De lengte van een string
+
+```csharp norun
+string input = "Supercalifragilisticexpialidocious";
+int lengte = input.Length;   // 34
+```
+
+## Karakters, posities en index (Deel 07 §2.2)
+
+De posities van de karakters in een string worden genummerd **vanaf nul**:
+
+| symbool | H | a | l | l | o |
+|---|---|---|---|---|---|
+| positie | 0 | 1 | 2 | 3 | 4 |
+
+In plaats van positie spreken we van **index**. Met `tekst[index]` vraag je het karakter op die positie op; het resultaat is van type **`char`**.
+
+| Expressie (`tekst = "Hello World!"`) | Type | Waarde |
+|---|---|---|
+| `tekst[0]` | char | `H` |
+| `tekst[6]` | char | `W` |
+| `tekst.Length` | int | `12` |
+| `tekst[tekst.Length - 1]` | char | `!` |
+
+> [!LET OP]
+> In een tekst van 5 karakters zijn de geldige indexen 0 t.e.m. 4. `tekst[5]` geeft een runtimefout: *IndexOutOfRangeException*.
+
+#! voorbeeld
+## Formatteren en indexeren
+
+```csharp
+int getal = 123;
+Console.WriteLine($"[{getal,7:d5}]");
+double prijs = 3.5;
+Console.WriteLine($"[{prijs,8:f2}]");
+
+string tekst = "Hello World!";
+Console.WriteLine(tekst.Length);
+Console.WriteLine(tekst[0]);
+Console.WriteLine(tekst[tekst.Length - 1]);
+```
+
+## Alle posities overlopen
+
+Met een for loop van 0 tot `Length` (exclusief) overloop je elke index — nu zie je waarom programmeurs vanaf 0 tellen!
+
+```csharp
+string woord = "Hallo";
+for (int i = 0; i < woord.Length; i++) {
+    Console.WriteLine($"positie {i}: {woord[i]}");
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af? (de `[` en `]` tonen de spaties)
+```csharp
+int getal = 42;
+Console.WriteLine($"[{getal,5:d}]");
+Console.WriteLine($"[{getal,5:d4}]");
+```
+? `{getal,5:d}` neemt 5 posities in: 3 spaties + 42. Met `d4` wordt het eerst `0042` en daarna aangevuld tot 5 posities met 1 spatie.
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+string s = "programmeren";
+Console.WriteLine(s.Length);
+Console.WriteLine(s[3]);
+```
+? "programmeren" heeft 12 karakters. Index 3 is het vierde karakter: p(0) r(1) o(2) **g**(3).
+
+#! voorspel id=v3 type=choice
+Welke expressie geeft altijd het **laatste** karakter van een niet-lege string `s`?
+- s[s.Length]
++ s[s.Length - 1]
+- s[-1]
+- s.Length
+? De laatste geldige index is `Length - 1`. `s[s.Length]` geeft een IndexOutOfRangeException en C# kent geen negatieve indexen zoals `s[-1]`.
+
+#! oefening id=L03-02-a rol=oefenen moeilijkheid=2 xp=60 titel="Cirkel met 3 decimalen" bron="D07cirkel"
+Herschrijf de oplossing van D03cirkel zodat de omtrek en oppervlakte van de cirkel getoond worden tot op **3 cijfers na de komma**.
+
+Een uitvoering waarbij de gebruiker 2,7 invult als straal:
+
+```text
+Geef de straal van een cirkel : 2,7
+De omtrek is 16,965.
+De oppervlakte is 22,902.
+```
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de straal van een cirkel : ");
+            double straal = double.Parse(Console.ReadLine());
+            double omtrek = 2 * Math.PI * straal;
+            double oppervlakte = Math.PI * Math.Pow(straal, 2);
+            Console.WriteLine($"De omtrek is {omtrek}.");
+            Console.WriteLine($"De oppervlakte is {oppervlakte}.");
+        }
+    }
+}
+
+#! hint
+De berekeningen kloppen al. Enkel de manier waarop de getallen getoond worden, moet veranderen. Waar zet je een format string?
+
+#! hint
+Voor een double gebruik je `:f` gevolgd door het aantal cijfers na de komma, tussen de accolades achter de variabele.
+
+#! hint
+`{omtrek:f3}` toont de omtrek met 3 cijfers na de komma (afgerond). Je hebt geen breedte nodig, dus geen `,x`.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de straal van een cirkel : ");
+            double straal = double.Parse(Console.ReadLine());
+            double omtrek = 2 * Math.PI * straal;
+            double oppervlakte = Math.PI * Math.Pow(straal, 2);
+            Console.WriteLine($"De omtrek is {omtrek:f3}.");
+            Console.WriteLine($"De oppervlakte is {oppervlakte:f3}.");
+        }
+    }
+}
+
+#! uitleg
+- `:f3` rondt af op 3 cijfers na de komma **bij het tonen**. De variabele zelf behoudt alle cijfers — handig als je er nog verder mee rekent.
+- In Level 8 leer je het verschil tussen afronden bij de output en afronden van de interne waarde (`Math.Round`).
+
+#! regel type=regex doel=":[fF]3" bericht="Gebruik de format string :f3"
+
+#! test naam="Straal 2,7"
+#! invoer
+2,7
+#! verwacht
+Geef de straal van een cirkel : 2,7
+De omtrek is 16,965.
+De oppervlakte is 22,902.
+
+#! test naam="Straal 1" referentie=ja
+#! invoer
+1
+
+#! test naam="Straal 10" referentie=ja verborgen=ja
+#! invoer
+10
+
+#! oefening id=L03-02-m rol=meesterschap moeilijkheid=2 xp=80 titel="Karakter per positie" bron="D07karakterperpositie"
+Schrijf een programma dat de gebruiker om tekst vraagt en voor elke positie toont welk karakter op die positie staat. De posities worden **rechts uitgelijnd** op 2 posities breed.
+
+```text
+Geef een tekst : programmeren
+ 0 = p
+ 1 = r
+ 2 = o
+ 3 = g
+ 4 = r
+ 5 = a
+ 6 = m
+ 7 = m
+ 8 = e
+ 9 = r
+10 = e
+11 = n
+```
+
+#! starter
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+Je moet elke geldige index overlopen. Wat is de eerste index, en welke voorwaarde zorgt dat je niet voorbij het laatste karakter gaat?
+
+#! hint
+`for (int i = 0; i < tekst.Length; i++)`. Het karakter op positie `i` is `tekst[i]`.
+
+#! hint
+Rechts uitlijnen op 2 posities: `{i,2}` (zonder `:d` mag ook). Dus `Console.WriteLine($"{i,2} = {tekst[i]}");`.
+
+#! oplossing
+using System;
+
+namespace D07 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            for (int i = 0; i < tekst.Length; i++) {
+                Console.WriteLine($"{i,2} = {tekst[i]}");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De for loop overloopt de indexen 0 t.e.m. `Length - 1`: precies alle geldige posities.
+- `{i,2}` reserveert 2 posities en lijnt rechts uit, zodat 9 en 10 netjes onder elkaar staan.
+- Een lege tekst geeft geen enkele regel output: de loop wordt nul keer uitgevoerd.
+
+#! regel type=loop doel=for bericht="Gebruik een for loop over de posities"
+
+#! test naam="programmeren" mode=exact
+#! invoer
+programmeren
+#! verwacht
+Geef een tekst : programmeren
+ 0 = p
+ 1 = r
+ 2 = o
+ 3 = g
+ 4 = r
+ 5 = a
+ 6 = m
+ 7 = m
+ 8 = e
+ 9 = r
+10 = e
+11 = n
+
+#! test naam="Kort woord" referentie=ja mode=exact
+#! invoer
+C#!
+
+#! test naam="Met spaties" referentie=ja mode=exact verborgen=ja
+#! invoer
+a b c

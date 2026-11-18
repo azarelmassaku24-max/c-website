@@ -1,0 +1,201 @@
+#! lesson
+id: L03-01
+titel: Projecten, bestanden, opstartobjecten en namespaces
+samenvatting: Een programma over meerdere bestanden verdelen, het opstartobject kiezen en code ordenen in namespaces.
+skills: projecten
+bron: Deel 07 – 1. Projecten in Visual Studio
+duur: 25
+
+#! begrijpen
+## Een project met meerdere broncodebestanden
+
+In Visual Studio maak je een **project** (bv. *Console App*). Een project kan meerdere **broncodebestanden** (`.cs`) bevatten. Bestanden hernoem je in de *Solution Explorer* via rechterklik > *Rename*; Visual Studio stelt dan voor om ook de klasse te hernoemen.
+
+In C# Quest werk je net zo: met **+** naast de bestandstabs voeg je een bestand toe, met dubbelklik hernoem je het.
+
+## Meerdere opstartobjecten (Deel 07 §1.3)
+
+Een programma start in een `static void Main`. Wat als twee bestanden elk een klasse met een `Main` bevatten?
+
+```csharp norun
+namespace D07 {
+    class D07cirkel {
+        static void Main() { Console.WriteLine("Dit is de uitvoer van D07cirkel..."); }
+    }
+}
+```
+
+```csharp norun
+namespace D07 {
+    class D07veelvoudenvan9 {
+        static void Main() { Console.WriteLine("Dit is de uitvoer van D07veelvoudenvan9..."); }
+    }
+}
+```
+
+De compiler weet niet waar het programma moet starten (fout **CS0017**). In de **projecteigenschappen** van Visual Studio kies je het **opstartobject** (*Startup object*). In C# Quest verschijnt er dan een keuzelijst *Opstartobject* in de werkbalk.
+
+## Namespaces (Deel 07 §1.4)
+
+Een **namespace** groepeert klassen die bij elkaar horen, zoals mappen bestanden groeperen. Zo kunnen twee klassen dezelfde naam hebben zolang ze in een andere namespace zitten.
+
+- Namespaces kunnen **subnamespaces** hebben: `Boomshine.Figuren` is de subnamespace `Figuren` van de parent `Boomshine`.
+- Vaak volgt de **folderopbouw** van je project de namespaces.
+- De **fully qualified name** van een klasse bevat de volledige namespace: `Boomshine.Figuren.Cirkel`.
+
+```csharp norun
+namespace Boomshine.Figuren {
+    class Cirkel { ... }
+}
+```
+
+Ook .NET zelf gebruikt namespaces: `Console` zit in de namespace `System`. Zonder `using System;` schrijf je de fully qualified name: `System.Console.WriteLine("...")`.
+
+## Meerdere projecten in een solution
+
+Een **solution** kan meerdere projecten bevatten (bv. één per deel van de cursus). In C# Quest is elke oefening een eigen klein project.
+
+#! voorbeeld
+## Fully qualified names
+
+Dit programma gebruikt geen `using`-regel. Het werkt toch, dankzij de volledige namen:
+
+```csharp
+namespace Boomshine.Figuren {
+    class Demo {
+        static void Main() {
+            System.Console.WriteLine("Hallo vanuit Boomshine.Figuren.Demo");
+            System.Threading.Thread.Sleep(100);
+        }
+    }
+}
+```
+
+#! voorspel id=v1 type=choice
+Twee bestanden bevatten elk een klasse met een `static void Main`. Wat gebeurt er bij het compileren?
+- Beide Main methods worden na elkaar uitgevoerd
+- De eerste Main in alfabetische volgorde wordt gekozen
++ Compileerfout: kies een opstartobject
+- De laatst toegevoegde klasse wordt gekozen
+? De compiler weigert omdat er meer dan één startpunt is (CS0017). Je kiest het opstartobject in de projecteigenschappen.
+
+#! voorspel id=v2 type=text antwoord=Boomshine.Figuren.Cirkel
+Wat is de fully qualified name van een klasse `Cirkel` in de subnamespace `Figuren` van de parent namespace `Boomshine`?
+? De volledige naam is namespace + punt + klassenaam: `Boomshine.Figuren.Cirkel`.
+
+#! oefening id=L03-01-a rol=oefenen moeilijkheid=1 xp=50 titel="Opstartobject" bron="D07opstartobject" main="D07.D07veelvoudenvan9"
+Het project bevat al het bestand `D07cirkel.cs` met de klasse `D07cirkel`.
+
+1. Voeg met **+** een tweede broncodebestand `D07veelvoudenvan9.cs` toe.
+2. Zet er (zoals in `D07cirkel.cs`) een klasse `D07veelvoudenvan9` in de namespace `D07` in, met een `static void Main()`.
+3. Laat dat programma de tekst `Dit is de uitvoer van D07veelvoudenvan9...` afdrukken.
+4. Kies in de werkbalk het opstartobject `D07.D07veelvoudenvan9` en klik op **Uitvoeren** om te controleren.
+
+De tests gebruiken `D07.D07veelvoudenvan9` als opstartobject.
+
+#! starter bestand=D07cirkel.cs
+using System;
+
+namespace D07 {
+    class D07cirkel {
+        static void Main() {
+            Console.WriteLine("Dit is de uitvoer van D07cirkel...");
+        }
+    }
+}
+
+#! hint
+Klik op het **+** naast de tab `D07cirkel.cs` en geef het nieuwe bestand de naam `D07veelvoudenvan9.cs`.
+
+#! hint
+De inhoud van het nieuwe bestand lijkt sterk op `D07cirkel.cs`: kopieer die code en pas de naam van de klasse en de tekst aan.
+
+#! hint
+Let op: de klasse moet `D07veelvoudenvan9` heten en in `namespace D07` staan, anders vindt de compiler het opstartobject `D07.D07veelvoudenvan9` niet.
+
+#! oplossing bestand=D07cirkel.cs
+using System;
+
+namespace D07 {
+    class D07cirkel {
+        static void Main() {
+            Console.WriteLine("Dit is de uitvoer van D07cirkel...");
+        }
+    }
+}
+
+#! oplossing bestand=D07veelvoudenvan9.cs
+using System;
+
+namespace D07 {
+    class D07veelvoudenvan9 {
+        static void Main() {
+            Console.WriteLine("Dit is de uitvoer van D07veelvoudenvan9...");
+        }
+    }
+}
+
+#! uitleg
+- Elk bestand bevat een eigen klasse met een eigen `Main`. Het project heeft dus twee mogelijke startpunten.
+- Het **opstartobject** (fully qualified name `D07.D07veelvoudenvan9`) bepaalt welke `Main` uitgevoerd wordt.
+- In de cursus maak je zo één project voor alle oefeningen van een deel, met een bestand per oefening.
+
+#! regel type=files aantal=2 bericht="Het project bevat twee broncodebestanden"
+#! regel type=class doel=D07veelvoudenvan9 bericht="Maak een klasse D07veelvoudenvan9"
+
+#! test naam="Opstartobject D07veelvoudenvan9" mode=exact
+#! verwacht
+Dit is de uitvoer van D07veelvoudenvan9...
+
+#! oefening id=L03-01-m rol=meesterschap moeilijkheid=2 xp=70 titel="Subnamespaces" main="Boomshine.Figuren.Start"
+Maak een programma met een **subnamespace**:
+
+- de klasse heet `Start` en staat in de namespace `Figuren`, een subnamespace van `Boomshine`;
+- het programma gebruikt **geen** `using`-regels maar fully qualified names;
+- het toont:
+
+```text
+Boomshine.Figuren.Start is gestart
+Even geduld...
+Klaar!
+```
+
+en wacht tussen de tweede en derde regel 1 seconde met `System.Threading.Thread.Sleep`.
+
+#! starter
+// Schrijf hier je namespace en klasse
+
+#! hint
+Een subnamespace noteer je met een punt: `namespace Boomshine.Figuren { ... }`.
+
+#! hint
+Zonder `using System;` schrijf je `System.Console.WriteLine(...)` en `System.Threading.Thread.Sleep(1000)`.
+
+#! hint
+Structuur: `namespace Boomshine.Figuren { class Start { static void Main() { ... } } }`.
+
+#! oplossing
+namespace Boomshine.Figuren {
+    class Start {
+        static void Main() {
+            System.Console.WriteLine("Boomshine.Figuren.Start is gestart");
+            System.Console.WriteLine("Even geduld...");
+            System.Threading.Thread.Sleep(1000);
+            System.Console.WriteLine("Klaar!");
+        }
+    }
+}
+
+#! uitleg
+- `namespace Boomshine.Figuren` maakt meteen de parent `Boomshine` en de subnamespace `Figuren`.
+- `System.Console` en `System.Threading.Thread` zijn fully qualified names: namespace + klasse. Met `using System;` kan je het korter schrijven — dat is precies waarom we using gebruiken.
+
+#! regel type=namespace doel=Boomshine.Figuren bericht="Gebruik de namespace Boomshine.Figuren"
+#! regel type=no-regex doel="using\s+System" bericht="Gebruik geen using-regels, maar fully qualified names"
+#! regel type=uses doel=Sleep bericht="Wacht met System.Threading.Thread.Sleep"
+
+#! test naam="Uitvoer" mode=exact
+#! verwacht
+Boomshine.Figuren.Start is gestart
+Even geduld...
+Klaar!

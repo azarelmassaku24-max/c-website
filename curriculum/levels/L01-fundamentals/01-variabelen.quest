@@ -1,0 +1,299 @@
+#! lesson
+id: L01-01
+titel: Variabelen en datatypes
+samenvatting: Gegevens bewaren in variabelen van het type int, double, string en bool.
+skills: variabelen
+bron: Deel 03 – 3. Variabelen en scope (naamgeving)
+aanvulling: De basisuitleg over datatypes (int, double, string, bool) komt uit Deel 01–02, die niet in je materiaal zitten. Die uitleg is aanvullend geschreven; de regels over naamgeving volgen Deel 03 §3.1.
+duur: 20
+
+#! begrijpen
+## Wat is een variabele?
+
+Een programma werkt met **gegevens**: een naam, een leeftijd, een prijs, een score. Om die gegevens te onthouden gebruiken we **variabelen**.
+
+Vergelijk een variabele met een **doos met een etiket**:
+
+- het **etiket** is de *naam* van de variabele (bv. `leeftijd`);
+- op de doos staat ook welk *soort* inhoud erin mag: het **datatype** (bv. alleen gehele getallen);
+- de **inhoud** is de *waarde* (bv. `34`).
+
+```csharp norun
+int leeftijd = 34;
+```
+
+Deze ene regel doet drie dingen:
+
+| Stukje | Betekenis |
+|---|---|
+| `int` | het datatype: een geheel getal |
+| `leeftijd` | de naam van de variabele |
+| `= 34` | de beginwaarde (de *initialisatie*) |
+
+Dit noemen we een **declaratie**: je introduceert een nieuwe variabele. De compiler zorgt ervoor dat er tijdens de uitvoering geheugen voorzien wordt voor die variabele.
+
+## De vier basistypes
+
+| Datatype | Wat bewaart het? | Voorbeeldwaarden |
+|---|---|---|
+| `int` | gehele getallen | `12`, `-5`, `0` |
+| `double` | kommagetallen | `3.14`, `-0.5`, `1.0` |
+| `string` | tekst | `"Jan"`, `"Hello world!"`, `""` |
+| `bool` | waar of onwaar | `true`, `false` |
+
+> [!BELANGRIJK]
+> In je **broncode** schrijf je kommagetallen altijd met een **punt**: `double prijs = 2.5;`. Bij het **tonen** op de console (en bij het intypen door de gebruiker) gebruikt een Belgische computer een **komma**: `2,5`.
+
+Tekst (een *string literal*) staat altijd tussen dubbele aanhalingstekens `"..."`. Zonder aanhalingstekens denkt de compiler dat je een variabele bedoelt.
+
+## Een nieuwe waarde toekennen
+
+Na de declaratie kan je de variabele een **nieuwe waarde** geven, zonder het datatype opnieuw te vermelden:
+
+```csharp norun
+int score = 10;   // declaratie + initialisatie
+score = 15;       // toekenning: de oude waarde 10 wordt overschreven
+```
+
+Het `=` teken betekent in C# **niet** "is gelijk aan" zoals in wiskunde, maar **"krijgt de waarde"**: de waarde rechts wordt in de variabele links gestopt.
+
+## Goede namen (uit de cursus)
+
+- Een naam vertelt wat de inhoud **voorstelt**: liever `leeftijd` dan `getalA`.
+- Namen van variabelen beginnen met een **kleine letter**, elk volgend woord met een hoofdletter (**camelCasing**): `minimumLeeftijdLidmaatschap`.
+- **Nooit underscores** en geen prefix met het type: dus niet `minimum_leeftijd` of `intLeeftijd`.
+- Introduceer **één variabele per regel**, daar waar je ze voor het eerst nodig hebt.
+- Wees consequent: `naam1` en `naam2` in plaats van `naam` en `naam2`.
+
+> [!TIP]
+> C# is **hoofdlettergevoelig**: `leeftijd`, `Leeftijd` en `LEEFTIJD` zijn drie verschillende namen. Een tikfout in een naam geeft de compileerfout *"De naam ... bestaat niet"*.
+
+#! voorbeeld
+## Variabelen in actie
+
+Bekijk dit programma. Klik op **Stap voor stap** om regel per regel te zien welke variabelen er ontstaan en welke waarde ze krijgen.
+
+```csharp
+string naam = "Jan";
+int leeftijd = 34;
+double lengte = 1.82;
+bool isStudent = true;
+
+Console.WriteLine(naam);
+Console.WriteLine(leeftijd);
+Console.WriteLine(lengte);
+Console.WriteLine(isStudent);
+
+leeftijd = 35;
+Console.WriteLine(leeftijd);
+```
+
+Wat valt op?
+
+1. Elke variabele krijgt bij de declaratie meteen een waarde.
+2. `Console.WriteLine(lengte)` toont `1,82` — met een komma, omdat de computer de Belgische notatie gebruikt.
+3. Een `bool` wordt getoond als `True` of `False`.
+4. Op regel 11 krijgt `leeftijd` een nieuwe waarde. De oude waarde (34) is daarna verdwenen.
+
+## Tekst samenplakken met +
+
+Met de `+` operator kan je strings aan elkaar plakken (*string concatenatie*). Ook een getal kan je zo aan een tekst plakken:
+
+```csharp
+string voornaam = "Mieke";
+int punten = 17;
+Console.WriteLine("Proficiat " + voornaam + ", je behaalde " + punten + " punten.");
+```
+
+In een volgende les leer je een veel leesbaardere manier: **string interpolatie**.
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+int aantal = 5;
+aantal = 8;
+Console.WriteLine(aantal);
+```
+? Bij `aantal = 8;` wordt de oude waarde 5 **overschreven**. Een variabele onthoudt altijd alleen de laatst toegekende waarde.
+
+#! voorspel id=v2 type=choice
+Welke declaratie is **correct** en volgt de naamgevingsregels uit de cursus?
+- int AantalStudenten = 20;
+- int aantal_studenten = 20;
++ int aantalStudenten = 20;
+- int intAantalStudenten = 20;
+? Variabelennamen beginnen met een kleine letter en gebruiken camelCasing, zonder underscores en zonder prefix met het type.
+
+#! voorspel id=v3 type=choice
+Welk datatype past het best om de **prijs van een brood** (bv. 2,85 euro) in te bewaren?
+- int
++ double
+- string
+- bool
+? Een prijs is een kommagetal, dus `double`. Met `int` zou je de cijfers na de komma verliezen en met `string` kan je niet rekenen.
+
+#! voorspel id=v4 type=output
+Wat drukt deze code af?
+```csharp
+string woord = "Hallo";
+int getal = 3;
+Console.WriteLine(woord + getal);
+```
+? Met `+` tussen een string en een int wordt het getal omgezet naar tekst en **achteraan geplakt**: `Hallo3`. Er komt geen spatie tussen, want die stond niet in de string.
+
+#! oefening id=L01-01-a rol=oefenen moeilijkheid=1 xp=40 titel="Mijn persoonskaart"
+Schrijf een programma dat gegevens over een persoon in **variabelen** bewaart en ze daarna toont.
+
+Declareer vier variabelen met een **passend datatype** en een **goede naam**:
+
+- de naam `Lotte`
+- de leeftijd `19`
+- de lengte in meter `1.68`
+- of die persoon een student is: `true`
+
+Toon ze daarna onder elkaar, precies zoals hieronder:
+
+```text
+Naam: Lotte
+Leeftijd: 19
+Lengte: 1,68
+Student: True
+```
+
+Gebruik `+` om de tekst en de variabele samen te plakken, bv. `Console.WriteLine("Naam: " + naam);`.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            // Declareer hier je vier variabelen
+
+            // Toon ze daarna onder elkaar
+        }
+    }
+}
+
+#! hint
+Je hebt vier verschillende datatypes nodig. Welk type past bij tekst, bij een geheel getal, bij een kommagetal en bij waar/onwaar?
+
+#! hint
+Gebruik `string` voor de naam, `int` voor de leeftijd, `double` voor de lengte en `bool` voor student. In je code schrijf je een kommagetal met een punt: `1.68`.
+
+#! hint
+Een declaratie ziet er zo uit: `double lengte = 1.68;`. Daarna kan je tonen met `Console.WriteLine("Lengte: " + lengte);` — de computer toont het getal zelf met een komma.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            string naam = "Lotte";
+            int leeftijd = 19;
+            double lengte = 1.68;
+            bool isStudent = true;
+
+            Console.WriteLine("Naam: " + naam);
+            Console.WriteLine("Leeftijd: " + leeftijd);
+            Console.WriteLine("Lengte: " + lengte);
+            Console.WriteLine("Student: " + isStudent);
+        }
+    }
+}
+
+#! uitleg
+- Elke variabele krijgt het datatype dat bij de inhoud past: tekst → `string`, geheel getal → `int`, kommagetal → `double`, waar/onwaar → `bool`.
+- De namen beschrijven de inhoud en gebruiken camelCasing (`isStudent`).
+- Bij `"Lengte: " + lengte` zet C# het getal automatisch om naar tekst. Omdat de computer Belgische instellingen gebruikt, verschijnt `1,68`.
+- Een `bool` wordt als `True` of `False` getoond (met hoofdletter), ook al schrijf je in je code `true`.
+
+#! regel type=type doel=double bericht="Gebruik een double voor de lengte"
+#! regel type=type doel=bool bericht="Gebruik een bool om bij te houden of de persoon student is"
+
+#! test naam="Persoonskaart" mode=exact
+#! verwacht
+Naam: Lotte
+Leeftijd: 19
+Lengte: 1,68
+Student: True
+
+#! oefening id=L01-01-m rol=meesterschap moeilijkheid=2 xp=70 titel="Puntenteller"
+Een quizprogramma houdt de score van een speler bij in een variabele.
+
+Schrijf een programma dat:
+
+1. een variabele `speler` declareert met waarde `"Amina"` en een variabele `score` met waarde `0`;
+2. de score toont;
+3. de score verandert naar `10` (een juiste vraag) en ze opnieuw toont;
+4. de score verandert naar `25` en ze opnieuw toont;
+5. tot slot een `bool` variabele `gewonnen` declareert die `true` is, en die toont.
+
+De output moet precies zo zijn:
+
+```text
+Amina heeft 0 punten
+Amina heeft 10 punten
+Amina heeft 25 punten
+Gewonnen: True
+```
+
+**Belangrijk:** declareer `score` maar **één keer**. Daarna ken je enkel nog een nieuwe waarde toe.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+Je toont drie keer bijna dezelfde zin. Alleen de waarde van `score` verschilt. Je hebt dus één variabele nodig die na elke `Console.WriteLine` een nieuwe waarde krijgt.
+
+#! hint
+Na de declaratie `int score = 0;` schrijf je een nieuwe waarde met `score = 10;` — zónder `int` ervoor. Met `int` ervoor zou je een tweede variabele met dezelfde naam proberen te maken, en dat mag niet.
+
+#! hint
+Bouw de zin met `+`: `speler + " heeft " + score + " punten"`. Let op de spaties binnen de aanhalingstekens.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            string speler = "Amina";
+            int score = 0;
+            Console.WriteLine(speler + " heeft " + score + " punten");
+
+            score = 10;
+            Console.WriteLine(speler + " heeft " + score + " punten");
+
+            score = 25;
+            Console.WriteLine(speler + " heeft " + score + " punten");
+
+            bool gewonnen = true;
+            Console.WriteLine("Gewonnen: " + gewonnen);
+        }
+    }
+}
+
+#! uitleg
+- `score` wordt één keer **gedeclareerd** (`int score = 0;`) en daarna twee keer een **nieuwe waarde toegekend** (`score = 10;`).
+- Zou je `int score = 10;` schrijven, dan krijg je compileerfout CS0128: er bestaat al een variabele met die naam in deze scope.
+- `gewonnen` wordt gedeclareerd daar waar je ze voor het eerst nodig hebt (zoals de cursus aanraadt), niet bovenaan.
+
+#! regel type=regex doel="int\s+score\s*=" bericht="Declareer een int variabele score"
+#! regel type=no-regex doel="int\s+score[\s\S]*int\s+score" bericht="Declareer score maar één keer (daarna enkel toekennen)"
+
+#! test naam="Scoreverloop" mode=exact
+#! verwacht
+Amina heeft 0 punten
+Amina heeft 10 punten
+Amina heeft 25 punten
+Gewonnen: True

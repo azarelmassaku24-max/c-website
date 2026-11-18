@@ -1,0 +1,716 @@
+#! boss
+id: L01-BOSS
+titel: De Getalraad-arena
+samenvatting: Bouw een volledig getalraadspel met hints, pogingen, robuuste invoer en herspelen.
+skills: while, random, robuust, accumuleren, if-else, logisch
+bron: Deel 05 – D05getalradengebruiker (uitgebreid)
+verhaal: In de arena wacht de Orakelmachine. Ze denkt aan een getal en lacht om elke foute gok. Bouw in drie fases een spel dat haar verslaat — en dat niet crasht, wat de speler ook intypt.
+duur: 60
+
+#! begrijpen
+## Briefing
+
+Deze boss fight combineert alles uit Level 1: variabelen, invoer, `Random`, `if … else if … else`, logische operatoren, `TryParse`, `ToLower`/`Trim` en herhalingen met tellers.
+
+Je bouwt het spel in **drie fases**. Elke fase bouwt verder op de vorige: je kan telkens je code van de vorige fase overnemen.
+
+1. **Raad het getal** — de computer kiest 1 t.e.m. 100, de speler raadt met hints *Hoger!* / *Lager!*.
+2. **Pogingen en robuuste invoer** — tel de pogingen en weiger ongeldige invoer zonder te crashen.
+3. **Nog een spel?** — laat de speler opnieuw spelen en hou de beste score bij.
+
+> [!TIP]
+> Gebruik **één** `Random`-object en `rnd.Next(1, 101)` voor elk nieuw geheim getal. Dan kunnen de tests je spel vergelijken met de modeloplossing.
+
+#! oefening id=L01-BOSS-1 rol=boss fase="Fase 1" moeilijkheid=3 xp=100 titel="Raad het getal" bron="D05getalradengebruiker"
+Schrijf een programma waarbij de gebruiker een getal moet raden (van 1 t.e.m. 100) dat de computer willekeurig gekozen heeft (gebruik `rnd.Next(1, 101)`).
+
+De gebruiker geeft telkens een getal in en het programma toont of het gezochte getal `Hoger!` dan wel `Lager!` is dan de gok. Indien de gebruiker correct gokt, toont het programma `Disco!` en stopt het.
+
+Een voorbeelduitvoering waarbij het programma 74 koos en de gebruiker achtereenvolgens 50, 75, 67, 72 en 74 gokt:
+
+```text
+Wat gok je?: 50
+Hoger!
+Wat gok je?: 75
+Lager!
+Wat gok je?: 67
+Hoger!
+Wat gok je?: 72
+Hoger!
+Wat gok je?: 74
+Disco!
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            int geheimGetal = rnd.Next(1, 101);
+
+        }
+    }
+}
+
+#! hint
+Het spel stopt pas als de gok juist is. Je weet niet hoeveel keer dat duurt. Welke loop gebruik je, en wat is de voorwaarde om door te gaan?
+
+#! hint
+Een do while past goed: de speler gokt minstens één keer. Herhaal zolang `gok != geheimGetal`. In de loop body: vraag, lees in, en toon `Hoger!` of `Lager!`.
+
+#! hint
+`do { Console.Write("Wat gok je?: "); gok = int.Parse(Console.ReadLine()); if (gok < geheimGetal) ... else if (gok > geheimGetal) ... } while (gok != geheimGetal);` en na de loop `Disco!`. Declareer `int gok;` vóór de loop.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            int geheimGetal = rnd.Next(1, 101);
+            int gok;
+            do {
+                Console.Write("Wat gok je?: ");
+                gok = int.Parse(Console.ReadLine());
+                if (gok < geheimGetal) {
+                    Console.WriteLine("Hoger!");
+                } else if (gok > geheimGetal) {
+                    Console.WriteLine("Lager!");
+                }
+            } while (gok != geheimGetal);
+            Console.WriteLine("Disco!");
+        }
+    }
+}
+
+#! uitleg
+- Een **do while** omdat de speler minstens één keer moet gokken.
+- `gok` wordt vóór de loop gedeclareerd: de voorwaarde `gok != geheimGetal` staat buiten de loop body en moet de variabele kunnen zien (scope).
+- Bij een juiste gok wordt geen hint getoond; de loop stopt en `Disco!` verschijnt.
+
+#! regel type=loop bericht="Gebruik een herhalingsstructuur"
+#! regel type=uses doel=Next bericht="Gebruik rnd.Next(1, 101) voor het geheime getal"
+
+#! test naam="Speler telt op van 1 tot 100 (seed 5)" referentie=ja seed=5
+#! invoer
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+
+#! test naam="Speler telt af van 100 tot 1 (seed 9)" referentie=ja seed=9 verborgen=ja
+#! invoer
+100
+99
+98
+97
+96
+95
+94
+93
+92
+91
+90
+89
+88
+87
+86
+85
+84
+83
+82
+81
+80
+79
+78
+77
+76
+75
+74
+73
+72
+71
+70
+69
+68
+67
+66
+65
+64
+63
+62
+61
+60
+59
+58
+57
+56
+55
+54
+53
+52
+51
+50
+49
+48
+47
+46
+45
+44
+43
+42
+41
+40
+39
+38
+37
+36
+35
+34
+33
+32
+31
+30
+29
+28
+27
+26
+25
+24
+23
+22
+21
+20
+19
+18
+17
+16
+15
+14
+13
+12
+11
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+
+#! oefening id=L01-BOSS-2 rol=boss fase="Fase 2" moeilijkheid=4 xp=140 titel="Pogingen en robuuste invoer"
+Breid het spel uit:
+
+1. Tel het aantal **geldige** pogingen. Toon op het einde: `Disco! Je had 5 pogingen nodig.`
+2. Is de invoer geen geheel getal, toon dan `Dat is geen geldig getal.` — dit telt **niet** als poging.
+3. Ligt het getal niet tussen 1 en 100, toon dan `Kies een getal van 1 t.e.m. 100.` — dit telt ook **niet** als poging.
+
+```text
+Wat gok je?: vijftig
+Dat is geen geldig getal.
+Wat gok je?: 150
+Kies een getal van 1 t.e.m. 100.
+Wat gok je?: 50
+Hoger!
+Wat gok je?: 74
+Disco! Je had 2 pogingen nodig.
+```
+
+Gebruik nog steeds `rnd.Next(1, 101)` voor het geheime getal.
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+            int geheimGetal = rnd.Next(1, 101);
+
+        }
+    }
+}
+
+#! hint
+Er zijn nu drie soorten invoer: ongeldig, buiten het bereik, en een echte poging. Alleen bij een echte poging verhoog je de teller en vergelijk je met het geheime getal.
+
+#! hint
+Gebruik `int.TryParse`. Structuur in de loop body: `if (!ok) { ongeldig } else if (gok < 1 || gok > 100) { bereik } else { aantalPogingen++; hint of gevonden }`.
+
+#! hint
+Laat de loop doorgaan zolang het getal niet geraden is, bv. met een `bool geraden = false;` die je op `true` zet bij een juiste gok, en `while (!geraden)`. Toon de eindzin met interpolatie.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            const int minimum = 1;
+            const int maximum = 100;
+            Random rnd = new Random();
+            int geheimGetal = rnd.Next(minimum, maximum + 1);
+            int aantalPogingen = 0;
+            bool geraden = false;
+
+            while (!geraden) {
+                Console.Write("Wat gok je?: ");
+                int gok;
+                bool invoerOk = int.TryParse(Console.ReadLine(), out gok);
+                if (!invoerOk) {
+                    Console.WriteLine("Dat is geen geldig getal.");
+                } else if (gok < minimum || gok > maximum) {
+                    Console.WriteLine($"Kies een getal van {minimum} t.e.m. {maximum}.");
+                } else {
+                    aantalPogingen++;
+                    if (gok < geheimGetal) {
+                        Console.WriteLine("Hoger!");
+                    } else if (gok > geheimGetal) {
+                        Console.WriteLine("Lager!");
+                    } else {
+                        geraden = true;
+                    }
+                }
+            }
+            Console.WriteLine($"Disco! Je had {aantalPogingen} pogingen nodig.");
+        }
+    }
+}
+
+#! uitleg
+- `TryParse` vangt ongeldige invoer op zonder crash. Een `bool geraden` maakt de loopvoorwaarde leesbaar.
+- Enkel in het laatste block (een echte poging) wordt de teller verhoogd.
+- `rnd.Next(minimum, maximum + 1)`: de bovengrens is exclusief, dus +1. Met const variabelen pas je het bereik op één plaats aan.
+
+#! regel type=uses doel=TryParse bericht="Gebruik TryParse zodat ongeldige invoer niet crasht"
+
+#! test naam="Ongeldige invoer en bereik, daarna optellen (seed 5)" referentie=ja seed=5
+#! invoer
+vijftig
+150
+0
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+
+#! test naam="Aftellen met tussendoor rommel (seed 12)" referentie=ja seed=12 verborgen=ja
+#! invoer
+100
+abc
+99
+98
+97
+96
+95
+94
+93
+92
+91
+90
+89
+88
+87
+86
+85
+84
+83
+82
+81
+80
+79
+78
+77
+76
+75
+74
+73
+72
+71
+70
+69
+68
+67
+66
+65
+64
+63
+62
+61
+60
+59
+58
+57
+56
+55
+54
+53
+52
+51
+50
+49
+48
+47
+46
+45
+44
+43
+42
+41
+40
+39
+38
+37
+36
+35
+34
+33
+32
+31
+30
+29
+28
+27
+26
+25
+24
+23
+22
+21
+20
+19
+18
+17
+16
+15
+14
+13
+12
+11
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+
+#! oefening id=L01-BOSS-3 rol=boss fase="Fase 3" moeilijkheid=5 xp=180 titel="Nog een spel?"
+De finale! Breid het spel van fase 2 uit:
+
+1. Na elk gewonnen spel vraagt het programma `Nog een keer spelen (ja/nee)? `.
+2. Het antwoord is **robuust**: ` JA`, `Ja` en `ja ` betekenen allemaal ja. Elk ander antwoord stopt het programma.
+3. Bij een nieuw spel kiest de computer een **nieuw** geheim getal (met hetzelfde `Random`-object en `rnd.Next(1, 101)`).
+4. Op het einde toont het programma de **beste score**: `Je beste score was 3 pogingen.`
+
+```text
+Wat gok je?: 50
+Lager!
+Wat gok je?: 25
+Disco! Je had 2 pogingen nodig.
+Nog een keer spelen (ja/nee)? ja
+Wat gok je?: 80
+Disco! Je had 1 pogingen nodig.
+Nog een keer spelen (ja/nee)? nee
+Je beste score was 1 pogingen.
+```
+
+#! starter
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            Random rnd = new Random();
+
+        }
+    }
+}
+
+#! hint
+Je hebt nu twee loops in elkaar: een buitenste loop die zegt "speel een spel en vraag of de speler nog wil", en de binnenste loop van fase 2 (één spel).
+
+#! hint
+Gebruik een `do { … } while (nogEenKeer);` als buitenste loop. Het geheime getal, de teller en `geraden` horen **in** de buitenste loop (ze moeten bij elk spel opnieuw beginnen). De beste score hoort **erbuiten**.
+
+#! hint
+Na elk spel: `if (aantalPogingen < besteScore) besteScore = aantalPogingen;` — begin met `int besteScore = int.MaxValue;` of hou bij of het het eerste spel is. Het antwoord: `bool nogEenKeer = Console.ReadLine().Trim().ToLower() == "ja";`.
+
+#! oplossing
+using System;
+
+namespace L01 {
+    class Program {
+        static void Main(string[] args) {
+            const int minimum = 1;
+            const int maximum = 100;
+            Random rnd = new Random();
+            int besteScore = int.MaxValue;
+            bool nogEenKeer;
+
+            do {
+                int geheimGetal = rnd.Next(minimum, maximum + 1);
+                int aantalPogingen = 0;
+                bool geraden = false;
+                while (!geraden) {
+                    Console.Write("Wat gok je?: ");
+                    int gok;
+                    bool invoerOk = int.TryParse(Console.ReadLine(), out gok);
+                    if (!invoerOk) {
+                        Console.WriteLine("Dat is geen geldig getal.");
+                    } else if (gok < minimum || gok > maximum) {
+                        Console.WriteLine($"Kies een getal van {minimum} t.e.m. {maximum}.");
+                    } else {
+                        aantalPogingen++;
+                        if (gok < geheimGetal) {
+                            Console.WriteLine("Hoger!");
+                        } else if (gok > geheimGetal) {
+                            Console.WriteLine("Lager!");
+                        } else {
+                            geraden = true;
+                        }
+                    }
+                }
+                Console.WriteLine($"Disco! Je had {aantalPogingen} pogingen nodig.");
+                if (aantalPogingen < besteScore) {
+                    besteScore = aantalPogingen;
+                }
+                Console.Write("Nog een keer spelen (ja/nee)? ");
+                nogEenKeer = Console.ReadLine().Trim().ToLower() == "ja";
+            } while (nogEenKeer);
+
+            Console.WriteLine($"Je beste score was {besteScore} pogingen.");
+        }
+    }
+}
+
+#! uitleg
+- **Geneste loops**: de binnenste while speelt één spel, de buitenste do while herhaalt spellen. In de volgende levels zie je nog veel geneste structuren.
+- **Scope bewust kiezen**: alles wat per spel opnieuw moet beginnen (geheim getal, pogingen) staat in de buitenste loop; de beste score staat erbuiten, anders zou ze telkens vergeten worden.
+- `int.MaxValue` is het grootst mogelijke int-getal: elke echte score is kleiner, dus de eerste score wordt altijd de beste.
+- Je hebt de Orakelmachine verslagen. Level 2 wacht: de **for-loop** en de **debugger**!
+
+#! regel type=uses doel=TryParse bericht="Gebruik TryParse voor de gok"
+#! regel type=uses doel=ToLower bericht="Maak het ja/nee-antwoord robuust met ToLower()"
+#! regel type=uses doel=Trim bericht="Maak het ja/nee-antwoord robuust met Trim()"
+
+#! test naam="Twee spellen met herspelen (seed 3)" referentie=ja seed=3
+#! invoer
+50
+10
+x
+30
+ JA 
+70
+nee
+
+#! test naam="Herspelen met slordige invoer (seed 5)" referentie=ja seed=5 verborgen=ja
+#! invoer
+34
+Ja
+50
+200
+29
+ Nee

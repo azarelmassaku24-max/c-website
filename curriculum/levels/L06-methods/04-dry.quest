@@ -1,0 +1,301 @@
+#! lesson
+id: L06-04
+titel: Arrays als parameter en het DRY-principe
+samenvatting: Arrays doorgeven aan methods en herhaalde code opruimen met herbruikbare methods.
+skills: parameters, methods
+bron: Deel 10 – 2.1. Meermaals uitschrijven van dezelfde logica vermijden · D10bevat, D10toongetallenmetmethod, D10vraaggebruikerompositiefgetal
+duur: 30
+
+#! begrijpen
+## Arrays als parameter
+
+Een parameter kan ook een array zijn:
+
+```csharp norun
+static bool Bevat(string[] woorden, string zoekwoord) {
+    foreach (string woord in woorden) {
+        if (woord == zoekwoord) {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+Merk op: `return true;` midden in de loop beëindigt de method meteen — een elegante vervanger voor `break` + bool. De `return false;` na de loop wordt enkel bereikt als er niets gevonden werd.
+
+## DRY: Don't Repeat Yourself (§2.1)
+
+Staat dezelfde code op meerdere plaatsen, dan:
+
+- moet je een aanpassing of bugfix op **elke** plaats doen (en vergeet je er wel eens één);
+- wordt je programma langer en moeilijker te lezen.
+
+Met een method schrijf je de logica **één keer**. Wat verschilt tussen de verschillende plaatsen, wordt een **parameter**.
+
+Herinner je de dubbele invoercode van D06rechthoekopmaat? Enkel de **vraag** verschilt:
+
+```csharp norun
+static int VraagGebruikerOmPositiefGetal(string vraag) {
+    int getal;
+    bool ok;
+    do {
+        Console.Write(vraag);
+        ok = int.TryParse(Console.ReadLine(), out getal) && getal > 0;
+    } while (!ok);
+    return getal;
+}
+
+int breedte = VraagGebruikerOmPositiefGetal("Geef de breedte : ");
+int hoogte = VraagGebruikerOmPositiefGetal("Geef de hoogte : ");
+```
+
+Main wordt zo kort dat het leest als een beschrijving van het programma.
+
+#! voorbeeld
+## Code herbruikbaar maken
+
+```csharp invoer="hallo\n4\n-2\n3"
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int breedte = VraagPositiefGetal("Breedte? ");
+        int hoogte = VraagPositiefGetal("Hoogte? ");
+        int[] afmetingen = { breedte, hoogte };
+        ToonGetallen(afmetingen);
+    }
+
+    static int VraagPositiefGetal(string vraag) {
+        int getal;
+        bool ok;
+        do {
+            Console.Write(vraag);
+            ok = int.TryParse(Console.ReadLine(), out getal) && getal > 0;
+        } while (!ok);
+        return getal;
+    }
+
+    static void ToonGetallen(int[] getallen) {
+        Console.WriteLine(String.Join(", ", getallen));
+    }
+}
+```
+
+#! voorspel id=v1 type=output
+Wat drukt dit programma af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        int[] a = { 3, 8, 2 };
+        Console.WriteLine(Som(a));
+        Console.WriteLine(Som(new int[] { 1, 1 }));
+    }
+    static int Som(int[] getallen) {
+        int som = 0;
+        foreach (int g in getallen) {
+            som += g;
+        }
+        return som;
+    }
+}
+```
+? Dezelfde method werkt voor elke int-array: 13 en 2.
+
+#! voorspel id=v2 type=choice
+Wat gebeurt er bij `return true;` midden in een foreach loop?
+- De loop gaat verder met het volgende element
+- Enkel de loop stopt, de method gaat verder
++ De method stopt meteen en geeft true terug
+- Compileerfout
+? `return` beëindigt de volledige method, dus ook de loop.
+
+#! oefening id=L06-04-a rol=oefenen moeilijkheid=2 xp=70 titel="Bevat" bron="D10bevat"
+Schrijf een method `Bevat` met 2 parameters, een `string[] woorden` en een `string zoekwoord`. De method geeft `true` terug als het zoekwoord in de array voorkomt, anders `false`.
+
+Herschrijf daarna D09zoekdier zodat deze method gebruikt wordt:
+
+```text
+Geef een dier : koe
+koe is een boerderijdier
+```
+
+Het programma is hoofdletterongevoelig (de dieren in de array staan in kleine letters).
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+
+        }
+    }
+}
+
+#! hint
+Hoofding: `static bool Bevat(string[] woorden, string zoekwoord)`. Overloop de array in de method.
+
+#! hint
+Bij een treffer: `return true;`. Na de loop (niets gevonden): `return false;`.
+
+#! hint
+In Main: `string dier = Console.ReadLine().Trim().ToLower(); if (Bevat(boerderijDieren, dier)) { … } else { … }`.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            string[] boerderijDieren = { "kip", "koe", "paard", "geit", "schaap" };
+            Console.Write("Geef een dier : ");
+            string dier = Console.ReadLine().Trim().ToLower();
+            if (Bevat(boerderijDieren, dier)) {
+                Console.WriteLine($"{dier} is een boerderijdier");
+            } else {
+                Console.WriteLine($"{dier} is geen boerderijdier");
+            }
+        }
+
+        static bool Bevat(string[] woorden, string zoekwoord) {
+            foreach (string woord in woorden) {
+                if (woord == zoekwoord) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+}
+
+#! uitleg
+- `Bevat` is een herbruikbare **query**: ze werkt voor elke string-array en elk zoekwoord.
+- `return true;` in de loop stopt meteen; `return false;` na de loop is het antwoord als niets gevonden werd.
+- Main leest nu als een zin: "als boerderijDieren het dier bevat…".
+
+#! regel type=method doel=Bevat geeft=bool parameters=2 bericht="Maak een method static bool Bevat(string[] woorden, string zoekwoord)"
+
+#! test naam="koe"
+#! invoer
+koe
+#! verwacht
+Geef een dier : koe
+koe is een boerderijdier
+
+#! test naam="Niet gevonden" referentie=ja
+#! invoer
+Papegaai
+
+#! test naam="Bevat werkt voor elke array" soort=code
+string[] dieren = { "hond", "kat", "olifant", "krokodil" };
+Check.Equal(false, Program.Bevat(dieren, "papegaai"), "Bevat(dieren, \"papegaai\")");
+Check.Equal(true, Program.Bevat(dieren, "olifant"), "Bevat(dieren, \"olifant\")");
+Check.Equal(true, Program.Bevat(dieren, "krokodil"), "Bevat(dieren, \"krokodil\") (laatste element)");
+Check.Equal(false, Program.Bevat(new string[0], "kat"), "Bevat op een lege array");
+
+#! oefening id=L06-04-m rol=meesterschap moeilijkheid=3 xp=110 titel="Vraag om een positief getal" bron="D10vraaggebruikerompositiefgetal"
+Pas de oplossing van D10toonrechthoek aan zodat er een method `VraagGebruikerOmPositiefGetal` gebruikt wordt om de invoer af te handelen. Deze method heeft 1 parameter `vraag` en geeft een `int` terug. De method stelt de meegegeven vraag, leest van de console en geeft de ingegeven waarde terug. Typt de gebruiker geen getal of een getal kleiner dan 1, dan herhaalt de method de vraag.
+
+Indien de gebruiker hallo, 10, -1 en 3 invoert:
+
+```text
+Geef de breedte : hallo
+Geef de breedte : 10
+Geef de hoogte : -1
+Geef de hoogte : 3
+**********
+**********
+**********
+```
+
+Gebruik ook de method `ToonRechthoek(int breedte, int hoogte)`.
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+
+        }
+    }
+}
+
+#! hint
+De method `static int VraagGebruikerOmPositiefGetal(string vraag)` bevat de do-while met TryParse en eindigt met `return getal;`.
+
+#! hint
+Main bestaat nu uit drie regels: breedte vragen, hoogte vragen, rechthoek tonen.
+
+#! hint
+`int breedte = VraagGebruikerOmPositiefGetal("Geef de breedte : ");` — de vraag is het enige dat verschilt, dus dat wordt de parameter.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            int breedte = VraagGebruikerOmPositiefGetal("Geef de breedte : ");
+            int hoogte = VraagGebruikerOmPositiefGetal("Geef de hoogte : ");
+            ToonRechthoek(breedte, hoogte);
+        }
+
+        static int VraagGebruikerOmPositiefGetal(string vraag) {
+            int getal;
+            bool invoerOk;
+            do {
+                Console.Write(vraag);
+                invoerOk = int.TryParse(Console.ReadLine(), out getal) && getal > 0;
+            } while (!invoerOk);
+            return getal;
+        }
+
+        static void ToonRechthoek(int breedte, int hoogte) {
+            for (int rij = 0; rij < hoogte; rij++) {
+                for (int kolom = 0; kolom < breedte; kolom++) {
+                    Console.Write("*");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
+
+#! uitleg
+- **DRY**: de invoerlogica staat één keer in een method; de vraag is een parameter.
+- Main is een korte "inhoudstafel": drie regels die vertellen wat het programma doet.
+- `VraagGebruikerOmPositiefGetal` combineert input (een command-aspect) met een return value. Dat is aanvaardbaar voor invoermethods: hun taak ís iets vragen en het antwoord teruggeven.
+
+#! regel type=method doel=VraagGebruikerOmPositiefGetal geeft=int parameters=1 bericht="Maak een method static int VraagGebruikerOmPositiefGetal(string vraag)"
+#! regel type=method doel=ToonRechthoek geeft=void parameters=2 bericht="Gebruik een method ToonRechthoek(int breedte, int hoogte)"
+#! regel type=calls doel=VraagGebruikerOmPositiefGetal aantal=2 bericht="Gebruik de method voor zowel breedte als hoogte"
+
+#! test naam="Voorbeeld uit de cursus"
+#! invoer
+hallo
+10
+-1
+3
+#! verwacht
+Geef de breedte : hallo
+Geef de breedte : 10
+Geef de hoogte : -1
+Geef de hoogte : 3
+**********
+**********
+**********
+
+#! test naam="VraagGebruikerOmPositiefGetal herhaalt tot een positief getal" soort=code
+int resultaat = 0;
+string output = Check.Output(() => { resultaat = Program.VraagGebruikerOmPositiefGetal("Getal? "); });
+Check.Equal(7, resultaat, "geeft 7 terug na 'abc' en '0'");
+Check.True(output.Split("Getal? ").Length - 1 == 3, "de vraag werd 3 keer gesteld");
+
+#! invoer
+abc
+0
+7

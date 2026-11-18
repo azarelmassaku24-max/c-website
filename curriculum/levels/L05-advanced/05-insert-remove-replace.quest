@@ -1,0 +1,248 @@
+#! lesson
+id: L05-05
+titel: Insert, Remove en Replace
+samenvatting: Nieuwe strings maken door tekst in te lassen, te verwijderen of te vervangen.
+skills: split-join, zoeken-strings
+bron: Deel 09 – 3.6. Verdere mogelijkheden (Insert, Remove, Replace) · D09geenscheldwoorden, D09censuur
+duur: 30
+
+#! begrijpen
+## Nieuwe strings maken (Deel 09 §3.6)
+
+Strings zijn immutable: deze methods veranderen de string **niet**, ze geven een **nieuwe** string terug.
+
+| Method | Voorbeeld | Resultaat |
+|---|---|---|
+| `Insert(positie, tekst)` | `"Hallo".Insert(5, " daar")` | `"Hallo daar"` |
+| `Remove(positie, aantal)` | `"Hallo daar".Remove(5, 5)` | `"Hallo"` |
+| `Remove(positie)` | `"Hallo daar".Remove(2)` | `"Ha"` (alles vanaf 2 weg) |
+| `Replace(oud, nieuw)` | `"kat en kat".Replace("kat", "hond")` | `"hond en hond"` |
+
+Vergeet niet het resultaat te bewaren: `tekst = tekst.Replace("a", "b");`.
+
+## Replace is hoofdlettergevoelig
+
+`"Druiloor DRUILOOR".Replace("druiloor", "***")` vervangt **niets**. Voor hoofdletterongevoelig vervangen met behoud van de rest van de tekst gebruik je een combinatie:
+
+1. zoek in een **kleine-letterversie** van de tekst met `IndexOf`;
+2. vervang op die positie in de **originele** tekst met `Remove` + `Insert`.
+
+```csharp norun
+string klein = tekst.ToLower();
+int positie = klein.IndexOf(woord);
+while (positie != -1) {
+    string sterren = new string('*', woord.Length);
+    tekst = tekst.Remove(positie, woord.Length).Insert(positie, sterren);
+    klein = tekst.ToLower();
+    positie = klein.IndexOf(woord, positie + woord.Length);
+}
+```
+
+`new string('*', 5)` maakt een string van 5 sterretjes.
+
+#! voorbeeld
+## Insert, Remove en Replace
+
+```csharp
+string tekst = "Ik leer programmeren";
+tekst = tekst.Insert(7, " graag");
+Console.WriteLine(tekst);
+tekst = tekst.Remove(0, 3);
+Console.WriteLine(tekst);
+tekst = tekst.Replace("graag", "heel graag");
+Console.WriteLine(tekst);
+string sterren = new string('*', 4);
+Console.WriteLine(sterren);
+```
+
+#! voorspel id=v1 type=output
+Wat drukt deze code af?
+```csharp
+string s = "banaan";
+string t = s.Replace("a", "o");
+Console.WriteLine(s);
+Console.WriteLine(t);
+```
+? Replace geeft een nieuwe string terug ("bonoon"); `s` zelf blijft "banaan".
+
+#! voorspel id=v2 type=output
+Wat drukt deze code af?
+```csharp
+string s = "programmeren";
+Console.WriteLine(s.Remove(3, 4));
+Console.WriteLine(s.Insert(0, ">> "));
+```
+? `Remove(3, 4)` haalt "gram" weg (index 3 t.e.m. 6): "promeren". `Insert(0, ">> ")` zet tekst vooraan.
+
+#! oefening id=L05-05-a rol=oefenen moeilijkheid=2 xp=60 titel="Geen scheldwoorden" bron="D09geenscheldwoorden"
+Schrijf een programma dat de gebruiker om een tekst vraagt en toont of deze tekst aanvaardbaar is. De tekst wordt enkel aanvaard als er **geen scheldwoorden** in voorkomen. De zoektocht is hoofdletterongevoelig. Gebruik deze lijst:
+
+```csharp norun
+string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+```
+
+```text
+Geef een tekst : Wat een Sukkel ben jij
+Deze tekst is niet aanvaardbaar.
+```
+
+```text
+Geef een tekst : Wat een leuke dag
+Deze tekst is aanvaardbaar.
+```
+
+(Een woord als "nulpunt" bevat ook "nul" — voor deze oefening is dat dus ook niet aanvaardbaar.)
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+
+        }
+    }
+}
+
+#! hint
+Zet de tekst één keer om naar kleine letters. Controleer dan voor elk scheldwoord of het erin voorkomt.
+
+#! hint
+`tekst.Contains(scheldwoord)` geeft true als het scheldwoord ergens in de tekst staat. Stop met zoeken zodra je er één vond.
+
+#! hint
+`bool aanvaardbaar = true; foreach (string woord in scheldwoorden) { if (tekst.Contains(woord)) { aanvaardbaar = false; break; } }`
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine().ToLower();
+            bool aanvaardbaar = true;
+            foreach (string scheldwoord in scheldwoorden) {
+                if (tekst.Contains(scheldwoord)) {
+                    aanvaardbaar = false;
+                    break;
+                }
+            }
+            if (aanvaardbaar) {
+                Console.WriteLine("Deze tekst is aanvaardbaar.");
+            } else {
+                Console.WriteLine("Deze tekst is niet aanvaardbaar.");
+            }
+        }
+    }
+}
+
+#! uitleg
+- De tekst wordt één keer naar kleine letters omgezet; de scheldwoorden staan al in kleine letters.
+- `Contains` zoekt een deeltekst. Daardoor wordt "nulpunt" ook geweigerd — wil je enkel hele woorden, dan combineer je Split met een vergelijking per woord.
+- `break` stopt zodra het antwoord gekend is.
+
+#! regel type=uses doel=Contains bericht="Gebruik Contains (of IndexOf) om te zoeken"
+
+#! test naam="Niet aanvaardbaar"
+#! invoer
+Wat een Sukkel ben jij
+#! verwacht
+Geef een tekst : Wat een Sukkel ben jij
+Deze tekst is niet aanvaardbaar.
+
+#! test naam="Aanvaardbaar" referentie=ja
+#! invoer
+Wat een leuke dag
+
+#! test naam="Laatste scheldwoord in hoofdletters" referentie=ja verborgen=ja
+#! invoer
+LOMPERIK!
+
+#! oefening id=L05-05-m rol=meesterschap moeilijkheid=4 xp=130 titel="Censuur" bron="D09censuur"
+Schrijf een programma dat de gebruiker om een tekst vraagt en diezelfde tekst **gecensureerd** weergeeft. Elk scheldwoord uit de lijst wordt vervangen door een even lange rij sterretjes (bv. druiloor wordt `********`).
+
+```csharp norun
+string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+```
+
+Let op:
+
+- een scheldwoord kan **meermaals** voorkomen;
+- een scheldwoord kan op vele manieren geschreven worden met hoofdletters en kleine letters — die moeten allemaal gecensureerd worden;
+- de rest van de tekst moet **identiek** blijven aan het origineel (hoofdletters behouden!).
+
+```text
+Geef een tekst : De grootste DRUILOOR van Gent is een sukkel en een Sukkel
+De grootste ******** van Gent is een ****** en een ******
+```
+
+#! starter
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+
+        }
+    }
+}
+
+#! hint
+`Replace` is hoofdlettergevoelig, dus "DRUILOOR" wordt niet vervangen. Zoek de posities in een kleine-letterversie van de tekst, maar vervang in de originele tekst.
+
+#! hint
+Per scheldwoord: `int positie = tekst.ToLower().IndexOf(scheldwoord);` en zolang `positie != -1`: vervang met `Remove` + `Insert` en zoek verder vanaf `positie + scheldwoord.Length`.
+
+#! hint
+`string sterren = new string('*', scheldwoord.Length); tekst = tekst.Remove(positie, scheldwoord.Length).Insert(positie, sterren); positie = tekst.ToLower().IndexOf(scheldwoord, positie + scheldwoord.Length);`
+
+#! oplossing
+using System;
+
+namespace D09 {
+    class Program {
+        static void Main(string[] args) {
+            string[] scheldwoorden = { "druiloor", "sukkel", "kluns", "nul", "lomperik" };
+            Console.Write("Geef een tekst : ");
+            string tekst = Console.ReadLine();
+            foreach (string scheldwoord in scheldwoorden) {
+                string sterren = new string('*', scheldwoord.Length);
+                int positie = tekst.ToLower().IndexOf(scheldwoord);
+                while (positie != -1) {
+                    tekst = tekst.Remove(positie, scheldwoord.Length).Insert(positie, sterren);
+                    positie = tekst.ToLower().IndexOf(scheldwoord, positie + scheldwoord.Length);
+                }
+            }
+            Console.WriteLine(tekst);
+        }
+    }
+}
+
+#! uitleg
+- **Zoeken** gebeurt hoofdletterongevoelig in `tekst.ToLower()`; **vervangen** in de originele tekst, zodat de rest van de tekst zijn hoofdletters behoudt.
+- `Remove` + `Insert` op dezelfde positie = een vervanging van precies dat stuk.
+- Na een vervanging zoeken we verder ná de sterretjes. Omdat de sterretjes even lang zijn als het scheldwoord, verschuift er niets.
+- In de cursus volgt **D09censuuruitbreiding**: laat de eerste en laatste letter staan (`d******r`). Probeer het in het Code Lab!
+
+#! regel type=uses doel=IndexOf bericht="Zoek de posities met IndexOf"
+
+#! test naam="Meerdere en hoofdletters"
+#! invoer
+De grootste DRUILOOR van Gent is een sukkel en een Sukkel
+#! verwacht
+Geef een tekst : De grootste DRUILOOR van Gent is een sukkel en een Sukkel
+De grootste ******** van Gent is een ****** en een ******
+
+#! test naam="Geen scheldwoorden" referentie=ja
+#! invoer
+Wat een mooie dag in Brugge
+
+#! test naam="Scheldwoord in een ander woord" referentie=ja verborgen=ja
+#! invoer
+Een Nulpunt voor die KlUnS

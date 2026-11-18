@@ -1,0 +1,278 @@
+#! lesson
+id: L07-01
+titel: Softwareontwerp: programma's opdelen
+samenvatting: Complexe problemen opdelen in kleine methods met één duidelijke verantwoordelijkheid.
+skills: methods, parameters
+bron: Deel 11 – 1. Software ontwerp, 2.1. Samenvatting methods · D11letterscore, D11kader
+duur: 25
+
+#! begrijpen
+## Complexiteit beheersen (Deel 11 §1)
+
+De meeste realistische programma's zijn groot en complex. Die complexiteit komt vooral doordat we ingewikkelde problemen oplossen. Quasi alle programmeertalen bieden mogelijkheden om die complexiteit te beheersen. De belangrijkste: een groot probleem **opdelen** in kleinere deelproblemen, elk opgelost in een eigen method.
+
+Een goed ontworpen method:
+
+- heeft **één duidelijke taak** (beschrijf ze in één zin zonder "en");
+- heeft een **naam** die die taak beschrijft (`GetLetterCodeForPercentage`, `ToonInKader`);
+- krijgt wat ze nodig heeft via **parameters** en geeft haar antwoord via een **return value**;
+- is **klein**: je ziet ze in één oogopslag.
+
+## Top-down ontwerpen
+
+1. Schrijf `Main` alsof de methods al bestaan: `string letter = GetLetterCodeForPercentage(score);`
+2. Werk daarna elke method uit. Is een method te groot, deel ze dan zelf weer op.
+
+Zo lees je `Main` als een **inhoudstafel** van je programma.
+
+## Samenvatting methods (Deel 11 §2.1)
+
+| Begrip | Voorbeeld |
+|---|---|
+| definitie | `static string GetLetter(int score) { ... }` |
+| parameter | `int score` |
+| argument | `GetLetter(72)` → 72 |
+| return type | `string` (of `void` als er niets teruggegeven wordt) |
+| query | geeft een waarde terug, toont niets |
+| command | voert een actie uit, bv. output |
+
+#! voorbeeld
+## Top-down: eerst Main, dan de details
+
+```csharp invoer="72"
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int score = VraagScore();
+        string letter = GetLetterCodeForPercentage(score);
+        ToonResultaat(letter);
+    }
+
+    static int VraagScore() {
+        Console.Write("Geef de score in % : ");
+        return int.Parse(Console.ReadLine());
+    }
+
+    static string GetLetterCodeForPercentage(int score) {
+        if (score > 82) return "A";
+        if (score > 67) return "B";
+        if (score > 52) return "C";
+        if (score > 37) return "D";
+        if (score > 22) return "E";
+        return "F";
+    }
+
+    static void ToonResultaat(string letter) {
+        Console.WriteLine($"In Amerika is dat een \"{letter}\"");
+    }
+}
+```
+
+Main bestaat uit drie regels die het hele verhaal vertellen.
+
+#! voorspel id=v1 type=choice
+Welke method heeft **één duidelijke taak**?
+- static void LeesInEnBerekenEnToon()
++ static double GetBtwBedrag(double prijs)
+- static void DoeAlles()
+- static int Verwerk(int x)
+? `GetBtwBedrag` zegt precies wat ze doet en geeft één antwoord terug. Namen met "En" of vage namen wijzen op methods die te veel doen.
+
+#! voorspel id=v2 type=output
+Wat drukt dit af?
+```csharp
+using System;
+class Program {
+    static void Main() {
+        Console.WriteLine(GetLetter(90) + GetLetter(60) + GetLetter(10));
+    }
+    static string GetLetter(int score) {
+        if (score > 82) return "A";
+        if (score > 52) return "C";
+        return "F";
+    }
+}
+```
+? 90 → "A", 60 → "C", 10 → "F". De strings worden aan elkaar geplakt: ACF.
+
+#! oefening id=L07-01-a rol=oefenen moeilijkheid=2 xp=70 titel="Lettercode" bron="D11letterscore"
+Vul het programma aan met de method `GetLetterCodeForPercentage`. Deze method krijgt een score in procent en geeft de Amerikaanse lettercode terug (zie D04score):
+
+- A indien score > 82
+- B indien score > 67 en ≤ 82
+- C indien score > 52 en ≤ 67
+- D indien score > 37 en ≤ 52
+- E indien score > 22 en ≤ 37
+- F indien score ≤ 22
+
+```text
+Geef de score in % : 70
+In Amerika is dat een "B"
+```
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de score in % : ");
+            string scoreAlsTekst = Console.ReadLine();
+            int score = int.Parse(scoreAlsTekst);
+            string letter = GetLetterCodeForPercentage(score);
+            Console.WriteLine($"In Amerika is dat een \"{letter}\"");
+        }
+    }
+}
+
+#! hint
+De method wordt al opgeroepen in Main. Welke hoofding moet ze hebben (return type, naam, parameter)?
+
+#! hint
+`static string GetLetterCodeForPercentage(int score)`. Gebruik interval checking: begin bij de hoogste grens.
+
+#! hint
+Met `return` kan je meteen uit de method springen: `if (score > 82) { return "A"; }` … en op het einde `return "F";`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Geef de score in % : ");
+            string scoreAlsTekst = Console.ReadLine();
+            int score = int.Parse(scoreAlsTekst);
+            string letter = GetLetterCodeForPercentage(score);
+            Console.WriteLine($"In Amerika is dat een \"{letter}\"");
+        }
+
+        static string GetLetterCodeForPercentage(int score) {
+            if (score > 82) {
+                return "A";
+            } else if (score > 67) {
+                return "B";
+            } else if (score > 52) {
+                return "C";
+            } else if (score > 37) {
+                return "D";
+            } else if (score > 22) {
+                return "E";
+            }
+            return "F";
+        }
+    }
+}
+
+#! uitleg
+- De method is een query: ze geeft een string terug en toont zelf niets.
+- Interval checking + `return`: zodra een grens klopt, verlaat de method de if-structuur.
+- De laatste `return "F";` zorgt dat élk pad een waarde teruggeeft.
+
+#! regel type=method doel=GetLetterCodeForPercentage geeft=string parameters=1 bericht="Maak een method static string GetLetterCodeForPercentage(int score)"
+
+#! test naam="70 → B"
+#! invoer
+70
+#! verwacht
+Geef de score in % : 70
+In Amerika is dat een "B"
+
+#! test naam="Alle grenzen" soort=code
+Check.Equal("A", Program.GetLetterCodeForPercentage(83), "83");
+Check.Equal("B", Program.GetLetterCodeForPercentage(82), "82");
+Check.Equal("B", Program.GetLetterCodeForPercentage(68), "68");
+Check.Equal("C", Program.GetLetterCodeForPercentage(67), "67");
+Check.Equal("D", Program.GetLetterCodeForPercentage(52), "52");
+Check.Equal("E", Program.GetLetterCodeForPercentage(37), "37");
+Check.Equal("F", Program.GetLetterCodeForPercentage(22), "22");
+Check.Equal("F", Program.GetLetterCodeForPercentage(0), "0");
+
+#! oefening id=L07-01-m rol=meesterschap moeilijkheid=3 xp=100 titel="Tekst in een kader" bron="D11kader"
+Schrijf een method `ToonInKader` met 1 string-parameter. Deze method toont de meegegeven string tussen sterretjes:
+
+```csharp norun
+static void Main() {
+    ToonInKader("Hallo");
+    ToonInKader("C# Quest");
+}
+```
+
+```text
+*********
+* Hallo *
+*********
+************
+* C# Quest *
+************
+```
+
+Tussen de tekst en de sterretjes aan de zijkant staat telkens één spatie. Deel je oplossing op: maak ook een method `ToonLijn(int lengte)` die een lijn van sterretjes toont.
+
+#! starter
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            ToonInKader("Hallo");
+            ToonInKader("C# Quest");
+        }
+    }
+}
+
+#! hint
+Hoe lang is de bovenste lijn? Tel voor "Hallo": tekst (5) + 2 spaties + 2 sterretjes = 9.
+
+#! hint
+`ToonLijn(int lengte)` toont `lengte` sterretjes en sluit af met een nieuwe regel. `ToonInKader` roept ToonLijn twee keer op met `tekst.Length + 4`.
+
+#! hint
+De middelste regel is `$"* {tekst} *"`.
+
+#! oplossing
+using System;
+
+namespace D11 {
+    class Program {
+        static void Main(string[] args) {
+            ToonInKader("Hallo");
+            ToonInKader("C# Quest");
+        }
+
+        static void ToonInKader(string tekst) {
+            int breedte = tekst.Length + 4;
+            ToonLijn(breedte);
+            Console.WriteLine($"* {tekst} *");
+            ToonLijn(breedte);
+        }
+
+        static void ToonLijn(int lengte) {
+            for (int i = 0; i < lengte; i++) {
+                Console.Write("*");
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+#! uitleg
+- `ToonInKader` delegeert het tekenen van een lijn aan `ToonLijn`: elke method één taak.
+- De breedte wordt één keer berekend en twee keer gebruikt.
+
+#! regel type=method doel=ToonInKader geeft=void parameters=1 bericht="Maak een method static void ToonInKader(string tekst)"
+#! regel type=method doel=ToonLijn geeft=void parameters=1 bericht="Maak een method static void ToonLijn(int lengte)"
+
+#! test naam="Main" mode=exact
+#! verwacht
+*********
+* Hallo *
+*********
+************
+* C# Quest *
+************
+
+#! test naam="ToonInKader met andere tekst" soort=code
+Check.OutputEqual("*****\n* A *\n*****\n", () => Program.ToonInKader("A"), "ToonInKader(\"A\")");
+Check.OutputEqual("***\n", () => Program.ToonLijn(3), "ToonLijn(3)");

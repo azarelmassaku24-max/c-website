@@ -1,0 +1,301 @@
+#! lesson
+id: L06-05
+titel: De call stack en debuggen met Step Into, Over en Out
+samenvatting: Methodactivaties volgen op de call stack, activatierecords en de debugger efficiënt gebruiken.
+skills: call-stack, methods
+bron: Deel 10 – 3. Geavanceerd gebruik van de debugger (3.1 Call Stack, Step Into/Over/Out, 3.2 Breakpoints, Run execution to here, activatierecords)
+duur: 30
+
+#! begrijpen
+## De call stack (Deel 10 §3.1.1)
+
+Wanneer een method een andere method oproept, onthoudt het programma waar het moet terugkeren. Dat gebeurt op de **call stack**: een stapel van **activatierecords**.
+
+- Bij elke method call komt er een activatierecord **bovenop** de stapel, met de parameters en lokale variabelen van die activatie.
+- Wanneer de method eindigt (of `return` bereikt), wordt het bovenste record **verwijderd** en gaat het programma verder in de method eronder.
+- Bovenaan staat dus altijd de method die **nu** actief is.
+
+Roept een method zichzelf op (*recursie*), dan staan er meerdere records van dezelfde method op de stapel — elk met hun eigen lokale variabelen! Zonder stopvoorwaarde loopt de stapel vol: **StackOverflowException**.
+
+## Door de code stappen (§3.1.2)
+
+| Knop | Sneltoets | Wat gebeurt er? |
+|---|---|---|
+| **Step Into** | F11 | voer de volgende regel uit; is het een method call, **stap erin** |
+| **Step Over** | F10 | voer de volgende regel volledig uit, ook een method call (je stapt er "over") |
+| **Step Out** | Shift+F11 | voer de rest van de huidige method uit en stop in de oproepende method |
+
+## Uitvoering pauzeren (§3.2)
+
+- **Breakpoint**: klik in de marge naast een regelnummer. Met **Doorgaan** (F5) loopt het programma tot het volgende breakpoint.
+- **Run execution to here**: in Visual Studio kan je het programma laten doorlopen tot een bepaalde regel zonder breakpoint.
+
+In C# Quest werken deze knoppen in de **Debugger** — mét de mogelijkheid om terug te stappen in de tijd, omdat de debugger je volledige uitvoering registreert.
+
+#! voorbeeld
+## Volg de call stack
+
+Start **Stap voor stap**, open **Call Stack** en gebruik **Into**, **Over** en **Out**. Zet ook eens een breakpoint op de regel in `Kwadraat` en klik **Doorgaan**.
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        int totaal = SomVanKwadraten(3);
+        Console.WriteLine($"Totaal: {totaal}");
+    }
+
+    static int SomVanKwadraten(int tot) {
+        int som = 0;
+        for (int i = 1; i <= tot; i++) {
+            som += Kwadraat(i);
+        }
+        return som;
+    }
+
+    static int Kwadraat(int getal) {
+        return getal * getal;
+    }
+}
+```
+
+## Recursie: dezelfde method meermaals op de stapel
+
+```csharp
+using System;
+
+class Program {
+    static void Main(string[] args) {
+        Console.WriteLine(Faculteit(4));
+    }
+
+    static int Faculteit(int n) {
+        if (n <= 1) {
+            return 1;
+        }
+        return n * Faculteit(n - 1);
+    }
+}
+```
+
+Bij `Faculteit(1)` staan er vier activatierecords van `Faculteit` op de stapel, elk met een eigen `n`.
+
+#! voorspel id=v1 type=text antwoord=3
+In het eerste voorbeeld: hoeveel activatierecords staan er **maximaal** tegelijk op de call stack (Main inbegrepen)?
+? Main → SomVanKwadraten → Kwadraat: 3 records. Kwadraat wordt telkens verwijderd voor de volgende oproep.
+
+#! voorspel id=v2 type=choice
+Je staat op de regel `som += Kwadraat(i);` en wil `Kwadraat` niet in detail volgen. Welke knop gebruik je?
+- Step Into
++ Step Over
+- Step Out
+- Doorgaan
+? Step Over voert de regel (inclusief de method call) volledig uit en stopt op de volgende regel van dezelfde method.
+
+#! voorspel id=v3 type=choice
+Wat gebeurt er als een method zichzelf oproept zonder stopvoorwaarde?
+- Het programma blijft eindeloos draaien zonder fout
++ De call stack loopt vol: StackOverflowException
+- Compileerfout
+- De method wordt maar één keer uitgevoerd
+? Elke oproep zet een nieuw activatierecord op de stapel. Zonder stopvoorwaarde raakt die vol en crasht het programma.
+
+#! oefening id=L06-05-a rol=oefenen moeilijkheid=2 xp=70 titel="Dagen in februari" bron="D10dagenfebruari"
+Maak een method die antwoordt op de vraag hoeveel dagen er in februari zijn van een bepaald jaar. Gebruik de gegeven method `IsSchrikkeljaar`.
+
+```text
+Jaar?: 2016
+In februari van 2016 zijn er 29 dagen.
+```
+
+Noem je method `GetAantalDagenInFebruari(int jaar)`. In de cursus herhaalt het programma eindeloos; onze versie vraagt één jaar.
+
+Gebruik daarna de **debugger** met **Step Into** om te zien hoe je method op haar beurt `IsSchrikkeljaar` oproept.
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Jaar?: ");
+            int jaar = int.Parse(Console.ReadLine());
+            Console.WriteLine($"In februari van {jaar} zijn er ... dagen.");
+        }
+
+        static bool IsSchrikkeljaar(int jaartal) {
+            return (jaartal % 400 == 0 || jaartal % 4 == 0 && jaartal % 100 != 0);
+        }
+    }
+}
+
+#! hint
+Je method is een query: ze geeft een `int` terug. Welke twee mogelijke antwoorden zijn er?
+
+#! hint
+`static int GetAantalDagenInFebruari(int jaar) { if (IsSchrikkeljaar(jaar)) return 29; return 28; }`
+
+#! hint
+Vervang de `...` in Main door de method call: `{GetAantalDagenInFebruari(jaar)}`.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            Console.Write("Jaar?: ");
+            int jaar = int.Parse(Console.ReadLine());
+            Console.WriteLine($"In februari van {jaar} zijn er {GetAantalDagenInFebruari(jaar)} dagen.");
+        }
+
+        static int GetAantalDagenInFebruari(int jaar) {
+            if (IsSchrikkeljaar(jaar)) {
+                return 29;
+            }
+            return 28;
+        }
+
+        static bool IsSchrikkeljaar(int jaartal) {
+            return (jaartal % 400 == 0 || jaartal % 4 == 0 && jaartal % 100 != 0);
+        }
+    }
+}
+
+#! uitleg
+- Methods bouwen op elkaar: `GetAantalDagenInFebruari` hergebruikt `IsSchrikkeljaar`. Zo blijft elke method klein en duidelijk.
+- Op de call stack staan tijdens de uitvoering kort drie records: Main → GetAantalDagenInFebruari → IsSchrikkeljaar.
+
+#! regel type=method doel=GetAantalDagenInFebruari geeft=int parameters=1 bericht="Maak een method static int GetAantalDagenInFebruari(int jaar)"
+#! regel type=calls doel=IsSchrikkeljaar bericht="Hergebruik de method IsSchrikkeljaar"
+
+#! test naam="2016"
+#! invoer
+2016
+#! verwacht
+Jaar?: 2016
+In februari van 2016 zijn er 29 dagen.
+
+#! test naam="2100 (deelbaar door 100)" referentie=ja
+#! invoer
+2100
+
+#! test naam="GetAantalDagenInFebruari" soort=code
+Check.Equal(29, Program.GetAantalDagenInFebruari(2016), "2016");
+Check.Equal(28, Program.GetAantalDagenInFebruari(2017), "2017");
+Check.Equal(28, Program.GetAantalDagenInFebruari(2100), "2100");
+Check.Equal(29, Program.GetAantalDagenInFebruari(2000), "2000");
+
+#! oefening id=L06-05-m rol=meesterschap moeilijkheid=4 xp=130 titel="Puntenrapport met queries en commands"
+Schrijf een programma dat een rapport van scores toont, opgebouwd uit kleine methods:
+
+- `static int GetSom(int[] scores)` — query
+- `static double GetGemiddelde(int[] scores)` — query, gebruikt `GetSom`; voor een lege array geeft ze 0
+- `static int GetHoogste(int[] scores)` — query (je mag ervan uitgaan dat de array niet leeg is)
+- `static void ToonRapport(int[] scores)` — command, toont het rapport en gebruikt de drie queries
+
+`Main` maakt `int[] scores = { 14, 9, 17, 12 };` en roept `ToonRapport(scores)` op.
+
+```text
+Scores: 14, 9, 17, 12
+Totaal: 52
+Gemiddelde: 13
+Hoogste: 17
+```
+
+Toon het gemiddelde met `{gemiddelde}` (zonder format string).
+
+#! starter
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            int[] scores = { 14, 9, 17, 12 };
+
+        }
+    }
+}
+
+#! hint
+Schrijf eerst de drie queries, elk met een return value. Ze tonen zelf niets. Test ze in Main voor je ToonRapport schrijft.
+
+#! hint
+`GetGemiddelde`: `if (scores.Length == 0) return 0; return (double)GetSom(scores) / scores.Length;` — let op de cast naar double.
+
+#! hint
+`ToonRapport` toont vier regels en roept daarvoor `String.Join`, `GetSom`, `GetGemiddelde` en `GetHoogste` op.
+
+#! oplossing
+using System;
+
+namespace D10 {
+    class Program {
+        static void Main(string[] args) {
+            int[] scores = { 14, 9, 17, 12 };
+            ToonRapport(scores);
+        }
+
+        static void ToonRapport(int[] scores) {
+            Console.WriteLine($"Scores: {String.Join(", ", scores)}");
+            Console.WriteLine($"Totaal: {GetSom(scores)}");
+            Console.WriteLine($"Gemiddelde: {GetGemiddelde(scores)}");
+            Console.WriteLine($"Hoogste: {GetHoogste(scores)}");
+        }
+
+        static int GetSom(int[] scores) {
+            int som = 0;
+            foreach (int score in scores) {
+                som += score;
+            }
+            return som;
+        }
+
+        static double GetGemiddelde(int[] scores) {
+            if (scores.Length == 0) {
+                return 0;
+            }
+            return (double)GetSom(scores) / scores.Length;
+        }
+
+        static int GetHoogste(int[] scores) {
+            int hoogste = scores[0];
+            foreach (int score in scores) {
+                if (score > hoogste) {
+                    hoogste = score;
+                }
+            }
+            return hoogste;
+        }
+    }
+}
+
+#! uitleg
+- **Queries** berekenen (en tonen niets); de enige **command** toont het rapport. Zo kan je de berekeningen hergebruiken en apart testen — precies wat de automatische tests hier doen.
+- `GetGemiddelde` hergebruikt `GetSom` (DRY) en vangt de lege array op.
+- Volg in de debugger hoe ToonRapport → GetGemiddelde → GetSom op de call stack komen.
+
+#! regel type=method doel=GetSom geeft=int parameters=1 bericht="Maak een query static int GetSom(int[] scores)"
+#! regel type=method doel=GetGemiddelde geeft=double parameters=1 bericht="Maak een query static double GetGemiddelde(int[] scores)"
+#! regel type=method doel=GetHoogste geeft=int parameters=1 bericht="Maak een query static int GetHoogste(int[] scores)"
+#! regel type=method doel=ToonRapport geeft=void parameters=1 bericht="Maak een command static void ToonRapport(int[] scores)"
+
+#! test naam="Rapport"
+#! verwacht
+Scores: 14, 9, 17, 12
+Totaal: 52
+Gemiddelde: 13
+Hoogste: 17
+
+#! test naam="De queries berekenen correct" soort=code
+int[] scores = { 3, 8, 4 };
+Check.Equal(15, Program.GetSom(scores), "GetSom({3, 8, 4})");
+Check.Equal(5.0, Program.GetGemiddelde(scores), "GetGemiddelde({3, 8, 4})");
+Check.Equal(8, Program.GetHoogste(scores), "GetHoogste({3, 8, 4})");
+Check.Equal(0.0, Program.GetGemiddelde(new int[0]), "GetGemiddelde van een lege array");
+Check.Equal(-2, Program.GetHoogste(new int[] { -5, -2, -9 }), "GetHoogste met negatieve getallen");
+
+#! test naam="Queries tonen niets" soort=code
+string output = Check.Output(() => { Program.GetSom(new int[] { 1 }); Program.GetGemiddelde(new int[] { 1 }); Program.GetHoogste(new int[] { 1 }); });
+Check.True(output == "", "GetSom, GetGemiddelde en GetHoogste schrijven niets naar de console");
